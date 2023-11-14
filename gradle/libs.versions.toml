@@ -19,7 +19,7 @@ kotlinLogging = "5.1.0"
 ktor = "2.3.6"
 
 # https://arrow-kt.io/
-arrow = "1.2.0"
+arrow = "1.2.1"
 
 androidTools = "31.3.0-alpha12"
 
