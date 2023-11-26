@@ -1,0 +1,6 @@
+dependencies:
+  - 'gradle/libs.versions.toml'
+cli:
+  - 'cli/*'
+library:
+  - 'library/*'

@@ -1,0 +1,15 @@
+.gradle
+build/
+
+# IntelliJ
+*.iml
+.idea/*
+!.idea/codeStyles/
+!.idea/runConfigurations/
+
+out/
+
+local.properties
+temp/
+
+logs/
