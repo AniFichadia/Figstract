@@ -1,7 +1,7 @@
 [versions]
 # https://kotlinlang.org/
 # https://kotlinlang.org/docs/releases.html
-kotlin = "1.9.20"
+kotlin = "1.9.21"
 # https://github.com/Kotlin/kotlinx.coroutines
 kotlinx-coroutines = "1.7.3"
 # https://github.com/Kotlin/kotlinx.serialization
