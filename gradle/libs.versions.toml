@@ -12,7 +12,7 @@ kotlinx-cli = "0.3.6"
 # https://github.com/oshai/kotlin-logging
 kotlinLogging = "5.1.1"
 # http://logback.qos.ch/download.html
-logback = "1.4.11"
+logback = "1.4.14"
 
 # https://ktor.io/
 ktor = "2.3.6"
