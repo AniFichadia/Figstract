@@ -3,11 +3,10 @@ package com.anifichadia.figmaimporter.android.model.importing
 import com.android.ide.common.vectordrawable.Svg2Vector
 import com.anifichadia.figmaimporter.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Output.Companion.single
+import com.anifichadia.figmaimporter.util.FileManagement
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.delay
 import java.io.ByteArrayOutputStream
-import java.nio.file.Files
-import java.nio.file.Paths
 
 /**
  * Starting point referenced from:
@@ -16,14 +15,11 @@ import java.nio.file.Paths
  * https://android.googlesource.com/platform/tools/base/+/master/sdk-common/src/main/java/com/android/ide/common/vectordrawable/Svg2Vector.java
  */
 val androidSvgToAvd = ImportPipeline.Step("androidSvgToAvd()") { instruction, input ->
-    val tempDirectoryPath = Paths.get("", "temp", "avdConversion").also {
-        it.toAbsolutePath().toFile().apply {
-            mkdirs()
-            deleteOnExit()
-        }
-    }
-    val tempOutputPath =
-        Files.createTempFile(tempDirectoryPath, "${instruction.import.importTarget.outputName}_", ".svg")
+    val tempOutputPath = FileManagement.stepCreateTempFile(
+        stepName = "androidSvgToAvd",
+        prefix = "${instruction.import.importTarget.outputName}_",
+        suffix = ".svg",
+    )
     val outputFile = tempOutputPath.toFile().also {
         it.deleteOnExit()
     }

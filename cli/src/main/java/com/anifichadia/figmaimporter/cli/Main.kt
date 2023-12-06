@@ -33,6 +33,7 @@ import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Compani
 import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figmaimporter.model.tracking.NoOpProcessingRecordRepository
 import com.anifichadia.figmaimporter.type.fold
+import com.anifichadia.figmaimporter.util.FileManagement
 import com.anifichadia.figmaimporter.util.ToUpperCamelCase
 import com.anifichadia.figmaimporter.util.createLogger
 import com.anifichadia.figmaimporter.util.sanitise
@@ -71,7 +72,7 @@ suspend fun main(args: Array<String>) {
     val authProvider = authType.createAuthProvider(authToken)
     val proxy = getProxyConfig(proxyHost, proxyPort)
 
-    val outDirectory = Paths.get("", outPath).toAbsolutePath().toFile()
+    val outDirectory = FileManagement.outDirectory(outPath)
 
     val androidEnabled = true
     val iosEnabled = true
