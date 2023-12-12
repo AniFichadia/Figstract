@@ -8,6 +8,7 @@ version = "0.0.1-alpha01"
 
 dependencies {
     implementation(project(":library-core"))
+    implementation(project(":cli-core"))
     implementation(project(":library-android"))
     implementation(project(":library-ios"))
 

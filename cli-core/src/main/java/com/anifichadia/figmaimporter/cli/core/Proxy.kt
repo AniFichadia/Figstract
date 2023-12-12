@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core
 
 import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.engine.ProxyConfig

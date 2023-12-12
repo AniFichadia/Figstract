@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core
 
 import com.anifichadia.figmaimporter.apiclient.AuthProvider
 import com.anifichadia.figmaimporter.figma.api.AccessToken
