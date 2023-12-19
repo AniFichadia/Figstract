@@ -5,6 +5,7 @@ import com.anifichadia.figmaimporter.figma.Number
 import kotlinx.serialization.Polymorphic
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import com.anifichadia.figmaimporter.figma.model.Rectangle as BoundingBox
 
 // TODO: build out full Node structure
 @Polymorphic
@@ -22,6 +23,10 @@ sealed interface Node {
 
     interface Fillable : Node {
         val fills: List<Paint>
+    }
+
+    interface Placeable : Node {
+        val absoluteBoundingBox: BoundingBox?
     }
 
     @Serializable
@@ -76,8 +81,10 @@ sealed interface Node {
         val rectangleCornerRadiiNumber: List<Number> = emptyList(),
         val cornerSmoothing: Number? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
-    ) : Node, Parent, Fillable
+    ) : Node, Parent, Fillable, Placeable
 
     /** [Frame] and [Group] are identical */
     @Serializable
@@ -93,8 +100,10 @@ sealed interface Node {
 
         override val fills: List<Paint> = emptyList(),
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
-    ) : Node, Parent, Fillable
+    ) : Node, Parent, Fillable, Placeable
 
     @Serializable
     @SerialName("SECTION")
@@ -107,8 +116,10 @@ sealed interface Node {
 
         override val children: List<Node>,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Parent, Fillable
+    ) : Node, Parent, Fillable, Placeable
 
     @Serializable
     @SerialName("VECTOR")
@@ -121,8 +132,10 @@ sealed interface Node {
 
         override val fills: List<Paint> = emptyList(),
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("BOOLEAN_OPERATION")
@@ -135,8 +148,10 @@ sealed interface Node {
 
         override val children: List<Node>,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
-    ) : Node, Parent
+    ) : Node, Parent, Placeable
 
     @Serializable
     @SerialName("STAR")
@@ -147,8 +162,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("LINE")
@@ -159,8 +176,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("ELLIPSE")
@@ -171,8 +190,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("REGULAR_POLYGON")
@@ -183,8 +204,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("RECTANGLE")
@@ -195,8 +218,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("TABLE")
@@ -207,8 +232,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("TABLE_CELL")
@@ -219,8 +246,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("TEXT")
@@ -230,7 +259,9 @@ sealed interface Node {
         override val visible: Boolean = true,
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
-    ) : Node
+
+        override val absoluteBoundingBox: BoundingBox? = null,
+    ) : Node, Placeable
 
     @Serializable
     @SerialName("SLICE")
@@ -241,8 +272,10 @@ sealed interface Node {
         override val rotation: Number? = null,
         override val componentPropertyReferences: Map<String, String>? = null,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
-    ) : Node
+    ) : Node, Placeable
 
     @Serializable
     @SerialName("COMPONENT")
@@ -255,8 +288,10 @@ sealed interface Node {
 
         override val children: List<Node>,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
-    ) : Node, Parent
+    ) : Node, Parent, Placeable
 
     @Serializable
     @SerialName("COMPONENT_SET")
@@ -269,8 +304,10 @@ sealed interface Node {
 
         override val children: List<Node>,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
-    ) : Node, Parent
+    ) : Node, Parent, Placeable
 
     @Serializable
     @SerialName("INSTANCE")
@@ -283,10 +320,12 @@ sealed interface Node {
 
         override val children: List<Node>,
 
+        override val absoluteBoundingBox: BoundingBox? = null,
+
         val exportSettings: List<ExportSetting> = emptyList(),
 
         val componentId: String,
-    ) : Node, Parent
+    ) : Node, Parent, Placeable
 
     @Serializable
     @SerialName("STICKY")
@@ -298,7 +337,9 @@ sealed interface Node {
         override val componentPropertyReferences: Map<String, String>? = null,
 
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+
+        override val absoluteBoundingBox: BoundingBox? = null,
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("SHAPE_WITH_TEXT")
@@ -310,7 +351,9 @@ sealed interface Node {
         override val componentPropertyReferences: Map<String, String>? = null,
 
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+
+        override val absoluteBoundingBox: BoundingBox? = null,
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("CONNECTOR")
@@ -322,7 +365,9 @@ sealed interface Node {
         override val componentPropertyReferences: Map<String, String>? = null,
 
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+
+        override val absoluteBoundingBox: BoundingBox? = null,
+    ) : Node, Fillable, Placeable
 
     @Serializable
     @SerialName("WASHI_TAPE")
@@ -334,7 +379,9 @@ sealed interface Node {
         override val componentPropertyReferences: Map<String, String>? = null,
 
         override val fills: List<Paint> = emptyList(),
-    ) : Node, Fillable
+
+        override val absoluteBoundingBox: BoundingBox? = null,
+    ) : Node, Fillable, Placeable
 
     companion object {
         fun Node.traverseDepthFirst(action: (current: Node, parent: Parent?) -> Unit) {
