@@ -31,4 +31,5 @@ fun String.toLowerCamelCase(): String {
         }
         .joinToString("")
         .replace(spaceRegex, "")
+        .replaceFirstChar { it.lowercase() }
 }

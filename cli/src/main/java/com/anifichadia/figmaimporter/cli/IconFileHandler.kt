@@ -45,10 +45,10 @@ internal fun createIconFigmaFileHandler(
 
     val iosDirectory = File(iosOutDirectory, "icons")
     val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosDirectory)
-    val iosContentDirectory = createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Images")
+    val iosContentDirectory =
+        createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Icon")
     val iosImportPipeline = ImportPipeline(
-        // TODO right config?
-        steps = iosStoreInAssetCatalog(iosContentDirectory, Type.ICON_SET, Scale.`1x`),
+        steps = iosStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`1x`),
         // Destination is handled by steps
         destination = Destination.None,
     )
