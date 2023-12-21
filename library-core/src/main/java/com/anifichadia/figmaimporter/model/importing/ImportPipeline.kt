@@ -17,8 +17,8 @@ import kotlinx.coroutines.coroutineScope
  * Used to manipulate, process or finalise assets retrieved from figma.
  */
 data class ImportPipeline(
-    private val steps: Step = passThrough(),
-    private val destination: Destination,
+    val steps: Step = passThrough(),
+    val destination: Destination,
     val before: suspend () -> Unit = {},
     val after: suspend (successful: Boolean) -> Unit = {},
 ) {

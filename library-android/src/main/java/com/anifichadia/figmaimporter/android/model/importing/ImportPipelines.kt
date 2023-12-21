@@ -35,7 +35,13 @@ fun androidImageScaleAndStoreInDensityBucket(
     targetDensity: DensityBucket,
 ): ImportPipeline.Step {
     return scale(sourceDensity.scaleRelativeTo(targetDensity)) then
-            convertToWebPLossy() then
-            pathElementsAppend("drawable-${targetDensity.suffix}") then
-            directoryDestination(imageDirectory)
+        convertToWebPLossy() then
+        androidCreateDensityBucketPath(targetDensity) then
+        directoryDestination(imageDirectory)
+}
+
+fun androidCreateDensityBucketPath(
+    density: DensityBucket,
+): ImportPipeline.Step {
+    return pathElementsAppend("drawable-${density.suffix}")
 }
