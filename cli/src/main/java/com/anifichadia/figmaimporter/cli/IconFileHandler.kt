@@ -74,7 +74,7 @@ internal fun createIconFigmaFileHandler(
         // TODO: Set up value
         figmaFile = "",
         // Icons are smaller, so we can retrieve more at the same time
-        assetsPerChunk = 25,
+        assetsPerChunk = 50,
         lifecycle = FigmaFileHandler.Lifecycle.Combined(
             iosAssetCatalogLifecycle,
             timingLifecycle,
