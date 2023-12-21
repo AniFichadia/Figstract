@@ -27,6 +27,7 @@ import java.io.File
 @Suppress("SameParameterValue")
 internal fun createArtworkFigmaFileHandler(
     enabled: Boolean,
+    createCropped: Boolean,
     androidOutDirectory: File,
     iosOutDirectory: File,
     webOutDirectory: File,
@@ -98,14 +99,16 @@ internal fun createArtworkFigmaFileHandler(
                                     .to_snake_case(),
                                 importPipeline = androidImportPipeline,
                             )
-                            addInstruction(
-                                exportNodeId = node.id,
-                                exportConfig = androidImageXxxHdpi,
-                                importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                    .sanitise()
-                                    .to_snake_case(),
-                                importPipeline = androidImportPipeline,
-                            )
+                            if (createCropped) {
+                                addInstruction(
+                                    exportNodeId = node.id,
+                                    exportConfig = androidImageXxxHdpi,
+                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
+                                        .sanitise()
+                                        .to_snake_case(),
+                                    importPipeline = androidImportPipeline,
+                                )
+                            }
                         }
 
                         if (iosEnabled) {
@@ -117,14 +120,16 @@ internal fun createArtworkFigmaFileHandler(
                                     .to_snake_case(),
                                 importPipeline = iosImportPipeline,
                             )
-                            addInstruction(
-                                exportNodeId = node.id,
-                                exportConfig = ios3xImage,
-                                importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                    .sanitise()
-                                    .to_snake_case(),
-                                importPipeline = iosImportPipeline,
-                            )
+                            if (createCropped) {
+                                addInstruction(
+                                    exportNodeId = node.id,
+                                    exportConfig = ios3xImage,
+                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
+                                        .sanitise()
+                                        .to_snake_case(),
+                                    importPipeline = iosImportPipeline,
+                                )
+                            }
                         }
 
                         if (webEnabled) {
@@ -136,14 +141,16 @@ internal fun createArtworkFigmaFileHandler(
                                     .to_snake_case(),
                                 importPipeline = webImportPipeline,
                             )
-                            addInstruction(
-                                exportNodeId = node.id,
-                                exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                    .sanitise()
-                                    .to_snake_case(),
-                                importPipeline = webImportPipeline,
-                            )
+                            if (createCropped) {
+                                addInstruction(
+                                    exportNodeId = node.id,
+                                    exportConfig = ExportConfig(ExportSetting.Format.PNG),
+                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
+                                        .sanitise()
+                                        .to_snake_case(),
+                                    importPipeline = webImportPipeline,
+                                )
+                            }
                         }
                     }
                 }

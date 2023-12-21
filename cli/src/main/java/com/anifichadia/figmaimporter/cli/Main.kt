@@ -9,6 +9,7 @@ suspend fun main(args: Array<String>) {
     val webEnabled = true
 
     val artworkEnabled = true
+    val artworkCreateCropped = true
     val iconsEnabled = true
 
     // This is for testing. Providing a non-null value will run a take operation on the list of all instructions for each handler
@@ -22,6 +23,7 @@ suspend fun main(args: Array<String>) {
 
         val artworkFileHandler = createArtworkFigmaFileHandler(
             enabled = artworkEnabled,
+            createCropped = artworkCreateCropped,
             androidOutDirectory = androidOutDirectory,
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,
