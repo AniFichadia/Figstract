@@ -2,6 +2,7 @@ package com.anifichadia.figmaimporter.cli
 
 import com.anifichadia.figmaimporter.android.model.importing.androidSvgToAvd
 import com.anifichadia.figmaimporter.android.model.importing.androidVectorColorToPlaceholder
+import com.anifichadia.figmaimporter.figma.FileKey
 import com.anifichadia.figmaimporter.figma.model.Node
 import com.anifichadia.figmaimporter.figma.model.Node.Companion.traverseBreadthFirst
 import com.anifichadia.figmaimporter.ios.figma.model.iosIcon
@@ -26,7 +27,7 @@ import java.io.File
 
 @Suppress("SameParameterValue")
 internal fun createIconFigmaFileHandler(
-    enabled: Boolean,
+    figmaFile: FileKey,
     androidOutDirectory: File,
     iosOutDirectory: File,
     webOutDirectory: File,
@@ -34,9 +35,7 @@ internal fun createIconFigmaFileHandler(
     iosEnabled: Boolean,
     webEnabled: Boolean,
     instructionLimit: Int?,
-): FigmaFileHandler? {
-    if (!enabled) return null
-
+): FigmaFileHandler {
     val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
     val androidImportPipeline = ImportPipeline(
         steps = androidSvgToAvd then androidVectorColorToPlaceholder,
@@ -71,8 +70,7 @@ internal fun createIconFigmaFileHandler(
     }
 
     val iconFileHandler = FigmaFileHandler(
-        // TODO: Set up value
-        figmaFile = "",
+        figmaFile = figmaFile,
         // Icons are smaller, so we can retrieve more at the same time
         assetsPerChunk = 50,
         lifecycle = FigmaFileHandler.Lifecycle.Combined(

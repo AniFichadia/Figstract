@@ -3,6 +3,7 @@ package com.anifichadia.figmaimporter.cli
 import com.anifichadia.figmaimporter.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figmaimporter.android.model.drawable.DensityBucket
 import com.anifichadia.figmaimporter.android.model.importing.androidImageScaleAndStoreInDensityBuckets
+import com.anifichadia.figmaimporter.figma.FileKey
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.figma.model.Node
 import com.anifichadia.figmaimporter.figma.model.Node.Companion.traverseBreadthFirst
@@ -26,7 +27,7 @@ import java.io.File
 
 @Suppress("SameParameterValue")
 internal fun createArtworkFigmaFileHandler(
-    enabled: Boolean,
+    figmaFile: FileKey,
     createCropped: Boolean,
     androidOutDirectory: File,
     iosOutDirectory: File,
@@ -35,9 +36,7 @@ internal fun createArtworkFigmaFileHandler(
     iosEnabled: Boolean,
     webEnabled: Boolean,
     instructionLimit: Int?,
-): FigmaFileHandler? {
-    if (!enabled) return null
-
+): FigmaFileHandler {
     val androidOutputDirectory = File(androidOutDirectory, "artwork")
     val androidImportPipeline = ImportPipeline(
         steps = androidImageScaleAndStoreInDensityBuckets(androidOutputDirectory, DensityBucket.XXXHDPI),
@@ -72,8 +71,7 @@ internal fun createArtworkFigmaFileHandler(
     }
 
     val artworkFileHandler = FigmaFileHandler(
-        // TODO: Set up value
-        figmaFile = "",
+        figmaFile = figmaFile,
         lifecycle = FigmaFileHandler.Lifecycle.Combined(
             iosAssetCatalogLifecycle,
             timingLifecycle,
