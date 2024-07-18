@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.shadow)
@@ -19,4 +21,8 @@ dependencies {
 
 application {
     mainClass.set("com.anifichadia.figmaimporter.cli.MainKt")
+}
+
+tasks.withType<ShadowJar> {
+    mergeServiceFiles()
 }
