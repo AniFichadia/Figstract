@@ -8,6 +8,7 @@ val kotlinLanguageVersionString = kotlinLanguageVersion.version
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.shadow) apply false
 }
 
 group = "com.anifichadia.figmaimporter"
