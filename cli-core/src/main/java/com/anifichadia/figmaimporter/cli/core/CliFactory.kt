@@ -15,11 +15,14 @@ import kotlinx.coroutines.coroutineScope
 import java.io.File
 
 object CliFactory {
-    suspend fun createCli(args: Array<String>, createHandlers: HandlerCreator) {
-        //region Arg management
-        val parser = ArgParser("Figma importer")
+    fun createArgParser() = ArgParser("Figma importer")
 
-        //region args
+    suspend fun createCli(
+        args: Array<String>,
+        parser: ArgParser = createArgParser(),
+        createHandlers: HandlerCreator,
+    ) {
+        //region Arg management
         val authType by parser.option(ArgType.Choice<AuthType>(), fullName = "auth.type")
             .default(AuthType.AccessToken)
         val authToken by parser.option(ArgType.String, fullName = "auth")
@@ -33,7 +36,6 @@ object CliFactory {
 
         val outPath by parser.option(ArgType.String, fullName = "out", shortName = "o")
             .default("out")
-        //endregion
 
         parser.parse(args)
         //endregion
