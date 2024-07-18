@@ -92,7 +92,7 @@ internal fun createIconFigmaFileHandler(
                             } else {
                                 it
                             }
-                            }
+                        }
 
                         if (androidEnabled) {
                             addInstruction(
