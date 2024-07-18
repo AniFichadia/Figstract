@@ -1,6 +1,7 @@
 package com.anifichadia.figmaimporter.util
 
 fun String.sanitise() = this
+    .replace('-', ' ')
     .replace("""[^\w\s]""".toRegex(), "")
     .replace("""\s+""".toRegex(), " ")
 

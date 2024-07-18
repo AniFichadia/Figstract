@@ -86,7 +86,13 @@ internal fun createIconFigmaFileHandler(
             Instruction.buildInstructions {
                 canvas.traverseBreadthFirst { node, parent ->
                     if (parent != null && node is Node.Vector) {
-                        val parentName = parent.name.let { it.split("/")[1] }
+                        val parentName = parent.name.let {
+                            if (it.contains("/")) {
+                                it.split("/")[1]
+                            } else {
+                                it
+                            }
+                            }
 
                         if (androidEnabled) {
                             addInstruction(
