@@ -1,6 +1,6 @@
 // Make sure these are always in sync
-val javaVersion = JavaVersion.VERSION_16
-val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(16)
+val javaVersion = JavaVersion.VERSION_17
+val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(17)
 
 val kotlinLanguageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9
 val kotlinLanguageVersionString = kotlinLanguageVersion.version
@@ -20,8 +20,6 @@ java {
 }
 
 kotlin {
-    jvmToolchain(16)
-
     sourceSets.all {
         languageSettings {
             languageVersion = kotlinLanguageVersionString
