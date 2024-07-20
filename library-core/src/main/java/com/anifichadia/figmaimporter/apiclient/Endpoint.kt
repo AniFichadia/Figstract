@@ -1,9 +1,7 @@
 package com.anifichadia.figmaimporter.apiclient
 
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.header
 import io.ktor.client.request.url
-import io.ktor.http.HttpHeaders
 import io.ktor.http.URLBuilder
 
 data class Endpoint(

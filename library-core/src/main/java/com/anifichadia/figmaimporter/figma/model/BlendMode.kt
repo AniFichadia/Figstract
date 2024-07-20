@@ -1,7 +1,5 @@
 package com.anifichadia.figmaimporter.figma.model
 
-import kotlinx.serialization.Serializable
-
 enum class BlendMode {
     // Normal blends
     PASS_THROUGH,
