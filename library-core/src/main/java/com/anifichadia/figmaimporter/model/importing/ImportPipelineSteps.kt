@@ -150,7 +150,7 @@ fun convertToWebPLossy(qualityPercent: Int = 75): ImportPipeline.Step {
 
     return convertToWebP(
         "convertToWebPLossy(qualityPercent: $qualityPercent)",
-        WebpWriter.DEFAULT.withQ(qualityPercent)
+        WebpWriter.DEFAULT.withQ(qualityPercent).withMultiThread(),
     )
 }
 
