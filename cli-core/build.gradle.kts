@@ -10,7 +10,7 @@ dependencies {
 
     api(libs.bundles.kotlin)
     api(libs.kotlinx.serialization)
-    api(libs.kotlinx.cli)
+    api(libs.clikt)
 
     implementation(libs.kotlinLogging)
     implementation(libs.logback)

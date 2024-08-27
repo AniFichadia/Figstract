@@ -6,8 +6,8 @@ kotlin = "2.0.0"
 kotlinx-coroutines = "1.8.1"
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinx-serialization = "1.7.1"
-# https://github.com/Kotlin/kotlinx-cli
-kotlinx-cli = "0.3.6"
+# https://github.com/ajalt/clikt
+clikt = "4.4.0"
 
 # https://github.com/oshai/kotlin-logging
 kotlinLogging = "7.0.0"
@@ -43,7 +43,7 @@ kotlinx-coroutines-debug = { group = "org.jetbrains.kotlinx", name = "kotlinx-co
 
 kotlinx-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 
-kotlinx-cli = { group = "org.jetbrains.kotlinx", name = "kotlinx-cli", version.ref = "kotlinx-cli" }
+clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
 
 kotlinLogging = { group = "io.github.oshai", name = "kotlin-logging-jvm", version.ref = "kotlinLogging" }
 logback = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logback" }

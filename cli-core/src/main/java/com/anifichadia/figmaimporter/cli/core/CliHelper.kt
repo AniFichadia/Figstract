@@ -6,44 +6,21 @@ import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
 import com.anifichadia.figmaimporter.model.FigmaFileHandler
 import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figmaimporter.model.tracking.NoOpProcessingRecordRepository
-import com.anifichadia.figmaimporter.util.FileManagement
-import kotlinx.cli.ArgParser
-import kotlinx.cli.ArgType
-import kotlinx.cli.default
-import kotlinx.cli.required
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 
-object CliFactory {
-    fun createArgParser() = ArgParser("Figma importer")
-
-    suspend fun createCli(
-        args: Array<String>,
-        parser: ArgParser = createArgParser(),
+object CliHelper {
+    suspend fun execute(
+        authType: AuthType,
+        authToken: String,
+        proxyHost: String?,
+        proxyPort: Int?,
+        trackingEnabled: Boolean,
+        outDirectory: File,
         createHandlers: HandlerCreator,
     ) {
-        //region Arg management
-        val authType by parser.option(ArgType.Choice<AuthType>(), fullName = "auth.type")
-            .default(AuthType.AccessToken)
-        val authToken by parser.option(ArgType.String, fullName = "auth")
-            .required()
-
-        val proxyHost by parser.option(ArgType.String, fullName = "proxy.host")
-        val proxyPort by parser.option(ArgType.Int, fullName = "proxy.port")
-
-        val trackingDisabled by parser.option(ArgType.Boolean, fullName = "tracking.disabled")
-            .default(false)
-
-        val outPath by parser.option(ArgType.String, fullName = "out", shortName = "o")
-            .default("out")
-
-        parser.parse(args)
-        //endregion
-
         val authProvider = authType.createAuthProvider(authToken)
         val proxy = getProxyConfig(proxyHost, proxyPort)
-
-        val outDirectory = FileManagement.outDirectory(outPath)
 
         val figmaHttpClient = HttpClientFactory.figma(proxy = proxy)
         val figmaApi = FigmaApiImpl(
@@ -51,7 +28,7 @@ object CliFactory {
             authProvider = authProvider,
         )
         val downloaderHttpClient = HttpClientFactory.downloader(proxy = proxy)
-        val processingRecordRepository = if (!trackingDisabled) {
+        val processingRecordRepository = if (trackingEnabled) {
             JsonFileProcessingRecordRepository(
                 recordFile = File(outDirectory, "processing_record.json")
             )
