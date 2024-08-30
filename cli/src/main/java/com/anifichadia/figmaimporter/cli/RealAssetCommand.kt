@@ -1,7 +1,7 @@
 package com.anifichadia.figmaimporter.cli
 
+import com.anifichadia.figmaimporter.cli.core.AssetCommand
 import com.anifichadia.figmaimporter.cli.core.CliHelper
-import com.anifichadia.figmaimporter.cli.core.DefaultFigmaImporterCommand
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
@@ -9,7 +9,7 @@ import com.github.ajalt.clikt.parameters.types.boolean
 import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 
-class FigmaImporterCliCommand : DefaultFigmaImporterCommand() {
+class RealAssetCommand : AssetCommand() {
     private val artworkEnabled by option("--artworkEnabled")
         .boolean()
         .default(false)

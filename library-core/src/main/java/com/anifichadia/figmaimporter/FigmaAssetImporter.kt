@@ -40,7 +40,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.math.ceil
 import kotlin.math.min
 
-class FigmaImporter(
+class FigmaAssetImporter(
     figmaApi: FigmaApi,
     private val downloaderHttpClient: HttpClient,
     private val processingRecordRepository: ProcessingRecordRepository,
