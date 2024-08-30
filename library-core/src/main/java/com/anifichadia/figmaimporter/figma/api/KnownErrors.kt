@@ -7,6 +7,12 @@ object KnownErrors {
     val rateLimitExceeded = Error(429, "Rate limit exceeded")
 
     suspend fun <R> ApiResponse<R>.errorMatches(error: Error): Boolean {
-        return this is ApiResponse.Failure.ResponseError && this.errorBodyAs<Error>() == error
+        return if (this is ApiResponse.Failure.ResponseError) {
+            runCatching {
+                this.errorBodyAsOrNull<Error>() == error
+            }.getOrElse { false }
+        } else {
+            false
+        }
     }
 }
