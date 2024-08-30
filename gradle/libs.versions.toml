@@ -59,8 +59,8 @@ ktor-client-contentNegotiation = { group = "io.ktor", name = "ktor-client-conten
 jsonPath = { group = "com.jayway.jsonpath", name = "json-path", version.ref = "jsonPath" }
 
 #region Android tools
-androidTools-sdkCommon = { group = "com.android.tools", name = "sdk-common", version.ref = "androidTools"}
-androidTools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools"}
+androidTools-sdkCommon = { group = "com.android.tools", name = "sdk-common", version.ref = "androidTools" }
+androidTools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
 #endregion
 
 #region Scrimage

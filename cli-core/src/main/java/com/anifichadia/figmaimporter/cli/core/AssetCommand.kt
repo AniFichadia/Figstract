@@ -1,26 +1,20 @@
 package com.anifichadia.figmaimporter.cli.core
 
+import com.anifichadia.figmaimporter.apiclient.AuthProvider
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.findObject
+import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.boolean
-import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.file
-import com.github.ajalt.clikt.parameters.types.int
+import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
-abstract class DefaultFigmaImporterCommand() : CliktCommand() {
-    private val authType: AuthType by option("--authType")
-        .enum<AuthType>()
-        .default(AuthType.AccessToken)
-    private val authToken: String by option("--auth")
-        .required()
-
-    private val proxyHost: String? by option("--proxyHost")
-    private val proxyPort: Int? by option("--proxyPort")
-        .int()
+abstract class AssetCommand : CliktCommand(name = "asset") {
+    private val authProvider by requireObject<AuthProvider>()
+    private val proxyConfig by findObject<ProxyConfig>()
 
     private val trackingEnabled: Boolean by option("--trackingEnabled")
         .boolean()
@@ -37,10 +31,8 @@ abstract class DefaultFigmaImporterCommand() : CliktCommand() {
 
     override fun run() = runBlocking {
         CliHelper.execute(
-            authType = authType,
-            authToken = authToken,
-            proxyHost = proxyHost,
-            proxyPort = proxyPort,
+            authProvider = authProvider,
+            proxy = proxyConfig,
             trackingEnabled = trackingEnabled,
             outDirectory = outPath,
             createHandlers = createHandlers,

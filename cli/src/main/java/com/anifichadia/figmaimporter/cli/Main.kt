@@ -1,5 +1,9 @@
 package com.anifichadia.figmaimporter.cli
 
+import com.anifichadia.figmaimporter.cli.core.FigmaImporterCommand
+
 fun main(args: Array<String>) {
-    FigmaImporterCliCommand().main(args)
+    FigmaImporterCommand(
+        assetCommand = RealAssetCommand(),
+    ).main(args)
 }

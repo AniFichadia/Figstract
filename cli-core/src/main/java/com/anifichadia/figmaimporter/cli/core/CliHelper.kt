@@ -1,27 +1,24 @@
 package com.anifichadia.figmaimporter.cli.core
 
-import com.anifichadia.figmaimporter.FigmaImporter
+import com.anifichadia.figmaimporter.FigmaAssetImporter
 import com.anifichadia.figmaimporter.HttpClientFactory
+import com.anifichadia.figmaimporter.apiclient.AuthProvider
 import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
 import com.anifichadia.figmaimporter.model.FigmaFileHandler
 import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figmaimporter.model.tracking.NoOpProcessingRecordRepository
+import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 
 object CliHelper {
     suspend fun execute(
-        authType: AuthType,
-        authToken: String,
-        proxyHost: String?,
-        proxyPort: Int?,
+        authProvider: AuthProvider,
+        proxy: ProxyConfig?,
         trackingEnabled: Boolean,
         outDirectory: File,
         createHandlers: HandlerCreator,
     ) {
-        val authProvider = authType.createAuthProvider(authToken)
-        val proxy = getProxyConfig(proxyHost, proxyPort)
-
         val figmaHttpClient = HttpClientFactory.figma(proxy = proxy)
         val figmaApi = FigmaApiImpl(
             httpClient = figmaHttpClient,
@@ -36,7 +33,7 @@ object CliHelper {
             NoOpProcessingRecordRepository
         }
 
-        val importer = FigmaImporter(
+        val importer = FigmaAssetImporter(
             figmaApi = figmaApi,
             downloaderHttpClient = downloaderHttpClient,
             processingRecordRepository = processingRecordRepository,
