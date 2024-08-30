@@ -1,9 +1,9 @@
 package com.anifichadia.figmaimporter.cli
 
 import com.anifichadia.figmaimporter.cli.core.AssetCommand
-import com.anifichadia.figmaimporter.cli.core.CliHelper
 import com.anifichadia.figmaimporter.cli.handler.createArtworkFigmaFileHandler
 import com.anifichadia.figmaimporter.cli.handler.createIconFigmaFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
@@ -33,7 +33,7 @@ class RealAssetCommand : AssetCommand() {
     private val instructionLimit: Int? by option("--instructionLimit")
         .int()
 
-    override val createHandlers: CliHelper.HandlerCreator = CliHelper.HandlerCreator { outDirectory ->
+    override fun createHandlers(outDirectory: File): List<AssetFileHandler> {
         if (platformOptions.noneEnabled()) error("No platforms have been enabled")
 
         val androidOutDirectory = File(outDirectory, "android").takeIf { platformOptions.androidEnabled }
@@ -71,7 +71,7 @@ class RealAssetCommand : AssetCommand() {
             null
         }
 
-        listOfNotNull(
+        return listOfNotNull(
             artworkFileHandler,
             iconFileHandler,
         )
