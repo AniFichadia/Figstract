@@ -1,5 +1,6 @@
 package com.anifichadia.figmaimporter
 
+import com.anifichadia.figmaimporter.figma.model.Variable
 import com.anifichadia.figmaimporter.type.serializer.OffsetDateTimeSerializer
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.ProxyConfig
@@ -14,6 +15,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonBuilder
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
@@ -42,6 +45,12 @@ object HttpClientFactory {
 
                         serializersModule = SerializersModule {
                             contextual(OffsetDateTimeSerializer())
+                            polymorphic(Variable::class) {
+                                subclass(Variable.BooleanVariable::class)
+                                subclass(Variable.NumberVariable::class)
+                                subclass(Variable.StringVariable::class)
+                                subclass(Variable.ColorVariable::class)
+                            }
                         }
                     }
                 )

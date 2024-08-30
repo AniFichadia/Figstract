@@ -6,6 +6,7 @@ import com.anifichadia.figmaimporter.figma.api.KnownErrors.errorMatches
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.figma.model.GetFilesResponse
 import com.anifichadia.figmaimporter.figma.model.GetImageResponse
+import com.anifichadia.figmaimporter.figma.model.GetLocalVariablesResponse
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -51,6 +52,16 @@ class FigmaApiProxyWithFlowControl(
                 format = format,
                 scale = scale,
                 contentsOnly = contentsOnly,
+            )
+        }
+    }
+
+    override suspend fun getLocalVariables(
+        key: FileKey,
+    ): ApiResponse<GetLocalVariablesResponse> {
+        return wrapRequest {
+            actualApi.getLocalVariables(
+                key = key,
             )
         }
     }
