@@ -352,7 +352,7 @@ class FigmaAssetImporter(
     }
 
     companion object {
-        private val logger = createLogger("FigmaImporter")
+        private val logger = createLogger("FigmaAssetImporter")
 
         private fun <R> ApiResponse<R>.logError(message: () -> String) {
             if (this is ApiResponse.Failure) {
