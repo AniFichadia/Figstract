@@ -34,6 +34,7 @@ internal fun createIconFigmaFileHandler(
     androidEnabled: Boolean,
     iosEnabled: Boolean,
     webEnabled: Boolean,
+    assetFilter: AssetFilter,
     instructionLimit: Int?,
 ): FigmaFileHandler {
     val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
@@ -79,13 +80,17 @@ internal fun createIconFigmaFileHandler(
             timingLoggingLifecycle,
         ),
     ) { response, _ ->
+        val excludedCanvases = assetFilter.excludedCanvases
+        val excludedNodes = assetFilter.excludedNodes
+
         val canvases = response.document.children
             .filterIsInstance<Node.Canvas>()
+            .filter { it.name.lowercase() !in excludedCanvases }
 
         canvases.map { canvas ->
             Instruction.buildInstructions {
                 canvas.traverseBreadthFirst { node, parent ->
-                    if (parent != null && node is Node.Vector) {
+                    if (node.id !in excludedNodes && parent != null && node is Node.Vector) {
                         val parentName = parent.name.let {
                             if (it.contains("/")) {
                                 it.split("/")[1]
