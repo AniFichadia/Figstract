@@ -35,6 +35,7 @@ internal fun createArtworkFigmaFileHandler(
     androidEnabled: Boolean,
     iosEnabled: Boolean,
     webEnabled: Boolean,
+    assetFilter: AssetFilter,
     instructionLimit: Int?,
 ): FigmaFileHandler {
     val androidOutputDirectory = File(androidOutDirectory, "artwork")
@@ -78,14 +79,18 @@ internal fun createArtworkFigmaFileHandler(
             timingLoggingLifecycle,
         ),
     ) { response, _ ->
+        val excludedCanvases = assetFilter.excludedCanvases
+        val excludedNodes = assetFilter.excludedNodes
+
         val canvases = response.document.children
             .filterIsInstance<Node.Canvas>()
+            .filter { it.name.lowercase() !in excludedCanvases }
 
         canvases.map { canvas ->
             val canvasName = canvas.name
             Instruction.buildInstructions {
                 canvas.traverseBreadthFirst { node, parent ->
-                    if (parent != null && node is Node.Fillable && node.fills.any { it is Paint.Image }) {
+                    if (node.id !in excludedNodes && parent != null && node is Node.Fillable && node.fills.any { it is Paint.Image }) {
                         val parentName = parent.name
 
                         if (androidEnabled) {

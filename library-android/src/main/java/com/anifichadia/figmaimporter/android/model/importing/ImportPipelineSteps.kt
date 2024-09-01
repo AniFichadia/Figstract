@@ -29,7 +29,7 @@ val androidSvgToAvd = ImportPipeline.Step("androidSvgToAvd()") { instruction, in
     // TODO: when writing to file, there's a delay flushing the file??? which causes the following steps to fail cause the file doesn't exist
     var attemptCount = 0
     val attemptLimit = 20
-    val attemptDelay = 5L
+    val attemptDelay = 50L
 
     var failure: Throwable?
     do {
