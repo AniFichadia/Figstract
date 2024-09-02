@@ -2,6 +2,8 @@ package com.anifichadia.figmaimporter.cli
 
 import com.anifichadia.figmaimporter.cli.core.AssetCommand
 import com.anifichadia.figmaimporter.cli.core.CliHelper
+import com.anifichadia.figmaimporter.cli.handler.createArtworkFigmaFileHandler
+import com.anifichadia.figmaimporter.cli.handler.createIconFigmaFileHandler
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.multiple
