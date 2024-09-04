@@ -90,81 +90,83 @@ internal fun createArtworkFigmaFileHandler(
             timingLoggingLifecycle,
         ),
     ) { response, _ ->
-        val excludedCanvases = assetFilter.excludedCanvases
-        val excludedNodes = assetFilter.excludedNodes
-
         val canvases = response.document.children
             .filterIsInstance<Node.Canvas>()
-            .filter { it.name.lowercase() !in excludedCanvases }
+            .filter { canvas -> assetFilter.accept(canvas) }
 
         canvases.map { canvas ->
             val canvasName = canvas.name
             Instruction.buildInstructions {
                 canvas.traverseBreadthFirst { node, parent ->
-                    if (node.id !in excludedNodes && parent != null && node is Node.Fillable && node.fills.any { it is Paint.Image }) {
-                        val parentName = parent.name
+                    if (parent == null) return@traverseBreadthFirst
+                    if (node !is Node.Fillable) return@traverseBreadthFirst
+                    if (!node.fills.any { it is Paint.Image }) return@traverseBreadthFirst
 
-                        if (androidImportPipeline != null) {
+                    if (!assetFilter.accept(node)) return@traverseBreadthFirst
+                    if (!assetFilter.accept(parent)) return@traverseBreadthFirst
+
+                    val parentName = parent.name
+
+                    if (androidImportPipeline != null) {
+                        addInstruction(
+                            exportNodeId = parent.id,
+                            exportConfig = androidImageXxxHdpi,
+                            importOutputName = "artwork_${canvasName}_${parentName}"
+                                .sanitise()
+                                .to_snake_case(),
+                            importPipeline = androidImportPipeline,
+                        )
+                        if (createCropped) {
                             addInstruction(
-                                exportNodeId = parent.id,
+                                exportNodeId = node.id,
                                 exportConfig = androidImageXxxHdpi,
-                                importOutputName = "artwork_${canvasName}_${parentName}"
+                                importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
                                     .to_snake_case(),
                                 importPipeline = androidImportPipeline,
                             )
-                            if (createCropped) {
-                                addInstruction(
-                                    exportNodeId = node.id,
-                                    exportConfig = androidImageXxxHdpi,
-                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                        .sanitise()
-                                        .to_snake_case(),
-                                    importPipeline = androidImportPipeline,
-                                )
-                            }
                         }
+                    }
 
-                        if (iosImportPipeline != null) {
+                    if (iosImportPipeline != null) {
+                        addInstruction(
+                            exportNodeId = parent.id,
+                            exportConfig = ios3xImage,
+                            importOutputName = "artwork_${canvasName}_${parentName}"
+                                .sanitise()
+                                .to_snake_case(),
+                            importPipeline = iosImportPipeline,
+                        )
+                        if (createCropped) {
                             addInstruction(
-                                exportNodeId = parent.id,
+                                exportNodeId = node.id,
                                 exportConfig = ios3xImage,
-                                importOutputName = "artwork_${canvasName}_${parentName}"
+                                importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
                                     .to_snake_case(),
                                 importPipeline = iosImportPipeline,
                             )
-                            if (createCropped) {
-                                addInstruction(
-                                    exportNodeId = node.id,
-                                    exportConfig = ios3xImage,
-                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                        .sanitise()
-                                        .to_snake_case(),
-                                    importPipeline = iosImportPipeline,
-                                )
-                            }
                         }
+                    }
 
-                        if (webImportPipeline != null) {
+                    if (webImportPipeline != null) {
+                        addInstruction(
+                            exportNodeId = parent.id,
+                            exportConfig = ExportConfig(ExportSetting.Format.PNG),
+                            importOutputName = "artwork_${canvasName}_${parentName}"
+                                .sanitise()
+                                .to_snake_case(),
+                            importPipeline = webImportPipeline,
+                        )
+                        if (createCropped) {
                             addInstruction(
-                                exportNodeId = parent.id,
+                                exportNodeId = node.id,
                                 exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                importOutputName = "artwork_${canvasName}_${parentName}"
+                                importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
                                     .to_snake_case(),
                                 importPipeline = webImportPipeline,
                             )
-                            if (createCropped) {
-                                addInstruction(
-                                    exportNodeId = node.id,
-                                    exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                        .sanitise()
-                                        .to_snake_case(),
-                                    importPipeline = webImportPipeline,
-                                )
-                            }
                         }
                     }
                 }

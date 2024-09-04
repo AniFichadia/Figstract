@@ -90,51 +90,52 @@ internal fun createIconFigmaFileHandler(
             timingLoggingLifecycle,
         ),
     ) { response, _ ->
-        val excludedCanvases = assetFilter.excludedCanvases
-        val excludedNodes = assetFilter.excludedNodes
-
         val canvases = response.document.children
             .filterIsInstance<Node.Canvas>()
-            .filter { it.name.lowercase() !in excludedCanvases }
+            .filter { canvas -> assetFilter.accept(canvas) }
 
         canvases.map { canvas ->
             Instruction.buildInstructions {
                 canvas.traverseBreadthFirst { node, parent ->
-                    if (node.id !in excludedNodes && parent != null && node is Node.Vector) {
-                        val parentName = parent.name.let {
-                            if (it.contains("/")) {
-                                it.split("/")[1]
-                            } else {
-                                it
-                            }
-                        }
+                    if (parent == null) return@traverseBreadthFirst
+                    if (node !is Node.Vector) return@traverseBreadthFirst
 
-                        if (androidImportPipeline != null) {
-                            addInstruction(
-                                exportNodeId = parent.id,
-                                exportConfig = svg,
-                                importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
-                                importPipeline = androidImportPipeline,
-                            )
-                        }
+                    if (!assetFilter.accept(node)) return@traverseBreadthFirst
+                    if (!assetFilter.accept(parent)) return@traverseBreadthFirst
 
-                        if (iosImportPipeline != null) {
-                            addInstruction(
-                                exportNodeId = parent.id,
-                                exportConfig = iosIcon,
-                                importOutputName = parentName.sanitise().ToUpperCamelCase(),
-                                importPipeline = iosImportPipeline,
-                            )
+                    val parentName = parent.name.let {
+                        if (it.contains("/")) {
+                            it.split("/")[1]
+                        } else {
+                            it
                         }
+                    }
 
-                        if (webImportPipeline != null) {
-                            addInstruction(
-                                exportNodeId = parent.id,
-                                exportConfig = svg,
-                                importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
-                                importPipeline = webImportPipeline,
-                            )
-                        }
+                    if (androidImportPipeline != null) {
+                        addInstruction(
+                            exportNodeId = parent.id,
+                            exportConfig = svg,
+                            importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
+                            importPipeline = androidImportPipeline,
+                        )
+                    }
+
+                    if (iosImportPipeline != null) {
+                        addInstruction(
+                            exportNodeId = parent.id,
+                            exportConfig = iosIcon,
+                            importOutputName = parentName.sanitise().ToUpperCamelCase(),
+                            importPipeline = iosImportPipeline,
+                        )
+                    }
+
+                    if (webImportPipeline != null) {
+                        addInstruction(
+                            exportNodeId = parent.id,
+                            exportConfig = svg,
+                            importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
+                            importPipeline = webImportPipeline,
+                        )
                     }
                 }
             }
