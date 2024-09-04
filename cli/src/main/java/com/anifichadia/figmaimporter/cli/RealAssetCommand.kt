@@ -33,26 +33,18 @@ class RealAssetCommand : AssetCommand() {
     private val iconFilterExcludedNodes by option("--iconFilterExcludedNode")
         .multiple()
 
-    private val platformAndroid by option("--platformAndroid")
-        .boolean()
-        .default(false)
-    private val platformIos by option("--platformIos")
-        .boolean()
-        .default(false)
-    private val platformWeb by option("--platformWeb")
-        .boolean()
-        .default(false)
+    private val platformOptions by PlatformOptionGroup()
 
     // This is for testing. Providing a non-null value will run a take operation on the list of all instructions for each handler
     private val instructionLimit: Int? by option("--instructionLimit")
         .int()
 
     override val createHandlers: CliHelper.HandlerCreator = CliHelper.HandlerCreator { outDirectory ->
-        if (!platformAndroid && !platformIos && !platformWeb) error("No platforms have been enabled")
+        if (platformOptions.noneEnabled()) error("No platforms have been enabled")
 
-        val androidOutDirectory = File(outDirectory, "android")
-        val iosOutDirectory = File(outDirectory, "ios")
-        val webOutDirectory = File(outDirectory, "web")
+        val androidOutDirectory = File(outDirectory, "android").takeIf { platformOptions.androidEnabled }
+        val iosOutDirectory = File(outDirectory, "ios").takeIf { platformOptions.iosEnabled }
+        val webOutDirectory = File(outDirectory, "web").takeIf { platformOptions.webEnabled }
 
         val artworkFileHandler = if (artworkEnabled) {
             artworkFigmaFile?.let {
@@ -67,9 +59,6 @@ class RealAssetCommand : AssetCommand() {
                     androidOutDirectory = androidOutDirectory,
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
-                    androidEnabled = platformAndroid,
-                    iosEnabled = platformIos,
-                    webEnabled = platformWeb,
                     assetFilter = assetFilter,
                     instructionLimit = instructionLimit,
                 )
@@ -90,9 +79,6 @@ class RealAssetCommand : AssetCommand() {
                     androidOutDirectory = androidOutDirectory,
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
-                    androidEnabled = platformAndroid,
-                    iosEnabled = platformIos,
-                    webEnabled = platformWeb,
                     assetFilter = assetFilter,
                     instructionLimit = instructionLimit,
                 )

@@ -30,40 +30,48 @@ import java.io.File
 @Suppress("SameParameterValue")
 internal fun createIconFigmaFileHandler(
     figmaFile: FileKey,
-    androidOutDirectory: File,
-    iosOutDirectory: File,
-    webOutDirectory: File,
-    androidEnabled: Boolean,
-    iosEnabled: Boolean,
-    webEnabled: Boolean,
+    androidOutDirectory: File?,
+    iosOutDirectory: File?,
+    webOutDirectory: File?,
     assetFilter: AssetFilter,
     instructionLimit: Int?,
 ): FigmaFileHandler {
-    val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
-    val androidImportPipeline = ImportPipeline(
-        steps = androidSvgToAvd then androidVectorColorToPlaceholder,
-        destination = Destination.directoryDestination(androidOutputDirectory),
-    )
-
-    val iosDirectory = File(iosOutDirectory, "icons")
-    val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosDirectory)
-    val iosContentDirectory =
-        createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Icon")
-    val iosImportPipeline = ImportPipeline(
-        steps = iosStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`1x`),
-        // Destination is handled by steps
-        destination = Destination.None,
-    )
-    val iosAssetCatalogLifecycle = if (iosEnabled) {
-        assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
+    val androidImportPipeline = if (androidOutDirectory != null) {
+        val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
+        ImportPipeline(
+            steps = androidSvgToAvd then androidVectorColorToPlaceholder,
+            destination = Destination.directoryDestination(androidOutputDirectory),
+        )
     } else {
-        FigmaFileHandler.Lifecycle.NoOp
+        null
     }
 
-    val webOutputDirectory = File(webOutDirectory, "icons")
-    val webImportPipeline = ImportPipeline(
-        destination = Destination.directoryDestination(webOutputDirectory),
-    )
+    val iosImportPipeline: ImportPipeline?
+    val iosAssetCatalogLifecycle: FigmaFileHandler.Lifecycle
+    if (iosOutDirectory != null) {
+        val iosDirectory = File(iosOutDirectory, "icons")
+        val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosDirectory)
+        val iosContentDirectory =
+            createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Icon")
+        iosImportPipeline = ImportPipeline(
+            steps = iosStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`1x`),
+            // Destination is handled by steps
+            destination = Destination.None,
+        )
+        iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
+    } else {
+        iosImportPipeline = null
+        iosAssetCatalogLifecycle = FigmaFileHandler.Lifecycle.NoOp
+    }
+
+    val webImportPipeline = if (webOutDirectory != null) {
+        val webOutputDirectory = File(webOutDirectory, "icons")
+        ImportPipeline(
+            destination = Destination.directoryDestination(webOutputDirectory),
+        )
+    } else {
+        null
+    }
 
     val timingLifecycle = FigmaFileHandler.Lifecycle.Timing()
     val timingLoggingLifecycle = object : FigmaFileHandler.Lifecycle {
@@ -101,7 +109,7 @@ internal fun createIconFigmaFileHandler(
                             }
                         }
 
-                        if (androidEnabled) {
+                        if (androidImportPipeline != null) {
                             addInstruction(
                                 exportNodeId = parent.id,
                                 exportConfig = svg,
@@ -110,7 +118,7 @@ internal fun createIconFigmaFileHandler(
                             )
                         }
 
-                        if (iosEnabled) {
+                        if (iosImportPipeline != null) {
                             addInstruction(
                                 exportNodeId = parent.id,
                                 exportConfig = iosIcon,
@@ -119,7 +127,7 @@ internal fun createIconFigmaFileHandler(
                             )
                         }
 
-                        if (webEnabled) {
+                        if (webImportPipeline != null) {
                             addInstruction(
                                 exportNodeId = parent.id,
                                 exportConfig = svg,

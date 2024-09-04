@@ -31,40 +31,49 @@ import java.io.File
 internal fun createArtworkFigmaFileHandler(
     figmaFile: FileKey,
     createCropped: Boolean,
-    androidOutDirectory: File,
-    iosOutDirectory: File,
-    webOutDirectory: File,
-    androidEnabled: Boolean,
-    iosEnabled: Boolean,
-    webEnabled: Boolean,
+    androidOutDirectory: File?,
+    iosOutDirectory: File?,
+    webOutDirectory: File?,
     assetFilter: AssetFilter,
     instructionLimit: Int?,
 ): FigmaFileHandler {
-    val androidOutputDirectory = File(androidOutDirectory, "artwork")
-    val androidImportPipeline = ImportPipeline(
-        steps = androidImageScaleAndStoreInDensityBuckets(androidOutputDirectory, DensityBucket.XXXHDPI),
-        // Destination is handled by the steps
-        destination = Destination.None,
-    )
-
-    val iosOutputDirectory = File(iosOutDirectory, "artwork")
-    val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosOutputDirectory)
-    val iosContentDirectory = createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Images")
-    val iosImportPipeline = ImportPipeline(
-        steps = iosScaleAndStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`3x`),
-        // Destination is handled by the steps
-        destination = Destination.None,
-    )
-    val iosAssetCatalogLifecycle = if (iosEnabled) {
-        assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
+    val androidImportPipeline = if (androidOutDirectory != null) {
+        val androidOutputDirectory = File(androidOutDirectory, "artwork")
+        ImportPipeline(
+            steps = androidImageScaleAndStoreInDensityBuckets(androidOutputDirectory, DensityBucket.XXXHDPI),
+            // Destination is handled by the steps
+            destination = Destination.None,
+        )
     } else {
-        FigmaFileHandler.Lifecycle.NoOp
+        null
     }
 
-    val webOutputDirectory = File(webOutDirectory, "artwork")
-    val webImportPipeline = ImportPipeline(
-        destination = Destination.directoryDestination(webOutputDirectory),
-    )
+    val iosImportPipeline: ImportPipeline?
+    val iosAssetCatalogLifecycle: FigmaFileHandler.Lifecycle
+    if (iosOutDirectory != null) {
+        val iosOutputDirectory = File(iosOutDirectory, "artwork")
+        val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosOutputDirectory)
+        val iosContentDirectory = createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Images")
+
+        iosImportPipeline = ImportPipeline(
+            steps = iosScaleAndStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`3x`),
+            // Destination is handled by the steps
+            destination = Destination.None,
+        )
+        iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
+    } else {
+        iosImportPipeline = null
+        iosAssetCatalogLifecycle = FigmaFileHandler.Lifecycle.NoOp
+    }
+
+    val webImportPipeline = if (webOutDirectory != null) {
+        val webOutputDirectory = File(webOutDirectory, "artwork")
+        ImportPipeline(
+            destination = Destination.directoryDestination(webOutputDirectory),
+        )
+    } else {
+        null
+    }
 
     val timingLifecycle = FigmaFileHandler.Lifecycle.Timing()
     val timingLoggingLifecycle = object : FigmaFileHandler.Lifecycle {
@@ -95,7 +104,7 @@ internal fun createArtworkFigmaFileHandler(
                     if (node.id !in excludedNodes && parent != null && node is Node.Fillable && node.fills.any { it is Paint.Image }) {
                         val parentName = parent.name
 
-                        if (androidEnabled) {
+                        if (androidImportPipeline != null) {
                             addInstruction(
                                 exportNodeId = parent.id,
                                 exportConfig = androidImageXxxHdpi,
@@ -116,7 +125,7 @@ internal fun createArtworkFigmaFileHandler(
                             }
                         }
 
-                        if (iosEnabled) {
+                        if (iosImportPipeline != null) {
                             addInstruction(
                                 exportNodeId = parent.id,
                                 exportConfig = ios3xImage,
@@ -137,7 +146,7 @@ internal fun createArtworkFigmaFileHandler(
                             }
                         }
 
-                        if (webEnabled) {
+                        if (webImportPipeline != null) {
                             addInstruction(
                                 exportNodeId = parent.id,
                                 exportConfig = ExportConfig(ExportSetting.Format.PNG),
