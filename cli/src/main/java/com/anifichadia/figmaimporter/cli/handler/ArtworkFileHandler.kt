@@ -10,6 +10,12 @@ import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.figma.model.Node
 import com.anifichadia.figmaimporter.figma.model.Node.Companion.traverseBreadthFirst
 import com.anifichadia.figmaimporter.figma.model.Paint
+import com.anifichadia.figmaimporter.importer.asset.model.FigmaFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction.Companion.addInstruction
+import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.ios.figma.model.ios3xImage
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
@@ -17,12 +23,6 @@ import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogCo
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figmaimporter.ios.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figmaimporter.ios.model.importing.iosScaleAndStoreInAssetCatalog
-import com.anifichadia.figmaimporter.model.FigmaFileHandler
-import com.anifichadia.figmaimporter.model.Instruction
-import com.anifichadia.figmaimporter.model.Instruction.Companion.addInstruction
-import com.anifichadia.figmaimporter.model.exporting.ExportConfig
-import com.anifichadia.figmaimporter.model.importing.Destination
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.util.sanitise
 import com.anifichadia.figmaimporter.util.to_snake_case
 import java.io.File

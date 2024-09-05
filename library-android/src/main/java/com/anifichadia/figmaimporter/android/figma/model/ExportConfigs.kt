@@ -2,8 +2,8 @@ package com.anifichadia.figmaimporter.android.figma.model
 
 import com.anifichadia.figmaimporter.android.model.drawable.DensityBucket
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
-import com.anifichadia.figmaimporter.model.exporting.ExportConfig
-import com.anifichadia.figmaimporter.model.exporting.ExportConfig.Companion.SCALE_PLACEHOLDER
+import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig.Companion.SCALE_PLACEHOLDER
 
 /** This is a template and should not be used directly. The [ExportConfig.scale] has been set to an impossible value. */
 private val androidImage = ExportConfig(

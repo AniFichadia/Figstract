@@ -1,14 +1,14 @@
 package com.anifichadia.figmaimporter.android.model.importing
 
 import com.anifichadia.figmaimporter.android.model.drawable.DensityBucket
-import com.anifichadia.figmaimporter.model.importing.Destination
-import com.anifichadia.figmaimporter.model.importing.Destination.Companion.directoryDestination
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.and
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.then
-import com.anifichadia.figmaimporter.model.importing.convertToWebPLossy
-import com.anifichadia.figmaimporter.model.importing.pathElementsAppend
-import com.anifichadia.figmaimporter.model.importing.scale
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination.Companion.directoryDestination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.and
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.then
+import com.anifichadia.figmaimporter.importer.asset.model.importing.convertToWebPLossy
+import com.anifichadia.figmaimporter.importer.asset.model.importing.pathElementsAppend
+import com.anifichadia.figmaimporter.importer.asset.model.importing.scale
 import java.io.File
 
 /**

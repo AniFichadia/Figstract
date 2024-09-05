@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.model.exporting
+package com.anifichadia.figmaimporter.importer.asset.model.exporting
 
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
 

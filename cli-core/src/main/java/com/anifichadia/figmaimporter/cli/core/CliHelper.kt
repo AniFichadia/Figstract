@@ -1,10 +1,10 @@
 package com.anifichadia.figmaimporter.cli.core
 
-import com.anifichadia.figmaimporter.FigmaAssetImporter
 import com.anifichadia.figmaimporter.HttpClientFactory
 import com.anifichadia.figmaimporter.apiclient.AuthProvider
 import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
-import com.anifichadia.figmaimporter.model.FigmaFileHandler
+import com.anifichadia.figmaimporter.importer.asset.FigmaAssetImporter
+import com.anifichadia.figmaimporter.importer.asset.model.FigmaFileHandler
 import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figmaimporter.model.tracking.NoOpProcessingRecordRepository
 import io.ktor.client.engine.ProxyConfig

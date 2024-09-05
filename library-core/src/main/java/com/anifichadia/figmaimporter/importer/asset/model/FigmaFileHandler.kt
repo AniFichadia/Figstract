@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.model
+package com.anifichadia.figmaimporter.importer.asset.model
 
 import com.anifichadia.figmaimporter.figma.FileKey
 import com.anifichadia.figmaimporter.figma.model.GetFilesResponse

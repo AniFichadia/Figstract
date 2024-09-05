@@ -1,19 +1,19 @@
 package com.anifichadia.figmaimporter.ios.model.importing
 
+import com.anifichadia.figmaimporter.importer.asset.model.FigmaFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination.Companion.directoryDestination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.and
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.then
+import com.anifichadia.figmaimporter.importer.asset.model.importing.renameSuffix
+import com.anifichadia.figmaimporter.importer.asset.model.importing.scale
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Content
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.asFileSuffix
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.ensureAssetCatalogSubdirectoriesHaveContentFiles
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.writeAssetCatalogRootContent
-import com.anifichadia.figmaimporter.model.FigmaFileHandler
-import com.anifichadia.figmaimporter.model.importing.Destination
-import com.anifichadia.figmaimporter.model.importing.Destination.Companion.directoryDestination
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.and
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.then
-import com.anifichadia.figmaimporter.model.importing.renameSuffix
-import com.anifichadia.figmaimporter.model.importing.scale
 import com.anifichadia.figmaimporter.util.FileLockRegistry
 import java.io.File
 
