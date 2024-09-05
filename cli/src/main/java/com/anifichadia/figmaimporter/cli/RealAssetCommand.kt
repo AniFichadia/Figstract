@@ -2,9 +2,11 @@ package com.anifichadia.figmaimporter.cli
 
 import com.anifichadia.figmaimporter.cli.core.AssetCommand
 import com.anifichadia.figmaimporter.cli.core.CliHelper
+import com.anifichadia.figmaimporter.cli.handler.createArtworkFigmaFileHandler
+import com.anifichadia.figmaimporter.cli.handler.createIconFigmaFileHandler
+import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
-import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
 import com.github.ajalt.clikt.parameters.types.int
@@ -17,58 +19,36 @@ class RealAssetCommand : AssetCommand() {
     private val artworkFigmaFile by option("--artworkFigmaFile")
     private val artworkCreateCropped by option("--artworkCreateCropped")
         .flag(default = false)
-    private val artworkFilterExcludedCanvases by option("--artworkFilterExcludedCanvas")
-        .multiple()
-    private val artworkFilterExcludedNodes by option("--artworkFilterExcludedNode")
-        .multiple()
+    private val artworkFilter by FilterOptionGroup("artwork")
 
     private val iconsEnabled by option("--iconsEnabled")
         .boolean()
         .default(false)
     private val iconsFigmaFile by option("--iconsFigmaFile")
-    private val iconFilterExcludedCanvases by option("--iconFilterExcludedCanvas")
-        .multiple()
-    private val iconFilterExcludedNodes by option("--iconFilterExcludedNode")
-        .multiple()
+    private val iconFilter by FilterOptionGroup("icon")
 
-    private val platformAndroid by option("--platformAndroid")
-        .boolean()
-        .default(false)
-    private val platformIos by option("--platformIos")
-        .boolean()
-        .default(false)
-    private val platformWeb by option("--platformWeb")
-        .boolean()
-        .default(false)
+    private val platformOptions by PlatformOptionGroup()
 
     // This is for testing. Providing a non-null value will run a take operation on the list of all instructions for each handler
     private val instructionLimit: Int? by option("--instructionLimit")
         .int()
 
     override val createHandlers: CliHelper.HandlerCreator = CliHelper.HandlerCreator { outDirectory ->
-        if (!platformAndroid && !platformIos && !platformWeb) error("No platforms have been enabled")
+        if (platformOptions.noneEnabled()) error("No platforms have been enabled")
 
-        val androidOutDirectory = File(outDirectory, "android")
-        val iosOutDirectory = File(outDirectory, "ios")
-        val webOutDirectory = File(outDirectory, "web")
+        val androidOutDirectory = File(outDirectory, "android").takeIf { platformOptions.androidEnabled }
+        val iosOutDirectory = File(outDirectory, "ios").takeIf { platformOptions.iosEnabled }
+        val webOutDirectory = File(outDirectory, "web").takeIf { platformOptions.webEnabled }
 
         val artworkFileHandler = if (artworkEnabled) {
             artworkFigmaFile?.let {
-                val assetFilter = AssetFilter(
-                    excludedCanvases = artworkFilterExcludedCanvases,
-                    excludedNodes = artworkFilterExcludedNodes,
-                )
-
                 createArtworkFigmaFileHandler(
                     figmaFile = it,
                     createCropped = artworkCreateCropped,
                     androidOutDirectory = androidOutDirectory,
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
-                    androidEnabled = platformAndroid,
-                    iosEnabled = platformIos,
-                    webEnabled = platformWeb,
-                    assetFilter = assetFilter,
+                    assetFilter = artworkFilter.toAssetFilter(),
                     instructionLimit = instructionLimit,
                 )
             } ?: error("Artwork is enabled but figma file is not specified")
@@ -78,20 +58,12 @@ class RealAssetCommand : AssetCommand() {
 
         val iconFileHandler = if (iconsEnabled) {
             iconsFigmaFile?.let {
-                val assetFilter = AssetFilter(
-                    excludedCanvases = iconFilterExcludedCanvases,
-                    excludedNodes = iconFilterExcludedNodes,
-                )
-
                 createIconFigmaFileHandler(
                     figmaFile = it,
                     androidOutDirectory = androidOutDirectory,
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
-                    androidEnabled = platformAndroid,
-                    iosEnabled = platformIos,
-                    webEnabled = platformWeb,
-                    assetFilter = assetFilter,
+                    assetFilter = iconFilter.toAssetFilter(),
                     instructionLimit = instructionLimit,
                 )
             } ?: error("Icons are enabled but figma file is not specified")
