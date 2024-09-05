@@ -1,13 +1,13 @@
-package com.anifichadia.figmaimporter.model.importing
+package com.anifichadia.figmaimporter.importer.asset.model.importing
 
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.figma.model.ExportSetting.Format.JPG
 import com.anifichadia.figmaimporter.figma.model.ExportSetting.Format.PDF
 import com.anifichadia.figmaimporter.figma.model.ExportSetting.Format.PNG
 import com.anifichadia.figmaimporter.figma.model.ExportSetting.Format.SVG
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Output.Companion.single
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.passThrough
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.resolveOutputName
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Output.Companion.single
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.passThrough
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
 import com.sksamuel.scrimage.ImmutableImage
 import com.sksamuel.scrimage.nio.ImageWriter
 import com.sksamuel.scrimage.nio.JpegWriter
@@ -112,14 +112,14 @@ fun pathElementsAppend(vararg pathElement: String) = pathElementsAppend(pathElem
 
 fun pathElementsAppend(pathElements: List<String>) =
     ImportPipeline.Step("pathElementsAppend(pathElements: $pathElements)") { _, input ->
-    input
-        .copy(
-            target = input.target.copy(
-                pathElements = (input.target.pathElements + pathElements),
+        input
+            .copy(
+                target = input.target.copy(
+                    pathElements = (input.target.pathElements + pathElements),
+                )
             )
-        )
-        .single()
-}
+            .single()
+    }
 //endregion
 
 //region PNG compression

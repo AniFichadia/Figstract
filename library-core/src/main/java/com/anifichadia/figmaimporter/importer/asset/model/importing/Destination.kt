@@ -1,10 +1,10 @@
-package com.anifichadia.figmaimporter.model.importing
+package com.anifichadia.figmaimporter.importer.asset.model.importing
 
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveExtension
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolvePathElements
 import com.anifichadia.figmaimporter.model.Describeable
-import com.anifichadia.figmaimporter.model.Instruction
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.resolveExtension
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.resolveOutputName
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.resolvePathElements
 import com.anifichadia.figmaimporter.type.fold
 import java.io.File
 

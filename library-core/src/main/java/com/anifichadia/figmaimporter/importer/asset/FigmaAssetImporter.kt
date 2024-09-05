@@ -1,15 +1,14 @@
-package com.anifichadia.figmaimporter
+package com.anifichadia.figmaimporter.importer.asset
 
 import com.anifichadia.figmaimporter.apiclient.ApiResponse
 import com.anifichadia.figmaimporter.figma.api.FigmaApi
 import com.anifichadia.figmaimporter.figma.api.FigmaApiProxyWithFlowControl
-import com.anifichadia.figmaimporter.figma.api.FigmaApiProxyWithFlowControl.Companion.DEFAULT_CONCURRENCY_LIMIT
 import com.anifichadia.figmaimporter.figma.api.KnownErrors.errorMatches
 import com.anifichadia.figmaimporter.figma.model.GetFilesResponse
 import com.anifichadia.figmaimporter.figma.model.GetImageResponse
-import com.anifichadia.figmaimporter.model.FigmaFileHandler
-import com.anifichadia.figmaimporter.model.Instruction
-import com.anifichadia.figmaimporter.model.exporting.ExportConfig
+import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction
+import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig
 import com.anifichadia.figmaimporter.model.tracking.ProcessingRecordRepository
 import com.anifichadia.figmaimporter.util.createLogger
 import io.ktor.client.HttpClient
@@ -44,14 +43,14 @@ class FigmaAssetImporter(
     figmaApi: FigmaApi,
     private val downloaderHttpClient: HttpClient,
     private val processingRecordRepository: ProcessingRecordRepository,
-    figmaApiConcurrencyLimit: Int = DEFAULT_CONCURRENCY_LIMIT,
+    figmaApiConcurrencyLimit: Int = FigmaApiProxyWithFlowControl.DEFAULT_CONCURRENCY_LIMIT,
     private val defaultContext: CoroutineContext = Dispatchers.Default,
     private val networkContext: CoroutineContext = Dispatchers.IO,
     private val importPipelineContext: CoroutineContext = Dispatchers.IO,
 ) {
     private val figmaApi = FigmaApiProxyWithFlowControl(figmaApi, figmaApiConcurrencyLimit)
 
-    suspend fun importFromFigma(handlers: List<FigmaFileHandler>) {
+    suspend fun importFromFigma(handlers: List<AssetFileHandler>) {
         val importFlow = handlers
             .map { handler -> createProcessingFlowForHandler(handler) }
             .merge()
@@ -61,7 +60,7 @@ class FigmaAssetImporter(
         }
     }
 
-    private fun createProcessingFlowForHandler(handler: FigmaFileHandler): Flow<Unit> {
+    private fun createProcessingFlowForHandler(handler: AssetFileHandler): Flow<Unit> {
         val figmaFile = handler.figmaFile
         var lastUpdated: OffsetDateTime? = null
 
@@ -98,7 +97,7 @@ class FigmaAssetImporter(
         return importFlow
     }
 
-    private fun createFigmaFileFlow(handlers: Flow<FigmaFileHandler>): Flow<Pair<FigmaFileHandler, ApiResponse<GetFilesResponse>>> {
+    private fun createFigmaFileFlow(handlers: Flow<AssetFileHandler>): Flow<Pair<AssetFileHandler, ApiResponse<GetFilesResponse>>> {
         return handlers
             .flowOn(defaultContext)
             .map { handler ->
@@ -118,7 +117,7 @@ class FigmaAssetImporter(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createExportFlow(fileFlow: Flow<Pair<FigmaFileHandler, ApiResponse<GetFilesResponse>>>): Flow<ExportOutput> {
+    private fun createExportFlow(fileFlow: Flow<Pair<AssetFileHandler, ApiResponse<GetFilesResponse>>>): Flow<ExportOutput> {
         val instructionsFlow = fileFlow
             .filter { (handler, getFileApiResponse) ->
                 val response = getFileApiResponse.successBodyOrThrow()
@@ -213,7 +212,7 @@ class FigmaAssetImporter(
                     .flowOn(networkContext)
 
                 val retryFlow = firstAttemptFlow
-                    .filter { it.getImageResponse.errorMatches(GetImageResponse.KnownErrors.tooManyImages) && it.expectedInstructions.size > 1 }
+                    .filter { it.getImageResponse.errorMatches(GetImageResponse.tooManyImages) && it.expectedInstructions.size > 1 }
                     .flatMapMerge { it.expectedInstructions.asFlow() }
                     .map { instruction ->
                         val instructions = listOf(instruction)
@@ -312,7 +311,7 @@ class FigmaAssetImporter(
     }
 
     private data class Chunk(
-        val handler: FigmaFileHandler,
+        val handler: AssetFileHandler,
         val exportConfig: ExportConfig,
         val chunkIndex: Int,
         val instructions: List<Instruction>,
@@ -326,7 +325,7 @@ class FigmaAssetImporter(
     )
 
     private data class ExportOutput(
-        val handler: FigmaFileHandler,
+        val handler: AssetFileHandler,
         val instruction: Instruction,
         val data: ByteArray,
     ) {

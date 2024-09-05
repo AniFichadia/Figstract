@@ -1,8 +1,8 @@
 package com.anifichadia.figmaimporter.android.model.importing
 
 import com.android.ide.common.vectordrawable.Svg2Vector
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Output.Companion.single
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Output.Companion.single
 import com.anifichadia.figmaimporter.util.FileManagement
 import io.ktor.utils.io.core.toByteArray
 import kotlinx.coroutines.delay

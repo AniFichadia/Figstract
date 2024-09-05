@@ -1,9 +1,9 @@
-package com.anifichadia.figmaimporter.model.importing
+package com.anifichadia.figmaimporter.importer.asset.model.importing
 
 import com.anifichadia.figmaimporter.figma.Number
 import com.anifichadia.figmaimporter.figma.model.Rectangle
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.resolveOutputName
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.resolvePathElements
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolvePathElements
 import com.anifichadia.figmaimporter.type.fold
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString

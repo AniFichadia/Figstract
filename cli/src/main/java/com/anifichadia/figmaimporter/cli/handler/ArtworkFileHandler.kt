@@ -10,6 +10,12 @@ import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.figma.model.Node
 import com.anifichadia.figmaimporter.figma.model.Node.Companion.traverseBreadthFirst
 import com.anifichadia.figmaimporter.figma.model.Paint
+import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction.Companion.addInstruction
+import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.ios.figma.model.ios3xImage
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
@@ -17,12 +23,6 @@ import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogCo
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figmaimporter.ios.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figmaimporter.ios.model.importing.iosScaleAndStoreInAssetCatalog
-import com.anifichadia.figmaimporter.model.FigmaFileHandler
-import com.anifichadia.figmaimporter.model.Instruction
-import com.anifichadia.figmaimporter.model.Instruction.Companion.addInstruction
-import com.anifichadia.figmaimporter.model.exporting.ExportConfig
-import com.anifichadia.figmaimporter.model.importing.Destination
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.util.sanitise
 import com.anifichadia.figmaimporter.util.to_snake_case
 import java.io.File
@@ -36,7 +36,7 @@ internal fun createArtworkFigmaFileHandler(
     webOutDirectory: File?,
     assetFilter: AssetFilter,
     instructionLimit: Int?,
-): FigmaFileHandler {
+): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = File(androidOutDirectory, "artwork")
         ImportPipeline(
@@ -49,7 +49,7 @@ internal fun createArtworkFigmaFileHandler(
     }
 
     val iosImportPipeline: ImportPipeline?
-    val iosAssetCatalogLifecycle: FigmaFileHandler.Lifecycle
+    val iosAssetCatalogLifecycle: AssetFileHandler.Lifecycle
     if (iosOutDirectory != null) {
         val iosOutputDirectory = File(iosOutDirectory, "artwork")
         val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosOutputDirectory)
@@ -63,7 +63,7 @@ internal fun createArtworkFigmaFileHandler(
         iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
     } else {
         iosImportPipeline = null
-        iosAssetCatalogLifecycle = FigmaFileHandler.Lifecycle.NoOp
+        iosAssetCatalogLifecycle = AssetFileHandler.Lifecycle.NoOp
     }
 
     val webImportPipeline = if (webOutDirectory != null) {
@@ -75,16 +75,16 @@ internal fun createArtworkFigmaFileHandler(
         null
     }
 
-    val timingLifecycle = FigmaFileHandler.Lifecycle.Timing()
-    val timingLoggingLifecycle = object : FigmaFileHandler.Lifecycle {
+    val timingLifecycle = AssetFileHandler.Lifecycle.Timing()
+    val timingLoggingLifecycle = object : AssetFileHandler.Lifecycle {
         override suspend fun onFinished() {
             timingLogger.info { "Artwork retrieval timing: \n$timingLifecycle" }
         }
     }
 
-    val artworkFileHandler = FigmaFileHandler(
+    val artworkFileHandler = AssetFileHandler(
         figmaFile = figmaFile,
-        lifecycle = FigmaFileHandler.Lifecycle.Combined(
+        lifecycle = AssetFileHandler.Lifecycle.Combined(
             iosAssetCatalogLifecycle,
             timingLifecycle,
             timingLoggingLifecycle,

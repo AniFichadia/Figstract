@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.model.importing
+package com.anifichadia.figmaimporter.importer.asset.model.importing
 
 import com.sksamuel.scrimage.AwtImage
 import com.sksamuel.scrimage.metadata.ImageMetadata

@@ -1,10 +1,10 @@
-package com.anifichadia.figmaimporter.model
+package com.anifichadia.figmaimporter.importer.asset.model
 
 import com.anifichadia.figmaimporter.figma.NodeId
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
-import com.anifichadia.figmaimporter.model.exporting.ExportConfig
-import com.anifichadia.figmaimporter.model.importing.Destination
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline
+import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
 
 data class Instruction(
     val export: Export,

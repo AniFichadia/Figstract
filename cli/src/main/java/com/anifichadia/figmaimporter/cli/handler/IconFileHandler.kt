@@ -7,6 +7,13 @@ import com.anifichadia.figmaimporter.cli.timingLogger
 import com.anifichadia.figmaimporter.figma.FileKey
 import com.anifichadia.figmaimporter.figma.model.Node
 import com.anifichadia.figmaimporter.figma.model.Node.Companion.traverseBreadthFirst
+import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction.Companion.addInstruction
+import com.anifichadia.figmaimporter.importer.asset.model.exporting.svg
+import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figmaimporter.ios.figma.model.iosIcon
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
@@ -14,13 +21,6 @@ import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogCo
 import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figmaimporter.ios.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figmaimporter.ios.model.importing.iosStoreInAssetCatalog
-import com.anifichadia.figmaimporter.model.FigmaFileHandler
-import com.anifichadia.figmaimporter.model.Instruction
-import com.anifichadia.figmaimporter.model.Instruction.Companion.addInstruction
-import com.anifichadia.figmaimporter.model.exporting.svg
-import com.anifichadia.figmaimporter.model.importing.Destination
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figmaimporter.type.fold
 import com.anifichadia.figmaimporter.util.ToUpperCamelCase
 import com.anifichadia.figmaimporter.util.sanitise
@@ -35,7 +35,7 @@ internal fun createIconFigmaFileHandler(
     webOutDirectory: File?,
     assetFilter: AssetFilter,
     instructionLimit: Int?,
-): FigmaFileHandler {
+): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
         ImportPipeline(
@@ -47,7 +47,7 @@ internal fun createIconFigmaFileHandler(
     }
 
     val iosImportPipeline: ImportPipeline?
-    val iosAssetCatalogLifecycle: FigmaFileHandler.Lifecycle
+    val iosAssetCatalogLifecycle: AssetFileHandler.Lifecycle
     if (iosOutDirectory != null) {
         val iosDirectory = File(iosOutDirectory, "icons")
         val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosDirectory)
@@ -61,7 +61,7 @@ internal fun createIconFigmaFileHandler(
         iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
     } else {
         iosImportPipeline = null
-        iosAssetCatalogLifecycle = FigmaFileHandler.Lifecycle.NoOp
+        iosAssetCatalogLifecycle = AssetFileHandler.Lifecycle.NoOp
     }
 
     val webImportPipeline = if (webOutDirectory != null) {
@@ -73,18 +73,18 @@ internal fun createIconFigmaFileHandler(
         null
     }
 
-    val timingLifecycle = FigmaFileHandler.Lifecycle.Timing()
-    val timingLoggingLifecycle = object : FigmaFileHandler.Lifecycle {
+    val timingLifecycle = AssetFileHandler.Lifecycle.Timing()
+    val timingLoggingLifecycle = object : AssetFileHandler.Lifecycle {
         override suspend fun onFinished() {
             timingLogger.info { "Icon retrieval timing: \n$timingLifecycle" }
         }
     }
 
-    val iconFileHandler = FigmaFileHandler(
+    val iconFileHandler = AssetFileHandler(
         figmaFile = figmaFile,
         // Icons are smaller, so we can retrieve more at the same time
         assetsPerChunk = 50,
-        lifecycle = FigmaFileHandler.Lifecycle.Combined(
+        lifecycle = AssetFileHandler.Lifecycle.Combined(
             iosAssetCatalogLifecycle,
             timingLifecycle,
             timingLoggingLifecycle,

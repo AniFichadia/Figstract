@@ -1,14 +1,14 @@
-package com.anifichadia.figmaimporter.model.importing
+package com.anifichadia.figmaimporter.importer.asset.model.importing
 
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction
+import com.anifichadia.figmaimporter.importer.asset.model.Instruction.ImportTarget.Companion.merge
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Output.Companion.single
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.and
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.passThrough
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.then
+import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.IfElse.Companion.otherwiseDefault
 import com.anifichadia.figmaimporter.model.Describeable
 import com.anifichadia.figmaimporter.model.Describeable.Companion.describeOrToString
-import com.anifichadia.figmaimporter.model.Instruction
-import com.anifichadia.figmaimporter.model.Instruction.ImportTarget.Companion.merge
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Output.Companion.single
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.and
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.passThrough
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.Companion.then
-import com.anifichadia.figmaimporter.model.importing.ImportPipeline.Step.IfElse.Companion.otherwiseDefault
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -105,7 +105,7 @@ data class ImportPipeline(
                 input: Output,
             ): List<Output> {
                 perform(instruction, input)
-                return passThrough().process(instruction, input)
+                return PassThrough.process(instruction, input)
             }
 
             override fun describe(): String {
