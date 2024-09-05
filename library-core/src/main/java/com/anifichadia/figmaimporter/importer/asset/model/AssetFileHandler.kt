@@ -5,7 +5,7 @@ import com.anifichadia.figmaimporter.figma.model.GetFilesResponse
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
-class FigmaFileHandler(
+class AssetFileHandler(
     val figmaFile: FileKey,
     val assetsPerChunk: Int = DEFAULT_ASSETS_PER_CHUNK,
     val lifecycle: Lifecycle = Lifecycle.NoOp,

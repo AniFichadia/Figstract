@@ -4,7 +4,7 @@ import com.anifichadia.figmaimporter.HttpClientFactory
 import com.anifichadia.figmaimporter.apiclient.AuthProvider
 import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
 import com.anifichadia.figmaimporter.importer.asset.FigmaAssetImporter
-import com.anifichadia.figmaimporter.importer.asset.model.FigmaFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
 import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figmaimporter.model.tracking.NoOpProcessingRecordRepository
 import io.ktor.client.engine.ProxyConfig
@@ -46,6 +46,6 @@ object CliHelper {
     }
 
     fun interface HandlerCreator {
-        fun create(outDirectory: File): List<FigmaFileHandler>
+        fun create(outDirectory: File): List<AssetFileHandler>
     }
 }

@@ -1,6 +1,6 @@
 package com.anifichadia.figmaimporter.ios.model.importing
 
-import com.anifichadia.figmaimporter.importer.asset.model.FigmaFileHandler
+import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
 import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
 import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination.Companion.directoryDestination
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
@@ -47,8 +47,8 @@ fun iosStoreInAssetCatalog(
             directoryDestination(outputDirectory)
 }
 
-fun assetCatalogFinalisationLifecycle(iosIconAssetCatalogRootDirectory: File): FigmaFileHandler.Lifecycle {
-    return object : FigmaFileHandler.Lifecycle {
+fun assetCatalogFinalisationLifecycle(iosIconAssetCatalogRootDirectory: File): AssetFileHandler.Lifecycle {
+    return object : AssetFileHandler.Lifecycle {
         override suspend fun onImportFinished() {
             iosIconAssetCatalogRootDirectory.mkdirs()
             writeAssetCatalogRootContent(iosIconAssetCatalogRootDirectory)
