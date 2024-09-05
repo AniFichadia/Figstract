@@ -4,6 +4,7 @@ import com.anifichadia.figmaimporter.cli.core.AssetCommand
 import com.anifichadia.figmaimporter.cli.handler.createArtworkFigmaFileHandler
 import com.anifichadia.figmaimporter.cli.handler.createIconFigmaFileHandler
 import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
+import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
@@ -34,7 +35,7 @@ class RealAssetCommand : AssetCommand() {
         .int()
 
     override fun createHandlers(outDirectory: File): List<AssetFileHandler> {
-        if (platformOptions.noneEnabled()) error("No platforms have been enabled")
+        if (platformOptions.noneEnabled()) throw BadParameterValue("No platforms have been enabled")
 
         val androidOutDirectory = File(outDirectory, "android").takeIf { platformOptions.androidEnabled }
         val iosOutDirectory = File(outDirectory, "ios").takeIf { platformOptions.iosEnabled }
@@ -51,7 +52,7 @@ class RealAssetCommand : AssetCommand() {
                     assetFilter = artworkFilter.toAssetFilter(),
                     instructionLimit = instructionLimit,
                 )
-            } ?: error("Artwork is enabled but figma file is not specified")
+            } ?: throw BadParameterValue("Artwork is enabled but figma file is not specified")
         } else {
             null
         }
@@ -66,7 +67,7 @@ class RealAssetCommand : AssetCommand() {
                     assetFilter = iconFilter.toAssetFilter(),
                     instructionLimit = instructionLimit,
                 )
-            } ?: error("Icons are enabled but figma file is not specified")
+            } ?: throw BadParameterValue("Icons are enabled but figma file is not specified")
         } else {
             null
         }

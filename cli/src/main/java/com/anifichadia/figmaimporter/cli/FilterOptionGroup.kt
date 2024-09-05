@@ -1,5 +1,6 @@
 package com.anifichadia.figmaimporter.cli
 
+import com.github.ajalt.clikt.core.MultiUsageError
 import com.github.ajalt.clikt.core.MutuallyExclusiveGroupException
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.multiple
@@ -22,21 +23,31 @@ class FilterOptionGroup(private val prefix: String) : OptionGroup() {
         .multiple()
 
     fun toAssetFilter(): AssetFilter {
-        if (includedCanvases.isNotEmpty() && excludedCanvases.isNotEmpty()) {
-            throw MutuallyExclusiveGroupException(
-                listOf("${prefix}FilterIncludedCanvas", "${prefix}FilterExcludedCanvas"),
-            )
+        val errors = buildList {
+            if (includedCanvases.isNotEmpty() && excludedCanvases.isNotEmpty()) {
+                add(
+                    MutuallyExclusiveGroupException(
+                        listOf("${prefix}FilterIncludedCanvas", "${prefix}FilterExcludedCanvas"),
+                    )
+                )
+            }
+
+            if (includedNodes.isNotEmpty() && excludedNodes.isNotEmpty()) {
+                add(
+                    MutuallyExclusiveGroupException(
+                        listOf("${prefix}FilterIncludedNode", "${prefix}FilterExcludedNode"),
+                    )
+                )
+            }
+            if (includedParentNodes.isNotEmpty() && excludedParentNodes.isNotEmpty()) {
+                add(
+                    MutuallyExclusiveGroupException(
+                        listOf("${prefix}FilterIncludedParentNode", "${prefix}FilterExcludedParentNode"),
+                    )
+                )
+            }
         }
-        if (includedNodes.isNotEmpty() && excludedNodes.isNotEmpty()) {
-            throw MutuallyExclusiveGroupException(
-                listOf("${prefix}FilterIncludedNode", "${prefix}FilterExcludedNode"),
-            )
-        }
-        if (includedParentNodes.isNotEmpty() && excludedParentNodes.isNotEmpty()) {
-            throw MutuallyExclusiveGroupException(
-                listOf("${prefix}FilterIncludedParentNode", "${prefix}FilterExcludedParentNode"),
-            )
-        }
+        if (errors.isNotEmpty()) throw MultiUsageError(errors)
 
         return AssetFilter(
             include = AssetFilter.Filter.Include(
