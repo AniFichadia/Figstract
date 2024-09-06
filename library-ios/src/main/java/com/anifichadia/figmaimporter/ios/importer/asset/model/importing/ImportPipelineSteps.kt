@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.ios.model.importing
+package com.anifichadia.figmaimporter.ios.importer.asset.model.importing
 
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Output.Companion.single
@@ -6,11 +6,11 @@ import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeli
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.resolvePathElements
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.sideEffect
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Content
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.assetCatalogJson
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.getAssetCatalogDirectoryName
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Content
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Scale
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Type
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.assetCatalogJson
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.getAssetCatalogDirectoryName
 import com.anifichadia.figmaimporter.type.fold
 import com.anifichadia.figmaimporter.type.replaceOrAdd
 import com.anifichadia.figmaimporter.util.FileLockRegistry

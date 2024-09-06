@@ -1,8 +1,8 @@
 package com.anifichadia.figmaimporter.cli.handler
 
 import com.anifichadia.figmaimporter.android.figma.model.androidImageXxxHdpi
-import com.anifichadia.figmaimporter.android.model.drawable.DensityBucket
-import com.anifichadia.figmaimporter.android.model.importing.androidImageScaleAndStoreInDensityBuckets
+import com.anifichadia.figmaimporter.android.importer.asset.model.drawable.DensityBucket
+import com.anifichadia.figmaimporter.android.importer.asset.model.importing.androidImageScaleAndStoreInDensityBuckets
 import com.anifichadia.figmaimporter.cli.AssetFilter
 import com.anifichadia.figmaimporter.cli.timingLogger
 import com.anifichadia.figmaimporter.figma.FileKey
@@ -17,12 +17,12 @@ import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig
 import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.ios.figma.model.ios3xImage
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogContentDirectory
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogRootDirectory
-import com.anifichadia.figmaimporter.ios.model.importing.assetCatalogFinalisationLifecycle
-import com.anifichadia.figmaimporter.ios.model.importing.iosScaleAndStoreInAssetCatalog
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Scale
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Type
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.createAssetCatalogContentDirectory
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.createAssetCatalogRootDirectory
+import com.anifichadia.figmaimporter.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
+import com.anifichadia.figmaimporter.ios.importer.asset.model.importing.iosScaleAndStoreInAssetCatalog
 import com.anifichadia.figmaimporter.util.sanitise
 import com.anifichadia.figmaimporter.util.to_snake_case
 import java.io.File

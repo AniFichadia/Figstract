@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.android.model.drawable
+package com.anifichadia.figmaimporter.android.importer.asset.model.drawable
 
 enum class DensityBucket(
     val suffix: String,

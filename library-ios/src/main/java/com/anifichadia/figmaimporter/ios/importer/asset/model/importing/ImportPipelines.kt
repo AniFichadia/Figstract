@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.ios.model.importing
+package com.anifichadia.figmaimporter.ios.importer.asset.model.importing
 
 import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
 import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
@@ -8,12 +8,12 @@ import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeli
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figmaimporter.importer.asset.model.importing.renameSuffix
 import com.anifichadia.figmaimporter.importer.asset.model.importing.scale
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Content
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.asFileSuffix
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.ensureAssetCatalogSubdirectoriesHaveContentFiles
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.writeAssetCatalogRootContent
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Content
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Scale
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Type
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.asFileSuffix
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.ensureAssetCatalogSubdirectoriesHaveContentFiles
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.writeAssetCatalogRootContent
 import com.anifichadia.figmaimporter.util.FileLockRegistry
 import java.io.File
 

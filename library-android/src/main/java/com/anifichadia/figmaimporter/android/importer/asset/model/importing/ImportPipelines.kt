@@ -1,6 +1,6 @@
-package com.anifichadia.figmaimporter.android.model.importing
+package com.anifichadia.figmaimporter.android.importer.asset.model.importing
 
-import com.anifichadia.figmaimporter.android.model.drawable.DensityBucket
+import com.anifichadia.figmaimporter.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
 import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination.Companion.directoryDestination
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
