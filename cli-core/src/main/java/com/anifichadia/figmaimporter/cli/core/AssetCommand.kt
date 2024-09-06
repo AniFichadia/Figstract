@@ -7,6 +7,7 @@ import com.anifichadia.figmaimporter.importer.asset.FigmaAssetImporter
 import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
 import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figmaimporter.model.tracking.NoOpProcessingRecordRepository
+import com.anifichadia.figmaimporter.type.fold
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.findObject
 import com.github.ajalt.clikt.core.requireObject
@@ -43,9 +44,12 @@ abstract class AssetCommand : CliktCommand(name = "asset") {
             authProvider = authProvider,
         )
         val downloaderHttpClient = HttpClientFactory.downloader(proxy = proxyConfig)
+
+        val outDirectory = outPath.fold("assets")
+
         val processingRecordRepository = if (trackingEnabled) {
             JsonFileProcessingRecordRepository(
-                recordFile = File(outPath, "processing_record.json")
+                recordFile = File(outDirectory, "processing_record.json")
             )
         } else {
             NoOpProcessingRecordRepository
