@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.ios.model.assetcatalog
+package com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog
 
 enum class Type(val directorySuffix: String) {
     IMAGE_SET("imageset"),

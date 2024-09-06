@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.ios.model.assetcatalog
+package com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

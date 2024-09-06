@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.android.model.importing
+package com.anifichadia.figmaimporter.android.importer.asset.model.importing
 
 import com.android.ide.common.vectordrawable.Svg2Vector
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline

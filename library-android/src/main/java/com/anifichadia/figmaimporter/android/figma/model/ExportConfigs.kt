@@ -1,6 +1,6 @@
 package com.anifichadia.figmaimporter.android.figma.model
 
-import com.anifichadia.figmaimporter.android.model.drawable.DensityBucket
+import com.anifichadia.figmaimporter.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig
 import com.anifichadia.figmaimporter.importer.asset.model.exporting.ExportConfig.Companion.SCALE_PLACEHOLDER

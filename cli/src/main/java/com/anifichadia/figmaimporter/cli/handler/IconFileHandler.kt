@@ -1,7 +1,7 @@
 package com.anifichadia.figmaimporter.cli.handler
 
-import com.anifichadia.figmaimporter.android.model.importing.androidSvgToAvd
-import com.anifichadia.figmaimporter.android.model.importing.androidVectorColorToPlaceholder
+import com.anifichadia.figmaimporter.android.importer.asset.model.importing.androidSvgToAvd
+import com.anifichadia.figmaimporter.android.importer.asset.model.importing.androidVectorColorToPlaceholder
 import com.anifichadia.figmaimporter.cli.AssetFilter
 import com.anifichadia.figmaimporter.cli.timingLogger
 import com.anifichadia.figmaimporter.figma.FileKey
@@ -15,12 +15,12 @@ import com.anifichadia.figmaimporter.importer.asset.model.importing.Destination
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figmaimporter.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figmaimporter.ios.figma.model.iosIcon
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Scale
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.Type
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogContentDirectory
-import com.anifichadia.figmaimporter.ios.model.assetcatalog.createAssetCatalogRootDirectory
-import com.anifichadia.figmaimporter.ios.model.importing.assetCatalogFinalisationLifecycle
-import com.anifichadia.figmaimporter.ios.model.importing.iosStoreInAssetCatalog
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Scale
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.Type
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.createAssetCatalogContentDirectory
+import com.anifichadia.figmaimporter.ios.importer.asset.model.assetcatalog.createAssetCatalogRootDirectory
+import com.anifichadia.figmaimporter.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
+import com.anifichadia.figmaimporter.ios.importer.asset.model.importing.iosStoreInAssetCatalog
 import com.anifichadia.figmaimporter.type.fold
 import com.anifichadia.figmaimporter.util.ToUpperCamelCase
 import com.anifichadia.figmaimporter.util.sanitise
