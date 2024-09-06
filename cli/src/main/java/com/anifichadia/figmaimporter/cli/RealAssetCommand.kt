@@ -20,13 +20,13 @@ class RealAssetCommand : AssetCommand() {
     private val artworkFigmaFile by option("--artworkFigmaFile")
     private val artworkCreateCropped by option("--artworkCreateCropped")
         .flag(default = false)
-    private val artworkFilter by FilterOptionGroup("artwork")
+    private val artworkFilter by AssetFilterOptionGroup("artwork")
 
     private val iconsEnabled by option("--iconsEnabled")
         .boolean()
         .default(false)
     private val iconsFigmaFile by option("--iconsFigmaFile")
-    private val iconFilter by FilterOptionGroup("icon")
+    private val iconFilter by AssetFilterOptionGroup("icon")
 
     private val platformOptions by PlatformOptionGroup()
 

@@ -92,7 +92,7 @@ internal fun createArtworkFigmaFileHandler(
     ) { response, _ ->
         val canvases = response.document.children
             .filterIsInstance<Node.Canvas>()
-            .filter { canvas -> assetFilter.accept(canvas) }
+            .filter { canvas -> assetFilter.nodeNameFilter.accept(canvas) }
 
         canvases.map { canvas ->
             val canvasName = canvas.name
@@ -102,8 +102,8 @@ internal fun createArtworkFigmaFileHandler(
                     if (node !is Node.Fillable) return@traverseBreadthFirst
                     if (!node.fills.any { it is Paint.Image }) return@traverseBreadthFirst
 
-                    if (!assetFilter.accept(node)) return@traverseBreadthFirst
-                    if (!assetFilter.accept(parent)) return@traverseBreadthFirst
+                    if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
+                    if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
                     val parentName = parent.name
 
