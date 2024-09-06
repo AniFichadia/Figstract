@@ -1,8 +1,7 @@
 package com.anifichadia.figmaimporter.cli.core
 
 import com.anifichadia.figmaimporter.HttpClientFactory
-import com.anifichadia.figmaimporter.apiclient.AuthProvider
-import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
+import com.anifichadia.figmaimporter.figma.api.FigmaApi
 import com.anifichadia.figmaimporter.importer.asset.FigmaAssetImporter
 import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
 import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepository
@@ -21,8 +20,8 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 
 abstract class AssetCommand : CliktCommand(name = "asset") {
-    private val authProvider by requireObject<AuthProvider>()
     private val proxyConfig by findObject<ProxyConfig>()
+    private val figmaApi by requireObject<FigmaApi>()
 
     private val trackingEnabled: Boolean by option("--trackingEnabled")
         .boolean()
@@ -38,12 +37,9 @@ abstract class AssetCommand : CliktCommand(name = "asset") {
     abstract fun createHandlers(outDirectory: File): List<AssetFileHandler>
 
     override fun run() = runBlocking {
-        val figmaHttpClient = HttpClientFactory.figma(proxy = proxyConfig)
-        val figmaApi = FigmaApiImpl(
-            httpClient = figmaHttpClient,
-            authProvider = authProvider,
+        val downloaderHttpClient = HttpClientFactory.downloader(
+            proxy = proxyConfig,
         )
-        val downloaderHttpClient = HttpClientFactory.downloader(proxy = proxyConfig)
 
         val outDirectory = outPath.fold("assets")
 
