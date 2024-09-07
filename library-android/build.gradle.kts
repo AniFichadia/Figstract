@@ -12,5 +12,7 @@ dependencies {
     implementation(libs.bundles.androidTools)
     implementation(libs.bundles.scrimage)
 
+    implementation(libs.kotlinPoet)
+
     testImplementation(libs.bundles.unitTest.jvm)
 }

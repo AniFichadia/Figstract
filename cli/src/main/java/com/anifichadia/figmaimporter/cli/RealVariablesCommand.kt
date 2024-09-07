@@ -1,5 +1,6 @@
 package com.anifichadia.figmaimporter.cli
 
+import com.anifichadia.figmaimporter.android.importer.variable.model.AndroidComposeVariableDataWriter
 import com.anifichadia.figmaimporter.cli.core.VariablesCommand
 import com.anifichadia.figmaimporter.importer.variable.model.JsonVariableDataWriter
 import com.anifichadia.figmaimporter.importer.variable.model.VariableDataWriter
@@ -22,6 +23,10 @@ class RealVariablesCommand : VariablesCommand() {
     private val outputJson by option("--outputJson")
         .boolean()
         .default(false)
+    private val outputAndroidCompose by option("--outputAndroidCompose")
+        .boolean()
+        .default(false)
+    private val outputAndroidComposePackageName by option("--outputAndroidComposePackageName")
 
     override fun createHandlers(outDirectory: File): List<VariableFileHandler> {
         val writers: List<VariableDataWriter> = buildList {
@@ -29,6 +34,16 @@ class RealVariablesCommand : VariablesCommand() {
                 add(
                     JsonVariableDataWriter(
                         outDirectory = outDirectory.fold("json"),
+                    )
+                )
+            }
+            if (outputAndroidCompose) {
+                val packageName = outputAndroidComposePackageName
+                    ?: throw BadParameterValue("outputAndroidComposePackageName must be defined")
+                add(
+                    AndroidComposeVariableDataWriter(
+                        outDirectory = outDirectory.fold("android", "compose"),
+                        packageName = packageName,
                     )
                 )
             }
