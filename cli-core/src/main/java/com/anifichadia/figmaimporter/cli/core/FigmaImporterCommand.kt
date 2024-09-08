@@ -1,5 +1,8 @@
 package com.anifichadia.figmaimporter.cli.core
 
+import com.anifichadia.figmaimporter.HttpClientFactory
+import com.anifichadia.figmaimporter.figma.api.FigmaApi
+import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.options.default
@@ -27,14 +30,25 @@ class FigmaImporterCommand private constructor() : CliktCommand() {
         if (proxyConfig != null) {
             currentContext.findOrSetObject { proxyConfig }
         }
+
+        val figmaHttpClient = HttpClientFactory.figma(
+            proxy = proxyConfig,
+        )
+        currentContext.findOrSetObject<FigmaApi> {
+            FigmaApiImpl(
+                httpClient = figmaHttpClient,
+                authProvider = authProvider,
+            )
+        }
     }
 
     companion object {
         operator fun invoke(
             assetCommand: AssetCommand,
+            variablesCommand: VariablesCommand,
         ): FigmaImporterCommand {
             return FigmaImporterCommand()
-                .subcommands(assetCommand)
+                .subcommands(assetCommand, variablesCommand)
         }
     }
 }

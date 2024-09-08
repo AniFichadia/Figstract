@@ -1,12 +1,14 @@
 package com.anifichadia.figmaimporter.figma.api
 
 import com.anifichadia.figmaimporter.apiclient.AbstractApiClient
+import com.anifichadia.figmaimporter.apiclient.ApiResponse
 import com.anifichadia.figmaimporter.apiclient.AuthProvider
 import com.anifichadia.figmaimporter.apiclient.Endpoint
 import com.anifichadia.figmaimporter.figma.FileKey
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.figma.model.GetFilesResponse
 import com.anifichadia.figmaimporter.figma.model.GetImageResponse
+import com.anifichadia.figmaimporter.figma.model.GetLocalVariablesResponse
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpMethod
 
@@ -51,7 +53,15 @@ class FigmaApiImpl(
             "format" to format,
             "scale" to scale,
             "contents_only" to contentsOnly,
-        )
+        ),
+    )
+
+    override suspend fun getLocalVariables(
+        key: FileKey,
+    ): ApiResponse<GetLocalVariablesResponse> = apiRequest<GetLocalVariablesResponse>(
+        method = HttpMethod.Get,
+        path = "/v1/files/${key}/variables/local",
+        authenticated = true,
     )
 }
 

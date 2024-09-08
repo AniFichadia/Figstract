@@ -46,8 +46,8 @@ abstract class AbstractApiClient(
     ): ApiResponse<T> {
         return try {
             val response = request(method, path, queryParams, authenticated, authProvider, body)
-            val responseBody = response.body<T>()
             val bodyText = response.bodyAsText()
+            val responseBody = response.body<T>()
             val metaData = createMetaData(response)
 
             ApiResponse.Success(

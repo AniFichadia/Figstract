@@ -92,7 +92,7 @@ internal fun createIconFigmaFileHandler(
     ) { response, _ ->
         val canvases = response.document.children
             .filterIsInstance<Node.Canvas>()
-            .filter { canvas -> assetFilter.accept(canvas) }
+            .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
 
         canvases.map { canvas ->
             Instruction.buildInstructions {
@@ -100,8 +100,8 @@ internal fun createIconFigmaFileHandler(
                     if (parent == null) return@traverseBreadthFirst
                     if (node !is Node.Vector) return@traverseBreadthFirst
 
-                    if (!assetFilter.accept(node)) return@traverseBreadthFirst
-                    if (!assetFilter.accept(parent)) return@traverseBreadthFirst
+                    if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
+                    if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
                     val parentName = parent.name.let {
                         if (it.contains("/")) {

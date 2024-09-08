@@ -1,7 +1,7 @@
 package com.anifichadia.figmaimporter.apiclient
 
-import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
+import io.ktor.util.reflect.typeInfo
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -25,7 +25,9 @@ sealed class ApiResponse<ValueT> {
             val errorBodyString: String,
             val metaData: MetaData,
         ) : Failure<ValueT>() {
-            suspend inline fun <reified T> errorBodyAs() = response.body<T>()
+            suspend inline fun <reified T> errorBodyAs() = requireNotNull(errorBodyAsOrNull<T>())
+
+            suspend inline fun <reified T> errorBodyAsOrNull() = response.call.bodyNullable(typeInfo<T>())
 
             override fun asException() = ResponseException(this)
 
