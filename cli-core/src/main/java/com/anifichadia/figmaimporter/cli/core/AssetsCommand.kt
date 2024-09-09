@@ -19,7 +19,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
-abstract class AssetsCommand : CliktCommand(name = "assets") {
+abstract class AssetsCommand : CliktCommand(
+    name = "assets",
+    help = """
+        Extracts assets from figma files, such as images and icons
+    """.trimIndent(),
+    printHelpOnEmptyArgs = true,
+) {
     private val proxyConfig by findObject<ProxyConfig>()
     private val figmaApi by requireObject<FigmaApi>()
 
