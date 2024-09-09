@@ -11,7 +11,10 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 
-class FigmaImporterCommand private constructor() : CliktCommand() {
+class FigmaImporterCommand private constructor() : CliktCommand(
+    name = "figstract",
+    printHelpOnEmptyArgs = true,
+) {
     private val authType: AuthType by option("--authType")
         .enum<AuthType>()
         .default(AuthType.AccessToken)
@@ -48,7 +51,10 @@ class FigmaImporterCommand private constructor() : CliktCommand() {
             variablesCommand: VariablesCommand,
         ): FigmaImporterCommand {
             return FigmaImporterCommand()
-                .subcommands(assetCommand, variablesCommand)
+                .subcommands(
+                    assetCommand,
+                    variablesCommand,
+                )
         }
     }
 }
