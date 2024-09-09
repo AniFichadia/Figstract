@@ -13,7 +13,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
-abstract class VariablesCommand : CliktCommand(name = "variables") {
+abstract class VariablesCommand : CliktCommand(
+    name = "variables",
+    help = """
+        Extracts variables from figma files, such as booleans, numbers, strings, and colors
+    """.trimIndent(),
+    printHelpOnEmptyArgs = true,
+) {
     private val figmaApi by requireObject<FigmaApi>()
 
     private val outPath: File by option("--out", "-o")
