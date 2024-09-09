@@ -47,12 +47,12 @@ class FigmaImporterCommand private constructor() : CliktCommand(
 
     companion object {
         operator fun invoke(
-            assetCommand: AssetCommand,
+            assetsCommand: AssetsCommand,
             variablesCommand: VariablesCommand,
         ): FigmaImporterCommand {
             return FigmaImporterCommand()
                 .subcommands(
-                    assetCommand,
+                    assetsCommand,
                     variablesCommand,
                 )
         }

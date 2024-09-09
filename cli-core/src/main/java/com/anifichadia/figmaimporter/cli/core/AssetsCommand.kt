@@ -19,7 +19,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
-abstract class AssetCommand : CliktCommand(name = "asset") {
+abstract class AssetsCommand : CliktCommand(name = "assets") {
     private val proxyConfig by findObject<ProxyConfig>()
     private val figmaApi by requireObject<FigmaApi>()
 

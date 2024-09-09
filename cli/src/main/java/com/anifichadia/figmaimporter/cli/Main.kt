@@ -4,7 +4,7 @@ import com.anifichadia.figmaimporter.cli.core.FigmaImporterCommand
 
 fun main(args: Array<String>) {
     FigmaImporterCommand(
-        assetCommand = RealAssetCommand(),
+        assetsCommand = RealAssetsCommand(),
         variablesCommand = RealVariablesCommand(),
     ).main(args)
 }
