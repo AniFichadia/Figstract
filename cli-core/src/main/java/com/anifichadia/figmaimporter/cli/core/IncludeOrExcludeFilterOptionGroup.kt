@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core
 
 import com.github.ajalt.clikt.core.MutuallyExclusiveGroupException
 import com.github.ajalt.clikt.core.ParameterHolder

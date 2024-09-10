@@ -11,8 +11,6 @@ version = "0.0.1-alpha01"
 
 dependencies {
     implementation(project(":cli-core"))
-    implementation(project(":library-android"))
-    implementation(project(":library-ios"))
 
     implementation(libs.kotlinLogging)
 

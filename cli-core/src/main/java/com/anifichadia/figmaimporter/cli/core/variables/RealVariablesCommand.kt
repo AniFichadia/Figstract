@@ -1,7 +1,6 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core.variables
 
 import com.anifichadia.figmaimporter.android.importer.variable.model.AndroidComposeVariableDataWriter
-import com.anifichadia.figmaimporter.cli.core.VariablesCommand
 import com.anifichadia.figmaimporter.importer.variable.model.JsonVariableDataWriter
 import com.anifichadia.figmaimporter.importer.variable.model.VariableDataWriter
 import com.anifichadia.figmaimporter.importer.variable.model.VariableFileHandler

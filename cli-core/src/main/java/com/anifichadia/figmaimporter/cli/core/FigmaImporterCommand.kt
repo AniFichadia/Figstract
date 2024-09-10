@@ -1,6 +1,8 @@
 package com.anifichadia.figmaimporter.cli.core
 
 import com.anifichadia.figmaimporter.HttpClientFactory
+import com.anifichadia.figmaimporter.cli.core.assets.AssetsCommand
+import com.anifichadia.figmaimporter.cli.core.variables.VariablesCommand
 import com.anifichadia.figmaimporter.figma.api.FigmaApi
 import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
 import com.github.ajalt.clikt.core.CliktCommand

@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.cli.core
+package com.anifichadia.figmaimporter.cli.core.assets
 
 import com.anifichadia.figmaimporter.HttpClientFactory
 import com.anifichadia.figmaimporter.figma.api.FigmaApi

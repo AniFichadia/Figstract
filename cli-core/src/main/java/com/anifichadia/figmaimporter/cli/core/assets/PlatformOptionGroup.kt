@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core.assets
 
 import com.anifichadia.figmaimporter.util.ToUpperCamelCase
 import com.github.ajalt.clikt.parameters.groups.OptionGroup

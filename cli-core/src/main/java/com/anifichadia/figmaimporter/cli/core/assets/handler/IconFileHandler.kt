@@ -1,9 +1,9 @@
-package com.anifichadia.figmaimporter.cli.handler
+package com.anifichadia.figmaimporter.cli.core.assets.handler
 
 import com.anifichadia.figmaimporter.android.importer.asset.model.importing.androidSvgToAvd
 import com.anifichadia.figmaimporter.android.importer.asset.model.importing.androidVectorColorToPlaceholder
-import com.anifichadia.figmaimporter.cli.AssetFilter
-import com.anifichadia.figmaimporter.cli.timingLogger
+import com.anifichadia.figmaimporter.cli.core.assets.AssetFilter
+import com.anifichadia.figmaimporter.cli.core.timingLogger
 import com.anifichadia.figmaimporter.figma.FileKey
 import com.anifichadia.figmaimporter.figma.model.Node
 import com.anifichadia.figmaimporter.figma.model.Node.Companion.traverseBreadthFirst

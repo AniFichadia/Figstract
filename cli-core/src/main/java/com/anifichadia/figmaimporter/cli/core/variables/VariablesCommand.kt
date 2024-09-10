@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.cli.core
+package com.anifichadia.figmaimporter.cli.core.variables
 
 import com.anifichadia.figmaimporter.figma.api.FigmaApi
 import com.anifichadia.figmaimporter.importer.variable.FigmaVariableImporter
