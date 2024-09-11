@@ -46,8 +46,8 @@ class VariableFilterOptionGroup : OptionGroup() {
                 exclude = variableCollection.excludes,
             ),
             modeNameFilter = ModeNameFilter(
-                include = emptyList(),
-                exclude = emptyList(),
+                include = mode.includes,
+                exclude = mode.excludes,
             ),
             variableTypeFilter = VariableTypeFilter(
                 includeBooleans = includeBooleans,

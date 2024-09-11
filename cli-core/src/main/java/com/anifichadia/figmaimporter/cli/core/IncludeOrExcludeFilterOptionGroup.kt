@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.MutuallyExclusiveGroupException
 import com.github.ajalt.clikt.core.ParameterHolder
 import com.github.ajalt.clikt.core.UsageError
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
@@ -16,16 +17,14 @@ class IncludeOrExcludeFilterOptionGroup(
 ) : OptionGroup() {
     private val includeOptionName = name(prefix, true, suffix)
     private val includesOption = createOption(includeOptionName)
-    private val _includes by includesOption
-    val includes: List<Regex> get() = _includes.map { it.toRegex() }
+    val includes by includesOption
 
     private val excludeOptionName = name(prefix, false, suffix)
     private val excludesOption = createOption(excludeOptionName)
-    private val _excludes by excludesOption
-    val excludes: List<Regex> get() = _excludes.map { it.toRegex() }
+    val excludes by excludesOption
 
     fun error(): UsageError? {
-        return if (_includes.isNotEmpty() && _excludes.isNotEmpty()) {
+        return if (includes.isNotEmpty() && excludes.isNotEmpty()) {
             MutuallyExclusiveGroupException(listOf(includeOptionName, excludeOptionName))
         } else {
             null
@@ -52,7 +51,10 @@ class IncludeOrExcludeFilterOptionGroup(
             }
         }
 
-        fun ParameterHolder.createOption(name: String) = option("--$name").multiple().unique()
+        fun ParameterHolder.createOption(name: String) = option("--$name")
+            .convert { it.toRegex() }
+            .multiple()
+            .unique()
 
         operator fun IncludeOrExcludeFilterOptionGroup.provideDelegate(
             thisRef: OptionGroup,

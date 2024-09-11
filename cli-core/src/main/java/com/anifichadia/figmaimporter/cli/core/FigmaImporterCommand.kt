@@ -7,31 +7,20 @@ import com.anifichadia.figmaimporter.figma.api.FigmaApi
 import com.anifichadia.figmaimporter.figma.api.FigmaApiImpl
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
-import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.option
-import com.github.ajalt.clikt.parameters.options.required
-import com.github.ajalt.clikt.parameters.types.enum
-import com.github.ajalt.clikt.parameters.types.int
+import com.github.ajalt.clikt.parameters.groups.provideDelegate
 
 class FigmaImporterCommand private constructor() : CliktCommand(
     name = "figstract",
     printHelpOnEmptyArgs = true,
 ) {
-    private val authType: AuthType by option("--authType")
-        .enum<AuthType>()
-        .default(AuthType.AccessToken)
-    private val authToken: String by option("--auth")
-        .required()
-
-    private val proxyHost: String? by option("--proxyHost")
-    private val proxyPort: Int? by option("--proxyPort")
-        .int()
+    private val auth by AuthOptionGroup()
+    private val proxy by ProxyOptionGroup()
 
     override fun run() {
-        val authProvider = authType.createAuthProvider(authToken)
+        val authProvider = auth.authProvider
         currentContext.findOrSetObject { authProvider }
 
-        val proxyConfig = getProxyConfig(proxyHost, proxyPort)
+        val proxyConfig = proxy.proxyConfig
         if (proxyConfig != null) {
             currentContext.findOrSetObject { proxyConfig }
         }

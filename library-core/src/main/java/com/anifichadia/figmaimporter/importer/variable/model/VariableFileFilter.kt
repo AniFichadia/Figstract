@@ -11,15 +11,15 @@ data class VariableFileFilter(
 )
 
 class VariableCollectionNameFilter(
-    override val include: List<Regex>,
-    override val exclude: List<Regex>,
+    override val include: Set<Regex>,
+    override val exclude: Set<Regex>,
 ) : IncludeOrExcludeFilter<VariableCollection>() {
     override val getFilterableProperty: (VariableCollection) -> String = { it.name }
 }
 
 class ModeNameFilter(
-    override val include: List<Regex>,
-    override val exclude: List<Regex>,
+    override val include: Set<Regex>,
+    override val exclude: Set<Regex>,
 ) : IncludeOrExcludeFilter<Mode>() {
     override val getFilterableProperty: (Mode) -> String = { it.name }
 }
