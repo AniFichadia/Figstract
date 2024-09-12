@@ -106,7 +106,7 @@ internal fun createArtworkFigmaFileHandler(
 
                     if (androidImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = androidImageXxxHdpi,
                             importOutputName = "artwork_${canvasName}_${parentName}"
                                 .sanitise()
@@ -115,7 +115,7 @@ internal fun createArtworkFigmaFileHandler(
                         )
                         if (createCropped) {
                             addInstruction(
-                                exportNodeId = node.id,
+                                exportNode = node,
                                 exportConfig = androidImageXxxHdpi,
                                 importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
@@ -127,7 +127,7 @@ internal fun createArtworkFigmaFileHandler(
 
                     if (iosImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = ios3xImage,
                             importOutputName = "artwork_${canvasName}_${parentName}"
                                 .sanitise()
@@ -136,7 +136,7 @@ internal fun createArtworkFigmaFileHandler(
                         )
                         if (createCropped) {
                             addInstruction(
-                                exportNodeId = node.id,
+                                exportNode = node,
                                 exportConfig = ios3xImage,
                                 importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
@@ -148,7 +148,7 @@ internal fun createArtworkFigmaFileHandler(
 
                     if (webImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = ExportConfig(ExportSetting.Format.PNG),
                             importOutputName = "artwork_${canvasName}_${parentName}"
                                 .sanitise()
@@ -157,7 +157,7 @@ internal fun createArtworkFigmaFileHandler(
                         )
                         if (createCropped) {
                             addInstruction(
-                                exportNodeId = node.id,
+                                exportNode = node,
                                 exportConfig = ExportConfig(ExportSetting.Format.PNG),
                                 importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()

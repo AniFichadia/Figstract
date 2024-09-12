@@ -113,7 +113,7 @@ internal fun createIconFigmaFileHandler(
 
                     if (androidImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = svg,
                             importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
                             importPipeline = androidImportPipeline,
@@ -122,7 +122,7 @@ internal fun createIconFigmaFileHandler(
 
                     if (iosImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = iosIcon,
                             importOutputName = parentName.sanitise().ToUpperCamelCase(),
                             importPipeline = iosImportPipeline,
@@ -131,7 +131,7 @@ internal fun createIconFigmaFileHandler(
 
                     if (webImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = svg,
                             importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
                             importPipeline = webImportPipeline,
