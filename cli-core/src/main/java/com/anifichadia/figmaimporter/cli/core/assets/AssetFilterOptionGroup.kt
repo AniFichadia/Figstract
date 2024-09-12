@@ -1,6 +1,7 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core.assets
 
-import com.anifichadia.figmaimporter.cli.IncludeOrExcludeFilterOptionGroup.Companion.provideDelegate
+import com.anifichadia.figmaimporter.cli.core.IncludeOrExcludeFilterOptionGroup
+import com.anifichadia.figmaimporter.cli.core.IncludeOrExcludeFilterOptionGroup.Companion.provideDelegate
 import com.anifichadia.figmaimporter.importer.asset.model.NodeFilter
 import com.github.ajalt.clikt.core.MultiUsageError
 import com.github.ajalt.clikt.parameters.groups.OptionGroup

@@ -1,4 +1,4 @@
-package com.anifichadia.figmaimporter.cli.core
+package com.anifichadia.figmaimporter.cli.core.assets
 
 import com.anifichadia.figmaimporter.HttpClientFactory
 import com.anifichadia.figmaimporter.figma.api.FigmaApi
@@ -8,18 +8,34 @@ import com.anifichadia.figmaimporter.model.tracking.JsonFileProcessingRecordRepo
 import com.anifichadia.figmaimporter.model.tracking.NoOpProcessingRecordRepository
 import com.anifichadia.figmaimporter.type.fold
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.findObject
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
 import com.github.ajalt.clikt.parameters.types.file
+import com.github.ajalt.clikt.sources.PropertiesValueSource
 import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import java.io.File
 
-abstract class AssetCommand : CliktCommand(name = "asset") {
+abstract class AssetsCommand : CliktCommand(
+    name = "assets",
+    help = """
+        Extracts assets from figma files, such as images and icons
+    """.trimIndent(),
+    printHelpOnEmptyArgs = true,
+) {
+    init {
+        context {
+            valueSources(
+                PropertiesValueSource.from("$commandName.properties"),
+            )
+        }
+    }
+
     private val proxyConfig by findObject<ProxyConfig>()
     private val figmaApi by requireObject<FigmaApi>()
 

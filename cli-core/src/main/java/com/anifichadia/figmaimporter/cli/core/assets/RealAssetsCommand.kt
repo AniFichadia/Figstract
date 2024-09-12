@@ -1,8 +1,7 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core.assets
 
-import com.anifichadia.figmaimporter.cli.core.AssetCommand
-import com.anifichadia.figmaimporter.cli.handler.createArtworkFigmaFileHandler
-import com.anifichadia.figmaimporter.cli.handler.createIconFigmaFileHandler
+import com.anifichadia.figmaimporter.cli.core.assets.handler.createArtworkFigmaFileHandler
+import com.anifichadia.figmaimporter.cli.core.assets.handler.createIconFigmaFileHandler
 import com.anifichadia.figmaimporter.importer.asset.model.AssetFileHandler
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
@@ -13,7 +12,7 @@ import com.github.ajalt.clikt.parameters.types.boolean
 import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 
-class RealAssetCommand : AssetCommand() {
+class RealAssetsCommand : AssetsCommand() {
     private val artworkEnabled by option("--artworkEnabled")
         .boolean()
         .default(false)

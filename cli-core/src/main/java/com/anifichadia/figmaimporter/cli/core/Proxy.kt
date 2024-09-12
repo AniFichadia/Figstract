@@ -11,13 +11,11 @@ fun getProxyConfig(proxyHost: String?, proxyPort: Int?): ProxyConfig? {
             URLBuilder(
                 protocol = URLProtocol.HTTP,
                 host = proxyHost,
-            )
-                .apply {
-                    if (proxyPort != null) {
-                        this.port = proxyPort
-                    }
+            ).apply {
+                if (proxyPort != null) {
+                    this.port = proxyPort
                 }
-                .build()
+            }.build()
         )
     } else {
         null

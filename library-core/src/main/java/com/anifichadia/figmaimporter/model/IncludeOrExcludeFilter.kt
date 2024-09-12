@@ -1,8 +1,8 @@
 package com.anifichadia.figmaimporter.model
 
 abstract class IncludeOrExcludeFilter<T> {
-    protected abstract val include: List<Regex>
-    protected abstract val exclude: List<Regex>
+    protected abstract val include: Set<Regex>
+    protected abstract val exclude: Set<Regex>
     protected abstract val getFilterableProperty: (T) -> String
 
     fun accept(value: T): Boolean {

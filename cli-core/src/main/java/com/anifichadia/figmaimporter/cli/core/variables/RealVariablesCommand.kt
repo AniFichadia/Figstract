@@ -1,7 +1,6 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core.variables
 
 import com.anifichadia.figmaimporter.android.importer.variable.model.AndroidComposeVariableDataWriter
-import com.anifichadia.figmaimporter.cli.core.VariablesCommand
 import com.anifichadia.figmaimporter.importer.variable.model.JsonVariableDataWriter
 import com.anifichadia.figmaimporter.importer.variable.model.VariableDataWriter
 import com.anifichadia.figmaimporter.importer.variable.model.VariableFileHandler
@@ -23,10 +22,7 @@ class RealVariablesCommand : VariablesCommand() {
     private val outputJson by option("--outputJson")
         .boolean()
         .default(false)
-    private val outputAndroidCompose by option("--outputAndroidCompose")
-        .boolean()
-        .default(false)
-    private val outputAndroidComposePackageName by option("--outputAndroidComposePackageName")
+    private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose")
 
     override fun createHandlers(outDirectory: File): List<VariableFileHandler> {
         val writers: List<VariableDataWriter> = buildList {
@@ -37,20 +33,18 @@ class RealVariablesCommand : VariablesCommand() {
                     )
                 )
             }
-            if (outputAndroidCompose) {
-                val packageName = outputAndroidComposePackageName
-                    ?: throw BadParameterValue("outputAndroidComposePackageName must be defined")
-                add(
-                    AndroidComposeVariableDataWriter(
-                        outDirectory = outDirectory.fold("android", "compose"),
-                        packageName = packageName,
+            outputAndroidCompose?.let {
+                if (it.enabled) {
+                    add(
+                        AndroidComposeVariableDataWriter(
+                            outDirectory = outDirectory.fold("android", "compose"),
+                            packageName = it.logicalGrouping,
+                        )
                     )
-                )
+                }
             }
         }
-        if (writers.isEmpty()) {
-            throw BadParameterValue("No outputs have been defined")
-        }
+        if (writers.isEmpty()) throw BadParameterValue("No outputs have been defined")
 
         return figmaFiles.map { figmaFile ->
             VariableFileHandler(

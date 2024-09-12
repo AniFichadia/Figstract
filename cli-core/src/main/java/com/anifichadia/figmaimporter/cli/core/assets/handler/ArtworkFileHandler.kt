@@ -1,10 +1,10 @@
-package com.anifichadia.figmaimporter.cli.handler
+package com.anifichadia.figmaimporter.cli.core.assets.handler
 
 import com.anifichadia.figmaimporter.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figmaimporter.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figmaimporter.android.importer.asset.model.importing.androidImageScaleAndStoreInDensityBuckets
-import com.anifichadia.figmaimporter.cli.AssetFilter
-import com.anifichadia.figmaimporter.cli.timingLogger
+import com.anifichadia.figmaimporter.cli.core.assets.AssetFilter
+import com.anifichadia.figmaimporter.cli.core.timingLogger
 import com.anifichadia.figmaimporter.figma.FileKey
 import com.anifichadia.figmaimporter.figma.model.ExportSetting
 import com.anifichadia.figmaimporter.figma.model.Node

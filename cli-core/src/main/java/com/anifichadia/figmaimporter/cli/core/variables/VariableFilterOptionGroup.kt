@@ -1,6 +1,7 @@
-package com.anifichadia.figmaimporter.cli
+package com.anifichadia.figmaimporter.cli.core.variables
 
-import com.anifichadia.figmaimporter.cli.IncludeOrExcludeFilterOptionGroup.Companion.provideDelegate
+import com.anifichadia.figmaimporter.cli.core.IncludeOrExcludeFilterOptionGroup
+import com.anifichadia.figmaimporter.cli.core.IncludeOrExcludeFilterOptionGroup.Companion.provideDelegate
 import com.anifichadia.figmaimporter.importer.variable.model.ModeNameFilter
 import com.anifichadia.figmaimporter.importer.variable.model.VariableCollectionNameFilter
 import com.anifichadia.figmaimporter.importer.variable.model.VariableFileFilter
@@ -45,8 +46,8 @@ class VariableFilterOptionGroup : OptionGroup() {
                 exclude = variableCollection.excludes,
             ),
             modeNameFilter = ModeNameFilter(
-                include = emptyList(),
-                exclude = emptyList(),
+                include = mode.includes,
+                exclude = mode.excludes,
             ),
             variableTypeFilter = VariableTypeFilter(
                 includeBooleans = includeBooleans,
