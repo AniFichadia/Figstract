@@ -3,7 +3,6 @@ package com.anifichadia.figstract.importer.asset.model
 import com.anifichadia.figstract.figma.NodeId
 import com.anifichadia.figstract.figma.model.ExportSetting
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
-import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 
 data class Instruction(
@@ -17,7 +16,7 @@ data class Instruction(
 
     data class Import(
         val importTarget: ImportTarget.Initial,
-        val pipeline: ImportPipeline = ImportPipeline(ImportPipeline.Step.PassThrough, Destination.None),
+        val pipeline: ImportPipeline = ImportPipeline(ImportPipeline.Step.PassThrough),
     )
 
     sealed interface ImportTarget {

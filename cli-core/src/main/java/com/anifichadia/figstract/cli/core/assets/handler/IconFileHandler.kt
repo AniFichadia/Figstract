@@ -40,8 +40,9 @@ internal fun createIconFigmaFileHandler(
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
         ImportPipeline(
-            steps = androidSvgToAvd then androidVectorColorToPlaceholder,
-            destination = Destination.directoryDestination(androidOutputDirectory),
+            steps = androidSvgToAvd then
+                androidVectorColorToPlaceholder then
+                Destination.directoryDestination(androidOutputDirectory),
         )
     } else {
         null
@@ -56,8 +57,6 @@ internal fun createIconFigmaFileHandler(
             createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Icon")
         iosImportPipeline = ImportPipeline(
             steps = iosStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`1x`),
-            // Destination is handled by steps
-            destination = Destination.None,
         )
         iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
     } else {
@@ -68,7 +67,7 @@ internal fun createIconFigmaFileHandler(
     val webImportPipeline = if (webOutDirectory != null) {
         val webOutputDirectory = File(webOutDirectory, "icons")
         ImportPipeline(
-            destination = Destination.directoryDestination(webOutputDirectory),
+            steps = Destination.directoryDestination(webOutputDirectory),
         )
     } else {
         null

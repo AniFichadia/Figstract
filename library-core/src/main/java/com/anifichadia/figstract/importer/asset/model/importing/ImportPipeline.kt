@@ -4,7 +4,6 @@ import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.ImportTarget.Companion.merge
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Output.Companion.single
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.and
-import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.passThrough
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.IfElse.Companion.otherwiseDefault
 import com.anifichadia.figstract.model.Describeable
@@ -17,8 +16,7 @@ import kotlinx.coroutines.coroutineScope
  * Used to manipulate, process or finalise assets retrieved from figma.
  */
 data class ImportPipeline(
-    val steps: Step = passThrough(),
-    val destination: Destination,
+    val steps: Step,
     val before: suspend () -> Unit = {},
     val after: suspend (successful: Boolean) -> Unit = {},
 ) {
@@ -32,7 +30,7 @@ data class ImportPipeline(
         try {
             before()
 
-            (steps then destination).process(
+            steps.process(
                 instruction = instruction,
                 input = Output(
                     data = data,

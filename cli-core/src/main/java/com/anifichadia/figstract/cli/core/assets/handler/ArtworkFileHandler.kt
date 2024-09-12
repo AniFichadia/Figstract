@@ -42,8 +42,6 @@ internal fun createArtworkFigmaFileHandler(
         val androidOutputDirectory = File(androidOutDirectory, "artwork")
         ImportPipeline(
             steps = androidImageScaleAndStoreInDensityBuckets(androidOutputDirectory, DensityBucket.XXXHDPI),
-            // Destination is handled by the steps
-            destination = Destination.None,
         )
     } else {
         null
@@ -58,8 +56,6 @@ internal fun createArtworkFigmaFileHandler(
 
         iosImportPipeline = ImportPipeline(
             steps = iosScaleAndStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`3x`),
-            // Destination is handled by the steps
-            destination = Destination.None,
         )
         iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
     } else {
@@ -70,7 +66,7 @@ internal fun createArtworkFigmaFileHandler(
     val webImportPipeline = if (webOutDirectory != null) {
         val webOutputDirectory = File(webOutDirectory, "artwork")
         ImportPipeline(
-            destination = Destination.directoryDestination(webOutputDirectory),
+            steps = Destination.directoryDestination(webOutputDirectory),
         )
     } else {
         null
