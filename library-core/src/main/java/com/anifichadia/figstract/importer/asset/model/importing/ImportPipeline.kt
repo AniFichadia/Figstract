@@ -51,29 +51,31 @@ data class ImportPipeline(
     }
 
     /**
-     * Processes asset from figma. Each [Step] produces a list of [Output]s which describe the outcome of a [Step].
-     *
-     * [Step]s may be run asynchronously and are suspending, so if there's any non-concurrent operation (e.g. writing to
-     * a common file) must use locks or flow control mechanisms within the implementation. Consider using a
-     * [kotlinx.coroutines.sync.Semaphore] or [kotlinx.coroutines.sync.Mutex]?
-     *
-     * [Step]s can produce 0 or more [Output]:
-     *  - 0 [Output]s may indicate a terminal [Step] in a processing pipeline, or an error, but it's possibly preferable
-     *  to just throw an exception. Also see [Output.none]
+     * Processes asset from figma. Each [Step] produces [Output]s which describe the outcome of a [Step]. There may be 0
+     * or more [Output]s:
+     *  - 0 [Output]s may indicate a terminal [Step] in a processing pipeline, or an error (although it's preferable to
+     *  throw an exception). Also see [Output.none]
      *  - Single [Output]s are pretty standard and the [Output.single] convenience function can be used to return a
      *  single [Output].
      *  - Producing multiple outputs allow fanning out subsequent [Step]s. For example, using a larger image and
      *  outputting multiple, downsized versions of it for further processing.
+     *
+     * [Step]s run asynchronously and are suspending, so any non-concurrent operation on shared resources (e.g. writing
+     * to a common file) must use locks or flow control mechanisms within its implementation. Consider using a
+     * [kotlinx.coroutines.sync.Semaphore] or [kotlinx.coroutines.sync.Mutex]?
      */
     fun interface Step {
-        /** When writing [Step]s, it's recommended to call [Output.copy] on [input] with any updated properties. */
+        /**
+         * When producing [Output]s from a [Step], it's recommended to call [Output.copy] on the [input] with any
+         * updated properties over constructing a new object.
+         */
         suspend fun process(
             instruction: Instruction,
             input: Output,
         ): List<Output>
 
         /**
-         * A no-op. Can be used a default or initial value for defining [ImportPipeline].
+         * A no-op. Can be used a default or initial value for defining an [ImportPipeline].
          *
          * This may be skipped when creating [ImportPipeline]s by calling [then].
          */
@@ -92,8 +94,7 @@ data class ImportPipeline(
         }
 
         /**
-         * Convenient way of having a [Step] with a side effect: something that performs external manipulation without
-         * affecting the [Output]
+         * Convenient way of having a [Step] with a side effect: an operation that doesn't affect the [Output]
          */
         abstract class SideEffect : Step, Describeable {
             abstract suspend fun perform(instruction: Instruction, input: Output)
@@ -298,6 +299,7 @@ data class ImportPipeline(
                 }
             }
 
+            /** @see [or] */
             infix fun Step.or(other: Step): Step {
                 return resolve(this, other) { first, second ->
                     Or(first, second)

@@ -11,10 +11,10 @@ object FileManagement {
     }
 
     private fun tempDirectoryPath(): Path {
-        return Paths.get("", "temp").also {
-            it.toFile().apply {
-                mkdirs()
-                deleteOnExit()
+        return Paths.get("", "temp").also { path ->
+            path.toFile().also {
+                it.mkdirs()
+                it.deleteOnExit()
             }
         }
     }
@@ -34,10 +34,10 @@ object FileManagement {
     }
 
     private fun stepTempDirectoryPath(stepName: String): Path {
-        return tempDirectoryPath().resolve(stepName).also {
-            it.toFile().apply {
-                mkdirs()
-                deleteOnExit()
+        return tempDirectoryPath().resolve(stepName).also { path ->
+            path.toFile().also {
+                it.mkdirs()
+                it.deleteOnExit()
             }
         }
     }
