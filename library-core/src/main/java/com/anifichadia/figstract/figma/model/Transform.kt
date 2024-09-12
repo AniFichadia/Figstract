@@ -1,4 +1,4 @@
-//package com.anifichadia.figmaimporter.figma.model
+//package com.anifichadia.figstract.figma.model
 //
 //import kotlinx.serialization.Serializable
 //

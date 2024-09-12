@@ -9,7 +9,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 
-class FigmaImporterCommand private constructor() : CliktCommand(
+class FigstractCommand private constructor() : CliktCommand(
     name = "figstract",
     printHelpOnEmptyArgs = true,
 ) {
@@ -40,8 +40,8 @@ class FigmaImporterCommand private constructor() : CliktCommand(
         operator fun invoke(
             assetsCommand: AssetsCommand,
             variablesCommand: VariablesCommand,
-        ): FigmaImporterCommand {
-            return FigmaImporterCommand()
+        ): FigstractCommand {
+            return FigstractCommand()
                 .subcommands(
                     assetsCommand,
                     variablesCommand,
