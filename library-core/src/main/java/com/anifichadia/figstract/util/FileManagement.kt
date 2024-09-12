@@ -28,7 +28,9 @@ object FileManagement {
             /* dir = */ stepTempDirectoryPath(stepName),
             /* prefix = */ prefix,
             /* suffix = */ suffix,
-        )
+        ).also {
+            it.toFile().deleteOnExit()
+        }
     }
 
     private fun stepTempDirectoryPath(stepName: String): Path {
