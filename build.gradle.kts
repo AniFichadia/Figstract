@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.shadow) apply false
 }
 
-group = "com.anifichadia.figmaimporter"
+group = "com.anifichadia.figstract"
 version = "0.0.1-alpha01"
 
 java {
