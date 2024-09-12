@@ -7,6 +7,7 @@ import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.figma.model.Node.Companion.traverseBreadthFirst
+import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.Companion.addInstruction
@@ -47,7 +48,7 @@ internal fun createIconFigmaFileHandler(
     }
 
     val iosImportPipeline: ImportPipeline?
-    val iosAssetCatalogLifecycle: AssetFileHandler.Lifecycle
+    val iosAssetCatalogLifecycle: Lifecycle
     if (iosOutDirectory != null) {
         val iosDirectory = File(iosOutDirectory, "icons")
         val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosDirectory)
@@ -61,7 +62,7 @@ internal fun createIconFigmaFileHandler(
         iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
     } else {
         iosImportPipeline = null
-        iosAssetCatalogLifecycle = AssetFileHandler.Lifecycle.NoOp
+        iosAssetCatalogLifecycle = Lifecycle.NoOp
     }
 
     val webImportPipeline = if (webOutDirectory != null) {
@@ -73,8 +74,8 @@ internal fun createIconFigmaFileHandler(
         null
     }
 
-    val timingLifecycle = AssetFileHandler.Lifecycle.Timing()
-    val timingLoggingLifecycle = object : AssetFileHandler.Lifecycle {
+    val timingLifecycle = Lifecycle.Timing()
+    val timingLoggingLifecycle = object : Lifecycle {
         override suspend fun onFinished() {
             timingLogger.info { "Icon retrieval timing: \n$timingLifecycle" }
         }
@@ -84,7 +85,7 @@ internal fun createIconFigmaFileHandler(
         figmaFile = figmaFile,
         // Icons are smaller, so we can retrieve more at the same time
         assetsPerChunk = 50,
-        lifecycle = AssetFileHandler.Lifecycle.Combined(
+        lifecycle = Lifecycle.Combined(
             iosAssetCatalogLifecycle,
             timingLifecycle,
             timingLoggingLifecycle,
