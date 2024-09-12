@@ -25,25 +25,7 @@ class RealVariablesCommand : VariablesCommand() {
     private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose")
 
     override fun createHandlers(outDirectory: File): List<VariableFileHandler> {
-        val writers: List<VariableDataWriter> = buildList {
-            if (outputJson) {
-                add(
-                    JsonVariableDataWriter(
-                        outDirectory = outDirectory.fold("json"),
-                    )
-                )
-            }
-            outputAndroidCompose?.let {
-                if (it.enabled) {
-                    add(
-                        AndroidComposeVariableDataWriter(
-                            outDirectory = outDirectory.fold("android", "compose"),
-                            packageName = it.logicalGrouping,
-                        )
-                    )
-                }
-            }
-        }
+        val writers = createWriters(outDirectory)
         if (writers.isEmpty()) throw BadParameterValue("No outputs have been defined")
 
         return figmaFiles.map { figmaFile ->
@@ -52,6 +34,26 @@ class RealVariablesCommand : VariablesCommand() {
                 filter = filters.toVariableFilter(),
                 writers = writers,
             )
+        }
+    }
+
+    fun createWriters(outDirectory: File): List<VariableDataWriter> = buildList {
+        if (outputJson) {
+            add(
+                JsonVariableDataWriter(
+                    outDirectory = outDirectory.fold("json"),
+                )
+            )
+        }
+        outputAndroidCompose?.let {
+            if (it.enabled) {
+                add(
+                    AndroidComposeVariableDataWriter(
+                        outDirectory = outDirectory.fold("android", "compose"),
+                        packageName = it.logicalGrouping,
+                    )
+                )
+            }
         }
     }
 }
