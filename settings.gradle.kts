@@ -1,4 +1,4 @@
-rootProject.name = "FigmaImporter"
+rootProject.name = "Figstract"
 
 pluginManagement {
     repositories {

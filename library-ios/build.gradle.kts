@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.anifichadia.figmaimporter.ios"
+group = "com.anifichadia.figstract.ios"
 version = "0.0.1-alpha01"
 
 dependencies {

@@ -6,7 +6,7 @@ plugins {
     application
 }
 
-group = "com.anifichadia.figmaimporter.cli"
+group = "com.anifichadia.figstract.cli"
 version = "0.0.1-alpha01"
 
 dependencies {
@@ -18,7 +18,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.anifichadia.figmaimporter.cli.MainKt")
+    mainClass.set("com.anifichadia.figstract.cli.MainKt")
 }
 
 tasks.withType<ShadowJar> {
