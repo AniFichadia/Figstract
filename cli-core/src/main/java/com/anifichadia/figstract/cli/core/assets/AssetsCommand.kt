@@ -1,12 +1,12 @@
 package com.anifichadia.figstract.cli.core.assets
 
 import com.anifichadia.figstract.HttpClientFactory
+import com.anifichadia.figstract.cli.core.outDirectory
 import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.importer.asset.FigmaAssetImporter
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figstract.model.tracking.NoOpProcessingRecordRepository
-import com.anifichadia.figstract.type.fold
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.findObject
@@ -14,7 +14,6 @@ import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
-import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.sources.PropertiesValueSource
 import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.coroutineScope
@@ -43,12 +42,7 @@ abstract class AssetsCommand : CliktCommand(
         .boolean()
         .default(true)
 
-    private val outPath: File by option("--out", "-o")
-        .file(
-            canBeFile = false,
-            canBeDir = true,
-        )
-        .default(File("./out"))
+    private val outDirectory by outDirectory()
 
     abstract fun createHandlers(outDirectory: File): List<AssetFileHandler>
 
@@ -56,8 +50,6 @@ abstract class AssetsCommand : CliktCommand(
         val downloaderHttpClient = HttpClientFactory.downloader(
             proxy = proxyConfig,
         )
-
-        val outDirectory = outPath.fold("assets")
 
         val processingRecordRepository = if (trackingEnabled) {
             JsonFileProcessingRecordRepository(
