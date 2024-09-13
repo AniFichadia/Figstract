@@ -15,6 +15,9 @@ And imports them in native formats for frontend engineers to use on:
 
 Figstract comes with an out-of-the-box CLI, which includes options for filtering and extraction, but has been designed to be modular so engineers can compose their own CLIs or other tools based on Figstract's foundation.
 
+> [!NOTE]
+> While Figstract is pre-release, some CLI options may change
+
 ## Features and internals
 
 Figstract uses the [Figma REST API](https://www.figma.com/developers/api) and has the following features:
@@ -75,12 +78,13 @@ Either one auth credential can be generated with all the scopes above, or specif
 TODO:
 
 - supported output formats
-  - Web
-  - Android
-    - WEBP images automatically scaled in density buckets
-    - Android Vector Drawables which have been magenta-fied for tinting
-  - iOS
-    - [Asset catalogs](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with scale support
+    - Web
+    - Android
+        - WEBP images automatically scaled in density buckets
+        - Android Vector Drawables which have been magenta-fied for tinting
+    - iOS
+        - [Asset catalogs](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with scale support
+- Asset format within figma files
 - Composable pipeline for importing and converting assets
 
 ## Variables
@@ -88,15 +92,15 @@ TODO:
 TODO:
 
 - Output formats
-  - Web
-    - JSON
-  - Android
-    - Compose
-      - R-file-like Kotlin object with Constants
-    - XML UI
-      - Coming soon
-  - iOS
-    - Coming soon
+    - Web
+        - JSON
+    - Android
+        - Compose
+            - R-file-like Kotlin object with Constants
+        - XML UI
+            - Coming soon
+    - iOS
+        - Coming soon
 
 ## Module structure
 
