@@ -11,8 +11,8 @@ import javax.imageio.ImageTypeSpecifier
 import javax.imageio.ImageWriteParam
 
 /**
- * [com.sksamuel.scrimage.nio.PngWriter] does not have a quality param. This is a copy pasted version
- * with internal rework to set [ImageWriteParam.setCompressionQuality].
+ * [com.sksamuel.scrimage.nio.PngWriter] does not have a quality param. This is a copy-pasted version with an internal
+ * rework to set [ImageWriteParam.setCompressionQuality].
  */
 internal class PngWriterWithCompression(private val qualityPercent: Int) : ImageWriter {
     @Throws(IOException::class)

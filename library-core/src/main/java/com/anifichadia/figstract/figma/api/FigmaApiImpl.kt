@@ -56,6 +56,10 @@ class FigmaApiImpl(
         ),
     )
 
+    /**
+     * GET /v1/files/:file_key/variables/local
+     * https://www.figma.com/developers/api#get-local-variables-endpoint
+     */
     override suspend fun getLocalVariables(
         key: FileKey,
     ): ApiResponse<GetLocalVariablesResponse> = apiRequest<GetLocalVariablesResponse>(

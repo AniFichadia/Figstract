@@ -7,6 +7,7 @@ import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.figma.model.Node.Companion.traverseBreadthFirst
+import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.Companion.addInstruction
@@ -39,15 +40,16 @@ internal fun createIconFigmaFileHandler(
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
         ImportPipeline(
-            steps = androidSvgToAvd then androidVectorColorToPlaceholder,
-            destination = Destination.directoryDestination(androidOutputDirectory),
+            steps = androidSvgToAvd then
+                androidVectorColorToPlaceholder then
+                Destination.directoryDestination(androidOutputDirectory),
         )
     } else {
         null
     }
 
     val iosImportPipeline: ImportPipeline?
-    val iosAssetCatalogLifecycle: AssetFileHandler.Lifecycle
+    val iosAssetCatalogLifecycle: Lifecycle
     if (iosOutDirectory != null) {
         val iosDirectory = File(iosOutDirectory, "icons")
         val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosDirectory)
@@ -55,26 +57,24 @@ internal fun createIconFigmaFileHandler(
             createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Icon")
         iosImportPipeline = ImportPipeline(
             steps = iosStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`1x`),
-            // Destination is handled by steps
-            destination = Destination.None,
         )
         iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
     } else {
         iosImportPipeline = null
-        iosAssetCatalogLifecycle = AssetFileHandler.Lifecycle.NoOp
+        iosAssetCatalogLifecycle = Lifecycle.NoOp
     }
 
     val webImportPipeline = if (webOutDirectory != null) {
         val webOutputDirectory = File(webOutDirectory, "icons")
         ImportPipeline(
-            destination = Destination.directoryDestination(webOutputDirectory),
+            steps = Destination.directoryDestination(webOutputDirectory),
         )
     } else {
         null
     }
 
-    val timingLifecycle = AssetFileHandler.Lifecycle.Timing()
-    val timingLoggingLifecycle = object : AssetFileHandler.Lifecycle {
+    val timingLifecycle = Lifecycle.Timing()
+    val timingLoggingLifecycle = object : Lifecycle {
         override suspend fun onFinished() {
             timingLogger.info { "Icon retrieval timing: \n$timingLifecycle" }
         }
@@ -84,7 +84,7 @@ internal fun createIconFigmaFileHandler(
         figmaFile = figmaFile,
         // Icons are smaller, so we can retrieve more at the same time
         assetsPerChunk = 50,
-        lifecycle = AssetFileHandler.Lifecycle.Combined(
+        lifecycle = Lifecycle.Combined(
             iosAssetCatalogLifecycle,
             timingLifecycle,
             timingLoggingLifecycle,
@@ -113,7 +113,7 @@ internal fun createIconFigmaFileHandler(
 
                     if (androidImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = svg,
                             importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
                             importPipeline = androidImportPipeline,
@@ -122,7 +122,7 @@ internal fun createIconFigmaFileHandler(
 
                     if (iosImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = iosIcon,
                             importOutputName = parentName.sanitise().ToUpperCamelCase(),
                             importPipeline = iosImportPipeline,
@@ -131,7 +131,7 @@ internal fun createIconFigmaFileHandler(
 
                     if (webImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = svg,
                             importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
                             importPipeline = webImportPipeline,

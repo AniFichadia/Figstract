@@ -12,12 +12,12 @@ import com.anifichadia.figstract.importer.asset.model.importing.scale
 import java.io.File
 
 /**
- * Scales from [sourceDensity], converts to webp, and organises outputs into density bucketted folders.
+ * Scales from [sourceDensity], converts to webp, and organises outputs into density bucketed folders.
  *
  * Note: Make sure the destination is set to [Destination.None]
  *
  * @param densityBuckets Allows configuring the output [DensityBucket]s. By default, this uses all [DensityBucket]s
- * except [DensityBucket.LDPI] since it's less commonly used
+ * except [DensityBucket.LDPI] since LDPI images are rarely used now.
  */
 fun androidImageScaleAndStoreInDensityBuckets(
     imageDirectory: File,

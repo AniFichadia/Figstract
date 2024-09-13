@@ -2,8 +2,8 @@ package com.anifichadia.figstract.importer.asset.model
 
 import com.anifichadia.figstract.figma.NodeId
 import com.anifichadia.figstract.figma.model.ExportSetting
+import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
-import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 
 data class Instruction(
@@ -12,12 +12,13 @@ data class Instruction(
 ) {
     data class Export(
         val nodeId: NodeId,
+        val nodeName: String,
         val config: ExportConfig,
     )
 
     data class Import(
         val importTarget: ImportTarget.Initial,
-        val pipeline: ImportPipeline = ImportPipeline(ImportPipeline.Step.PassThrough, Destination.None),
+        val pipeline: ImportPipeline = ImportPipeline(ImportPipeline.Step.PassThrough),
     )
 
     sealed interface ImportTarget {
@@ -50,14 +51,15 @@ data class Instruction(
 
     companion object {
         fun of(
-            exportNodeId: NodeId,
+            exportNode: Node,
             exportConfig: ExportConfig,
             importOutputName: String,
             importPipeline: ImportPipeline,
         ): Instruction {
             return Instruction(
                 export = Export(
-                    nodeId = exportNodeId,
+                    nodeId = exportNode.id,
+                    nodeName = exportNode.name,
                     config = exportConfig,
                 ),
                 import = Import(
@@ -68,14 +70,15 @@ data class Instruction(
         }
 
         fun of(
-            exportNodeId: NodeId,
+            exportNode: Node,
             exportConfig: ExportConfig,
             importTarget: ImportTarget.Initial,
             importPipeline: ImportPipeline,
         ): Instruction {
             return Instruction(
                 export = Export(
-                    nodeId = exportNodeId,
+                    nodeId = exportNode.id,
+                    nodeName = exportNode.name,
                     config = exportConfig,
                 ),
                 import = Import(
@@ -88,14 +91,14 @@ data class Instruction(
         fun buildInstructions(builderAction: MutableList<Instruction>.() -> Unit) = buildList(builderAction)
 
         fun MutableList<Instruction>.addInstruction(
-            exportNodeId: NodeId,
+            exportNode: Node,
             exportConfig: ExportConfig,
             importOutputName: String,
             importPipeline: ImportPipeline,
         ) {
             add(
                 of(
-                    exportNodeId = exportNodeId,
+                    exportNode = exportNode,
                     exportConfig = exportConfig,
                     importOutputName = importOutputName,
                     importPipeline = importPipeline,
@@ -104,14 +107,14 @@ data class Instruction(
         }
 
         fun MutableList<Instruction>.addInstruction(
-            exportNodeId: NodeId,
+            exportNode: Node,
             exportConfig: ExportConfig,
             importTarget: ImportTarget.Initial,
             importPipeline: ImportPipeline,
         ) {
             add(
                 of(
-                    exportNodeId = exportNodeId,
+                    exportNode = exportNode,
                     exportConfig = exportConfig,
                     importTarget = importTarget,
                     importPipeline = importPipeline,
@@ -120,13 +123,13 @@ data class Instruction(
         }
 
         fun ExportSetting.toInstruction(
-            exportNodeId: NodeId,
+            exportNode: Node,
             exportScale: Float = ExportConfig.SCALE_ORIGINAL,
             importOutputName: String,
             importPipeline: ImportPipeline,
         ): Instruction {
             return of(
-                exportNodeId = exportNodeId,
+                exportNode = exportNode,
                 exportConfig = ExportConfig(
                     format = format,
                     scale = exportScale,
@@ -140,13 +143,13 @@ data class Instruction(
         }
 
         fun ExportSetting.toInstruction(
-            exportNodeId: NodeId,
+            exportNode: Node,
             exportScale: Float = ExportConfig.SCALE_ORIGINAL,
             importTarget: ImportTarget.Initial,
             importPipeline: ImportPipeline,
         ): Instruction {
             return of(
-                exportNodeId = exportNodeId,
+                exportNode = exportNode,
                 exportConfig = ExportConfig(
                     format = format,
                     scale = exportScale,

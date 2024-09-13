@@ -82,6 +82,18 @@ fun rename(name: String) = ImportPipeline.Step("rename(name: $name)") { _, input
         .single()
 }
 
+fun rename(block: (String) -> String) = ImportPipeline.Step("rename(block: $block)") { instruction, input ->
+    val resolveOutputName = resolveOutputName(instruction, input)
+
+    input
+        .copy(
+            target = input.target.copy(
+                outputName = block(resolveOutputName),
+            )
+        )
+        .single()
+}
+
 fun renameSuffix(suffix: String) = ImportPipeline.Step("renameSuffix(suffix: $suffix)") { instruction, input ->
     val resolveOutputName = resolveOutputName(instruction, input)
 

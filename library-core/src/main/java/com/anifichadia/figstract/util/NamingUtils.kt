@@ -5,7 +5,6 @@ fun String.sanitise() = this
     .replace("""[^\w\s]""".toRegex(), "")
     .replace("""\s+""".toRegex(), " ")
 
-
 fun String.sanitiseFileName() = this
     .replace("""[^\w\s]""".toRegex(), " ")
     .replace("""\""", "")

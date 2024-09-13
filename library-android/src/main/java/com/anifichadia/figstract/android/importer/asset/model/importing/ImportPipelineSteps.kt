@@ -20,11 +20,7 @@ val androidSvgToAvd = ImportPipeline.Step("androidSvgToAvd()") { instruction, in
         prefix = "${instruction.import.importTarget.outputName}_",
         suffix = ".svg",
     )
-    val outputFile = tempOutputPath.toFile().also {
-        it.deleteOnExit()
-    }
-
-    outputFile.writeBytes(input.data)
+    tempOutputPath.toFile().writeBytes(input.data)
 
     // TODO: when writing to file, there's a delay flushing the file??? which causes the following steps to fail cause the file doesn't exist
     var attemptCount = 0

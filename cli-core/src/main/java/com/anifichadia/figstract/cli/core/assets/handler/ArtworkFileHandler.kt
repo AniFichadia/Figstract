@@ -10,6 +10,7 @@ import com.anifichadia.figstract.figma.model.ExportSetting
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.figma.model.Node.Companion.traverseBreadthFirst
 import com.anifichadia.figstract.figma.model.Paint
+import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.Companion.addInstruction
@@ -41,15 +42,13 @@ internal fun createArtworkFigmaFileHandler(
         val androidOutputDirectory = File(androidOutDirectory, "artwork")
         ImportPipeline(
             steps = androidImageScaleAndStoreInDensityBuckets(androidOutputDirectory, DensityBucket.XXXHDPI),
-            // Destination is handled by the steps
-            destination = Destination.None,
         )
     } else {
         null
     }
 
     val iosImportPipeline: ImportPipeline?
-    val iosAssetCatalogLifecycle: AssetFileHandler.Lifecycle
+    val iosAssetCatalogLifecycle: Lifecycle
     if (iosOutDirectory != null) {
         val iosOutputDirectory = File(iosOutDirectory, "artwork")
         val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosOutputDirectory)
@@ -57,26 +56,24 @@ internal fun createArtworkFigmaFileHandler(
 
         iosImportPipeline = ImportPipeline(
             steps = iosScaleAndStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`3x`),
-            // Destination is handled by the steps
-            destination = Destination.None,
         )
         iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
     } else {
         iosImportPipeline = null
-        iosAssetCatalogLifecycle = AssetFileHandler.Lifecycle.NoOp
+        iosAssetCatalogLifecycle = Lifecycle.NoOp
     }
 
     val webImportPipeline = if (webOutDirectory != null) {
         val webOutputDirectory = File(webOutDirectory, "artwork")
         ImportPipeline(
-            destination = Destination.directoryDestination(webOutputDirectory),
+            steps = Destination.directoryDestination(webOutputDirectory),
         )
     } else {
         null
     }
 
-    val timingLifecycle = AssetFileHandler.Lifecycle.Timing()
-    val timingLoggingLifecycle = object : AssetFileHandler.Lifecycle {
+    val timingLifecycle = Lifecycle.Timing()
+    val timingLoggingLifecycle = object : Lifecycle {
         override suspend fun onFinished() {
             timingLogger.info { "Artwork retrieval timing: \n$timingLifecycle" }
         }
@@ -84,7 +81,7 @@ internal fun createArtworkFigmaFileHandler(
 
     val artworkFileHandler = AssetFileHandler(
         figmaFile = figmaFile,
-        lifecycle = AssetFileHandler.Lifecycle.Combined(
+        lifecycle = Lifecycle.Combined(
             iosAssetCatalogLifecycle,
             timingLifecycle,
             timingLoggingLifecycle,
@@ -109,7 +106,7 @@ internal fun createArtworkFigmaFileHandler(
 
                     if (androidImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = androidImageXxxHdpi,
                             importOutputName = "artwork_${canvasName}_${parentName}"
                                 .sanitise()
@@ -118,7 +115,7 @@ internal fun createArtworkFigmaFileHandler(
                         )
                         if (createCropped) {
                             addInstruction(
-                                exportNodeId = node.id,
+                                exportNode = node,
                                 exportConfig = androidImageXxxHdpi,
                                 importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
@@ -130,7 +127,7 @@ internal fun createArtworkFigmaFileHandler(
 
                     if (iosImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = ios3xImage,
                             importOutputName = "artwork_${canvasName}_${parentName}"
                                 .sanitise()
@@ -139,7 +136,7 @@ internal fun createArtworkFigmaFileHandler(
                         )
                         if (createCropped) {
                             addInstruction(
-                                exportNodeId = node.id,
+                                exportNode = node,
                                 exportConfig = ios3xImage,
                                 importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
@@ -151,7 +148,7 @@ internal fun createArtworkFigmaFileHandler(
 
                     if (webImportPipeline != null) {
                         addInstruction(
-                            exportNodeId = parent.id,
+                            exportNode = parent,
                             exportConfig = ExportConfig(ExportSetting.Format.PNG),
                             importOutputName = "artwork_${canvasName}_${parentName}"
                                 .sanitise()
@@ -160,7 +157,7 @@ internal fun createArtworkFigmaFileHandler(
                         )
                         if (createCropped) {
                             addInstruction(
-                                exportNodeId = node.id,
+                                exportNode = node,
                                 exportConfig = ExportConfig(ExportSetting.Format.PNG),
                                 importOutputName = "artwork_${canvasName}_${parentName}_cropped"
                                     .sanitise()
