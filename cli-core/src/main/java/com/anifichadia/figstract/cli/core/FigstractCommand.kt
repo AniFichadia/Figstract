@@ -5,6 +5,7 @@ import com.anifichadia.figstract.cli.core.assets.AssetsCommand
 import com.anifichadia.figstract.cli.core.variables.VariablesCommand
 import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.figma.api.FigmaApiImpl
+import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
@@ -20,7 +21,11 @@ class FigstractCommand private constructor() : CliktCommand(
         val authProvider = auth.authProvider
         currentContext.findOrSetObject { authProvider }
 
-        val proxyConfig = proxy.proxyConfig
+        val proxyConfig = try {
+            proxy.proxyConfig
+        } catch (e: IllegalArgumentException) {
+            throw BadParameterValue(e.message ?: "Couldn't create proxy")
+        }
         if (proxyConfig != null) {
             currentContext.findOrSetObject { proxyConfig }
         }
