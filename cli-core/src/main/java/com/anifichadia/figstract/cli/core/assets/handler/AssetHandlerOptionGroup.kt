@@ -2,6 +2,7 @@ package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
+import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.github.ajalt.clikt.core.BadParameterValue
@@ -18,6 +19,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
     private val figmaFile by option("--${prefix}FigmaFile")
     private val filters by AssetFilterOptionGroup(prefix)
     private val jsonPath by option("--${prefix}JsonPath")
+    protected abstract val namers: AssetTokenStringGeneratorOptionGroup
 
     fun createHandler(
         androidOutDirectory: File?,
@@ -52,6 +54,12 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
 class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     private val artworkCreateCropped by option("--${prefix}CreateCropped")
         .flag(default = false)
+    override val namers by AssetTokenStringGeneratorOptionGroup(
+        prefix = prefix,
+        androidFormat = "artwork_{canvas.name}_{parentNode.name}",
+        iosFormat = "artwork_{canvas.name}_{parentNode.name}",
+        webFormat = "artwork_{canvas.name}_{parentNode.name}",
+    )
 
     override fun createHandlerInternal(
         figmaFile: String,
@@ -74,6 +82,12 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
 }
 
 class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
+    override val namers by AssetTokenStringGeneratorOptionGroup(
+        prefix = "icons",
+        androidFormat = "ic_{parentNode.splitName}",
+        iosFormat = "{parentNode.splitName}",
+        webFormat = "ic_{parentNode.splitName}",
+    )
     override fun createHandlerInternal(
         figmaFile: String,
         androidOutDirectory: File?,
