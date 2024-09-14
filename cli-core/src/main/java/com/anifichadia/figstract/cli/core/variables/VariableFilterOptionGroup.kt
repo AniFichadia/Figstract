@@ -1,7 +1,7 @@
 package com.anifichadia.figstract.cli.core.variables
 
 import com.anifichadia.figstract.cli.core.IncludeOrExcludeFilterOptionGroup
-import com.anifichadia.figstract.cli.core.IncludeOrExcludeFilterOptionGroup.Companion.provideDelegate
+import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.variable.model.ModeNameFilter
 import com.anifichadia.figstract.importer.variable.model.VariableCollectionNameFilter
 import com.anifichadia.figstract.importer.variable.model.VariableFileFilter
