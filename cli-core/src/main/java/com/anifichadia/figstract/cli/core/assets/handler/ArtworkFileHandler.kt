@@ -4,6 +4,7 @@ import com.anifichadia.figstract.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figstract.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidImageScaleAndStoreInDensityBuckets
 import com.anifichadia.figstract.cli.core.assets.AssetFilter
+import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.figma.model.ExportSetting
@@ -25,8 +26,6 @@ import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.createAss
 import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figstract.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosScaleAndStoreInAssetCatalog
-import com.anifichadia.figstract.util.sanitise
-import com.anifichadia.figstract.util.to_snake_case
 import java.io.File
 
 @Suppress("SameParameterValue")
@@ -37,6 +36,9 @@ internal fun createArtworkFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
+    androidNamer: NodeTokenStringGenerator,
+    iosNamer: NodeTokenStringGenerator,
+    webNamer: NodeTokenStringGenerator,
     jsonPath: String?,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -96,7 +98,6 @@ internal fun createArtworkFigmaFileHandler(
                 .filter { canvas -> assetFilter.nodeNameFilter.accept(canvas) }
 
             canvases.map { canvas ->
-                val canvasName = canvas.name
                 Instruction.buildInstructions {
                     canvas.traverseBreadthFirst { node, parent ->
                         if (parent == null) return@traverseBreadthFirst
@@ -106,45 +107,40 @@ internal fun createArtworkFigmaFileHandler(
                         if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
                         if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                        val parentName = parent.name
+                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, parent, parent)
 
                         if (androidImportPipeline != null) {
                             addInstruction(
                                 exportNode = parent,
                                 exportConfig = androidImageXxxHdpi,
-                                importOutputName = "artwork_${canvasName}_${parentName}"
-                                    .sanitise()
-                                    .to_snake_case(),
+                                importOutputName = androidNamer.generate(namingContext),
                                 importPipeline = androidImportPipeline,
                             )
                             if (createCropped) {
+                                // TODO: Custom naming for cropped?
                                 addInstruction(
                                     exportNode = node,
                                     exportConfig = androidImageXxxHdpi,
-                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                        .sanitise()
-                                        .to_snake_case(),
+                                    importOutputName = "${androidNamer.generate(namingContext)}_cropped",
                                     importPipeline = androidImportPipeline,
                                 )
                             }
                         }
 
                         if (iosImportPipeline != null) {
+                            // TODO: casing for iOS?
                             addInstruction(
                                 exportNode = parent,
                                 exportConfig = ios3xImage,
-                                importOutputName = "artwork_${canvasName}_${parentName}"
-                                    .sanitise()
-                                    .to_snake_case(),
+                                importOutputName = iosNamer.generate(namingContext),
                                 importPipeline = iosImportPipeline,
                             )
                             if (createCropped) {
+                                // TODO: Custom naming for cropped?
                                 addInstruction(
                                     exportNode = node,
                                     exportConfig = ios3xImage,
-                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                        .sanitise()
-                                        .to_snake_case(),
+                                    importOutputName = "${iosNamer.generate(namingContext)}_cropped",
                                     importPipeline = iosImportPipeline,
                                 )
                             }
@@ -154,18 +150,15 @@ internal fun createArtworkFigmaFileHandler(
                             addInstruction(
                                 exportNode = parent,
                                 exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                importOutputName = "artwork_${canvasName}_${parentName}"
-                                    .sanitise()
-                                    .to_snake_case(),
+                                importOutputName = webNamer.generate(namingContext),
                                 importPipeline = webImportPipeline,
                             )
                             if (createCropped) {
+                                // TODO: Custom naming for cropped?
                                 addInstruction(
                                     exportNode = node,
                                     exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                    importOutputName = "artwork_${canvasName}_${parentName}_cropped"
-                                        .sanitise()
-                                        .to_snake_case(),
+                                    importOutputName = "${webNamer.generate(namingContext)}_cropped",
                                     importPipeline = webImportPipeline,
                                 )
                             }
@@ -183,16 +176,13 @@ internal fun createArtworkFigmaFileHandler(
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
         ) { node, canvas ->
             Instruction.buildInstructions {
-                val canvasName = canvas.name
-                val nodeName = node.name
+                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node, node)
 
                 if (androidImportPipeline != null) {
                     addInstruction(
                         exportNode = node,
                         exportConfig = androidImageXxxHdpi,
-                        importOutputName = "artwork_${canvasName}_${nodeName}"
-                            .sanitise()
-                            .to_snake_case(),
+                        importOutputName = androidNamer.generate(namingContext),
                         importPipeline = androidImportPipeline,
                     )
                 }
@@ -201,9 +191,7 @@ internal fun createArtworkFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = ios3xImage,
-                        importOutputName = "artwork_${canvasName}_${nodeName}"
-                            .sanitise()
-                            .to_snake_case(),
+                        importOutputName = iosNamer.generate(namingContext),
                         importPipeline = iosImportPipeline,
                     )
                 }
@@ -212,9 +200,7 @@ internal fun createArtworkFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                        importOutputName = "artwork_${canvasName}_${nodeName}"
-                            .sanitise()
-                            .to_snake_case(),
+                        importOutputName = webNamer.generate(namingContext),
                         importPipeline = webImportPipeline,
                     )
                 }

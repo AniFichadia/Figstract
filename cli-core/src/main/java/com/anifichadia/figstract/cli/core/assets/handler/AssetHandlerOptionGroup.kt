@@ -76,6 +76,9 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,
             assetFilter = filters.toAssetFilter(),
+            androidNamer = namers.android,
+            iosNamer = namers.ios,
+            webNamer = namers.web,
             jsonPath = jsonPath,
         )
     }
@@ -102,6 +105,9 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,
             assetFilter = filters.toAssetFilter(),
+            androidNamer = namers.android,
+            iosNamer = namers.ios,
+            webNamer = namers.web,
             jsonPath = jsonPath,
         )
     }

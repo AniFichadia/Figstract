@@ -3,6 +3,7 @@ package com.anifichadia.figstract.cli.core.assets.handler
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidSvgToAvd
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidVectorColorToPlaceholder
 import com.anifichadia.figstract.cli.core.assets.AssetFilter
+import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.figma.model.Node
@@ -24,9 +25,6 @@ import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.createAss
 import com.anifichadia.figstract.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosStoreInAssetCatalog
 import com.anifichadia.figstract.type.fold
-import com.anifichadia.figstract.util.ToUpperCamelCase
-import com.anifichadia.figstract.util.sanitise
-import com.anifichadia.figstract.util.to_snake_case
 import java.io.File
 
 @Suppress("SameParameterValue")
@@ -36,6 +34,9 @@ internal fun createIconFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
+    androidNamer: NodeTokenStringGenerator,
+    iosNamer: NodeTokenStringGenerator,
+    webNamer: NodeTokenStringGenerator,
     jsonPath: String?,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -108,19 +109,13 @@ internal fun createIconFigmaFileHandler(
                         if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
                         if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                        val parentName = parent.name.let {
-                            if (it.contains("/")) {
-                                it.split("/")[1]
-                            } else {
-                                it
-                            }
-                        }
+                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, parent, parent)
 
                         if (androidImportPipeline != null) {
                             addInstruction(
                                 exportNode = parent,
                                 exportConfig = svg,
-                                importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
+                                importOutputName = androidNamer.generate(namingContext),
                                 importPipeline = androidImportPipeline,
                             )
                         }
@@ -129,7 +124,7 @@ internal fun createIconFigmaFileHandler(
                             addInstruction(
                                 exportNode = parent,
                                 exportConfig = iosIcon,
-                                importOutputName = parentName.sanitise().ToUpperCamelCase(),
+                                importOutputName = iosNamer.generate(namingContext),
                                 importPipeline = iosImportPipeline,
                             )
                         }
@@ -138,7 +133,7 @@ internal fun createIconFigmaFileHandler(
                             addInstruction(
                                 exportNode = parent,
                                 exportConfig = svg,
-                                importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
+                                importOutputName = webNamer.generate(namingContext),
                                 importPipeline = webImportPipeline,
                             )
                         }
@@ -154,15 +149,15 @@ internal fun createIconFigmaFileHandler(
             lifecycle = lifecycle,
             canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
-        ) { node, _ ->
+        ) { node, canvas ->
             Instruction.buildInstructions {
-                val nodeName = node.name
+                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node, node)
 
                 if (androidImportPipeline != null) {
                     addInstruction(
                         exportNode = node,
                         exportConfig = svg,
-                        importOutputName = "ic_${nodeName}".sanitise().to_snake_case(),
+                        importOutputName = androidNamer.generate(namingContext),
                         importPipeline = androidImportPipeline,
                     )
                 }
@@ -171,7 +166,7 @@ internal fun createIconFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = iosIcon,
-                        importOutputName = nodeName.sanitise().ToUpperCamelCase(),
+                        importOutputName = iosNamer.generate(namingContext),
                         importPipeline = iosImportPipeline,
                     )
                 }
@@ -180,7 +175,7 @@ internal fun createIconFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = svg,
-                        importOutputName = "ic_${nodeName}".sanitise().to_snake_case(),
+                        importOutputName = webNamer.generate(namingContext),
                         importPipeline = webImportPipeline,
                     )
                 }
