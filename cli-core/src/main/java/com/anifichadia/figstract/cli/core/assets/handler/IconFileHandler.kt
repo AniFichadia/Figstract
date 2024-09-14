@@ -37,7 +37,7 @@ internal fun createIconFigmaFileHandler(
     webOutDirectory: File?,
     assetFilter: AssetFilter,
     instructionLimit: Int?,
-    jsonPath: String? = null,
+    jsonPath: String?,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
