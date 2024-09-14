@@ -25,7 +25,7 @@ class RealAssetsCommand : AssetsCommand() {
         .boolean()
         .default(false)
     private val iconsFigmaFile by option("--iconsFigmaFile")
-    private val iconFilter by AssetFilterOptionGroup("icon")
+    private val iconFilter by AssetFilterOptionGroup("icons")
 
     private val platformOptions by PlatformOptionGroup()
 
