@@ -69,7 +69,7 @@ When generating credentials, ensure that the following [scopes](https://www.figm
 | variables | `File content`, `Variables` |
 
 > [!CAUTION]
-> Ensure scopes are set to `Read only` and are refreshed regularly
+> Ensure scopes are set to `Read only` and tokens are refreshed regularly
 
 Either one auth credential can be generated with all the scopes above, or specific auth credentials can be created for each subcommand.
 
@@ -86,6 +86,11 @@ TODO:
         - [Asset catalogs](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with scale support
 - Asset format within figma files
 - Composable pipeline for importing and converting assets
+- JsonPath support
+    - Supports Stefan Goessner's JsonPath implementation using https://github.com/json-path/JsonPath
+    - JsonPath expressions are relative to each Canvas and should locate the required node. Refer to the [Figma API Node reference](https://www.figma.com/developers/api#node-types)
+    - Canvas and node filters will be applied, but parent node filters aren't supported for now
+- Custom naming
 
 ## Variables
 
