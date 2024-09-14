@@ -9,7 +9,6 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
-import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 
 class RealAssetsCommand : AssetsCommand() {
@@ -31,10 +30,6 @@ class RealAssetsCommand : AssetsCommand() {
 
     private val platformOptions by PlatformOptionGroup()
 
-    // This is for testing. Providing a non-null value will run a take operation on the list of all instructions for each handler
-    private val instructionLimit: Int? by option("--instructionLimit")
-        .int()
-
     override fun createHandlers(outDirectory: File): List<AssetFileHandler> {
         if (platformOptions.noneEnabled()) throw BadParameterValue("No platforms have been enabled")
 
@@ -51,7 +46,6 @@ class RealAssetsCommand : AssetsCommand() {
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
                     assetFilter = artworkFilter.toAssetFilter(),
-                    instructionLimit = instructionLimit,
                     jsonPath = artworkJsonPath,
                 )
             } ?: throw BadParameterValue("Artwork is enabled but figma file is not specified")
@@ -67,7 +61,6 @@ class RealAssetsCommand : AssetsCommand() {
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
                     assetFilter = iconFilter.toAssetFilter(),
-                    instructionLimit = instructionLimit,
                     jsonPath = iconsJsonPath,
                 )
             } ?: throw BadParameterValue("Icons are enabled but figma file is not specified")

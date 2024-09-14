@@ -36,7 +36,6 @@ internal fun createIconFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
-    instructionLimit: Int?,
     jsonPath: String?,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -146,13 +145,6 @@ internal fun createIconFigmaFileHandler(
                     }
                 }
             }.flatten()
-                .let {
-                    if (instructionLimit != null) {
-                        it.take(instructionLimit)
-                    } else {
-                        it
-                    }
-                }
         }
     } else {
         JsonPathAssetFileHandler(
