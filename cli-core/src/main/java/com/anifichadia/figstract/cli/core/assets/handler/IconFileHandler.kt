@@ -103,6 +103,12 @@ internal fun createIconFigmaFileHandler(
             canvases.map { canvas ->
                 Instruction.buildInstructions {
                     canvas.traverseBreadthFirst { node, parent ->
+                        // TODO: update to find a node with the appropriate child instead of the other way around. E.g.
+//                        if (node !is Node.Parent) return@traverseBreadthFirst
+//                        val vector = node.children.filterIsInstance<Node.Vector>().firstOrNull()
+//                        if (vector == null) return@traverseBreadthFirst
+
+
                         if (parent == null) return@traverseBreadthFirst
                         if (node !is Node.Vector) return@traverseBreadthFirst
 
