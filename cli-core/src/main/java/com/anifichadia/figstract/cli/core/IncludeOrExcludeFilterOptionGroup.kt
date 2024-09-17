@@ -3,18 +3,15 @@ package com.anifichadia.figstract.cli.core
 import com.github.ajalt.clikt.core.MutuallyExclusiveGroupException
 import com.github.ajalt.clikt.core.ParameterHolder
 import com.github.ajalt.clikt.core.UsageError
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.unique
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 class IncludeOrExcludeFilterOptionGroup(
     prefix: String? = null,
     suffix: String,
-) : OptionGroup() {
+) : DelegatableOptionGroup() {
     private val includeOptionName = name(prefix, true, suffix)
     private val includesOption = createOption(includeOptionName)
     val includes by includesOption
@@ -55,14 +52,5 @@ class IncludeOrExcludeFilterOptionGroup(
             .convert { it.toRegex() }
             .multiple()
             .unique()
-
-        operator fun IncludeOrExcludeFilterOptionGroup.provideDelegate(
-            thisRef: OptionGroup,
-            prop: KProperty<*>,
-        ): ReadOnlyProperty<OptionGroup, IncludeOrExcludeFilterOptionGroup> {
-            thisRef.registerOption(includesOption)
-            thisRef.registerOption(excludesOption)
-            return ReadOnlyProperty { _, _ -> this@provideDelegate }
-        }
     }
 }

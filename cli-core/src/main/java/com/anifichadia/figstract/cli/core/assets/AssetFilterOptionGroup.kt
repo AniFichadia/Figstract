@@ -1,12 +1,12 @@
 package com.anifichadia.figstract.cli.core.assets
 
+import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.IncludeOrExcludeFilterOptionGroup
-import com.anifichadia.figstract.cli.core.IncludeOrExcludeFilterOptionGroup.Companion.provideDelegate
+import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.NodeFilter
 import com.github.ajalt.clikt.core.MultiUsageError
-import com.github.ajalt.clikt.parameters.groups.OptionGroup
 
-class AssetFilterOptionGroup(prefix: String) : OptionGroup() {
+class AssetFilterOptionGroup(prefix: String) : DelegatableOptionGroup() {
     private val canvases by IncludeOrExcludeFilterOptionGroup(prefix, "Canvas")
     private val nodes by IncludeOrExcludeFilterOptionGroup(prefix, "Node")
     private val parentNodes by IncludeOrExcludeFilterOptionGroup(prefix, "ParentNode")
