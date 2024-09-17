@@ -118,18 +118,16 @@ internal fun createArtworkFigmaFileHandler(
                                 importPipeline = androidImportPipeline,
                             )
                             if (createCropped) {
-                                // TODO: Custom naming for cropped?
                                 addInstruction(
                                     exportNode = child,
                                     exportConfig = androidImageXxxHdpi,
-                                    importOutputName = "${androidNamer.generate(namingContext)}_cropped",
+                                    importOutputName = androidNamer.generate(namingContext, suffix = "cropped"),
                                     importPipeline = androidImportPipeline,
                                 )
                             }
                         }
 
                         if (iosImportPipeline != null) {
-                            // TODO: casing for iOS?
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = ios3xImage,
@@ -137,11 +135,10 @@ internal fun createArtworkFigmaFileHandler(
                                 importPipeline = iosImportPipeline,
                             )
                             if (createCropped) {
-                                // TODO: Custom naming for cropped?
                                 addInstruction(
                                     exportNode = child,
                                     exportConfig = ios3xImage,
-                                    importOutputName = "${iosNamer.generate(namingContext)}_cropped",
+                                    importOutputName = iosNamer.generate(namingContext, suffix = "cropped"),
                                     importPipeline = iosImportPipeline,
                                 )
                             }
@@ -155,11 +152,10 @@ internal fun createArtworkFigmaFileHandler(
                                 importPipeline = webImportPipeline,
                             )
                             if (createCropped) {
-                                // TODO: Custom naming for cropped?
                                 addInstruction(
                                     exportNode = child,
                                     exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                    importOutputName = "${webNamer.generate(namingContext)}_cropped",
+                                    importOutputName = webNamer.generate(namingContext, suffix = "cropped"),
                                     importPipeline = webImportPipeline,
                                 )
                             }
