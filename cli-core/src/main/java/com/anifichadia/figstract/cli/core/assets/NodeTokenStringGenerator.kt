@@ -12,23 +12,27 @@ class NodeTokenStringGenerator(
     data class NodeContext(
         val canvas: Node.Canvas,
         val node: Node,
-        val parentNode: Node,
     )
 
     companion object {
         val tokens: List<Token<NodeContext>> = listOf(
-            Token("canvas.id") { it.canvas.id },
-            Token("canvas.name") { it.canvas.name },
-            Token("node.id") { it.node.id },
-            Token("node.name") { it.node.name },
-            Token("parentNode.id") { it.parentNode.id },
-            Token("parentNode.name") { it.parentNode.name },
-            Token("parentNode.splitName") { context ->
-                context.parentNode.name.let {
-                    if (it.contains("/")) {
-                        it.split("/").last()
+            Token.Simple("canvas.id") { it.canvas.id },
+            Token.Simple("canvas.name") { it.canvas.name },
+            Token.Simple("node.id") { it.node.id },
+            Token.Simple("node.name") { it.node.name },
+            Token.Complex("""node.name.split "(?<splitOn>.+)" (?<indexOrLocation>(\d+)|first|last)""".toRegex()) { matchResult, context ->
+                val splitOn = matchResult.groups["splitOn"]?.value ?: return@Complex null
+                context.node.name.let { name ->
+                    if (name.contains(splitOn)) {
+                        name.split(splitOn).let { split ->
+                            when (val indexOrLocation = matchResult.groups["indexOrLocation"]!!.value) {
+                                "first" -> split.first()
+                                "last" -> split.last()
+                                else -> split[indexOrLocation.toInt()]
+                            }
+                        }
                     } else {
-                        it
+                        name
                     }
                 }
             },

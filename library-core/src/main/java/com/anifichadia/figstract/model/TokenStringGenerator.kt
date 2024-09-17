@@ -42,19 +42,32 @@ abstract class TokenStringGenerator<T> {
         abstract fun transform(string: String): String
     }
 
-    data class Token<T>(
-        val name: String,
-        val extractValue: (T) -> String?,
+    sealed class Token<T>(
+        contentPattern: String,
     ) {
-        val tokenFormat = "{$name}"
+        val format: Regex = """\{${contentPattern}}""".toRegex()
+
+        abstract fun extractValue(matchResult: MatchResult, value: T): String?
 
         fun update(string: String, value: T): String {
-            val extracted = extractValue(value)
-            return if (extracted != null) {
-                string.replace(tokenFormat, extracted)
-            } else {
-                string
+            return format.replace(string) {
+                val extractValue = extractValue(it, value)
+                extractValue ?: it.value
             }
+        }
+
+        data class Simple<T>(
+            val name: String,
+            val extractValue: (T) -> String?,
+        ) : Token<T>(name) {
+            override fun extractValue(matchResult: MatchResult, value: T): String? = extractValue(value)
+        }
+
+        data class Complex<T>(
+            private val contentFormat: Regex,
+            val doExtractValue: (matchResult: MatchResult, value: T) -> String?,
+        ) : Token<T>(contentFormat.pattern) {
+            override fun extractValue(matchResult: MatchResult, value: T): String? = doExtractValue(matchResult, value)
         }
     }
 }
