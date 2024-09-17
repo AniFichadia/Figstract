@@ -7,7 +7,6 @@ import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.default
-import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
 import java.io.File
@@ -57,9 +56,9 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         .default(false)
     override val namers by AssetTokenStringGeneratorOptionGroup(
         prefix = prefix,
-        androidFormat = "artwork_{canvas.name}_{parentNode.name}",
-        iosFormat = "artwork_{canvas.name}_{parentNode.name}",
-        webFormat = "artwork_{canvas.name}_{parentNode.name}",
+        androidFormat = "artwork_{canvas.name}_{node.name}",
+        iosFormat = "artwork_{canvas.name}_{node.name}",
+        webFormat = "artwork_{canvas.name}_{node.name}",
     )
 
     override fun createHandlerInternal(
@@ -88,10 +87,11 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
 class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
     override val namers by AssetTokenStringGeneratorOptionGroup(
         prefix = "icons",
-        androidFormat = "ic_{parentNode.splitName}",
-        iosFormat = "{parentNode.splitName}",
-        webFormat = "ic_{parentNode.splitName}",
+        androidFormat = """ic_{node.name.split "/" last}""",
+        iosFormat = """{node.name.split "/" last}""",
+        webFormat = """ic_{node.name.split "/" last}""",
     )
+
     override fun createHandlerInternal(
         figmaFile: String,
         androidOutDirectory: File?,
