@@ -103,23 +103,17 @@ internal fun createIconFigmaFileHandler(
             canvases.map { canvas ->
                 Instruction.buildInstructions {
                     canvas.traverseBreadthFirst { node, parent ->
-                        // TODO: update to find a node with the appropriate child instead of the other way around. E.g.
-//                        if (node !is Node.Parent) return@traverseBreadthFirst
-//                        val vector = node.children.filterIsInstance<Node.Vector>().firstOrNull()
-//                        if (vector == null) return@traverseBreadthFirst
-
-
-                        if (parent == null) return@traverseBreadthFirst
-                        if (node !is Node.Vector) return@traverseBreadthFirst
+                        if (node !is Node.Parent) return@traverseBreadthFirst
+                        node.children.filterIsInstance<Node.Vector>().firstOrNull() ?: return@traverseBreadthFirst
 
                         if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                        if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
+                        if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, parent, parent)
+                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
 
                         if (androidImportPipeline != null) {
                             addInstruction(
-                                exportNode = parent,
+                                exportNode = node,
                                 exportConfig = svg,
                                 importOutputName = androidNamer.generate(namingContext),
                                 importPipeline = androidImportPipeline,
@@ -128,7 +122,7 @@ internal fun createIconFigmaFileHandler(
 
                         if (iosImportPipeline != null) {
                             addInstruction(
-                                exportNode = parent,
+                                exportNode = node,
                                 exportConfig = iosIcon,
                                 importOutputName = iosNamer.generate(namingContext),
                                 importPipeline = iosImportPipeline,
@@ -137,7 +131,7 @@ internal fun createIconFigmaFileHandler(
 
                         if (webImportPipeline != null) {
                             addInstruction(
-                                exportNode = parent,
+                                exportNode = node,
                                 exportConfig = svg,
                                 importOutputName = webNamer.generate(namingContext),
                                 importPipeline = webImportPipeline,
@@ -157,7 +151,7 @@ internal fun createIconFigmaFileHandler(
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
         ) { node, canvas ->
             Instruction.buildInstructions {
-                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node, node)
+                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
 
                 if (androidImportPipeline != null) {
                     addInstruction(
