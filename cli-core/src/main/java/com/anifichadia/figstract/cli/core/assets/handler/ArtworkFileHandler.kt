@@ -100,18 +100,19 @@ internal fun createArtworkFigmaFileHandler(
             canvases.map { canvas ->
                 Instruction.buildInstructions {
                     canvas.traverseBreadthFirst { node, parent ->
-                        if (parent == null) return@traverseBreadthFirst
-                        if (node !is Node.Fillable) return@traverseBreadthFirst
-                        if (!node.fills.any { it is Paint.Image }) return@traverseBreadthFirst
+                        if (node !is Node.Parent) return@traverseBreadthFirst
+                        val child = node.children.filterIsInstance<Node.Fillable>().firstOrNull()
+                            ?: return@traverseBreadthFirst
+                        if (!child.fills.any { it is Paint.Image }) return@traverseBreadthFirst
 
                         if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                        if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
+                        if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, parent, parent)
+                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
 
                         if (androidImportPipeline != null) {
                             addInstruction(
-                                exportNode = parent,
+                                exportNode = node,
                                 exportConfig = androidImageXxxHdpi,
                                 importOutputName = androidNamer.generate(namingContext),
                                 importPipeline = androidImportPipeline,
@@ -119,7 +120,7 @@ internal fun createArtworkFigmaFileHandler(
                             if (createCropped) {
                                 // TODO: Custom naming for cropped?
                                 addInstruction(
-                                    exportNode = node,
+                                    exportNode = child,
                                     exportConfig = androidImageXxxHdpi,
                                     importOutputName = "${androidNamer.generate(namingContext)}_cropped",
                                     importPipeline = androidImportPipeline,
@@ -130,7 +131,7 @@ internal fun createArtworkFigmaFileHandler(
                         if (iosImportPipeline != null) {
                             // TODO: casing for iOS?
                             addInstruction(
-                                exportNode = parent,
+                                exportNode = node,
                                 exportConfig = ios3xImage,
                                 importOutputName = iosNamer.generate(namingContext),
                                 importPipeline = iosImportPipeline,
@@ -138,7 +139,7 @@ internal fun createArtworkFigmaFileHandler(
                             if (createCropped) {
                                 // TODO: Custom naming for cropped?
                                 addInstruction(
-                                    exportNode = node,
+                                    exportNode = child,
                                     exportConfig = ios3xImage,
                                     importOutputName = "${iosNamer.generate(namingContext)}_cropped",
                                     importPipeline = iosImportPipeline,
@@ -148,7 +149,7 @@ internal fun createArtworkFigmaFileHandler(
 
                         if (webImportPipeline != null) {
                             addInstruction(
-                                exportNode = parent,
+                                exportNode = node,
                                 exportConfig = ExportConfig(ExportSetting.Format.PNG),
                                 importOutputName = webNamer.generate(namingContext),
                                 importPipeline = webImportPipeline,
@@ -156,7 +157,7 @@ internal fun createArtworkFigmaFileHandler(
                             if (createCropped) {
                                 // TODO: Custom naming for cropped?
                                 addInstruction(
-                                    exportNode = node,
+                                    exportNode = child,
                                     exportConfig = ExportConfig(ExportSetting.Format.PNG),
                                     importOutputName = "${webNamer.generate(namingContext)}_cropped",
                                     importPipeline = webImportPipeline,
@@ -176,7 +177,7 @@ internal fun createArtworkFigmaFileHandler(
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
         ) { node, canvas ->
             Instruction.buildInstructions {
-                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node, node)
+                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
 
                 if (androidImportPipeline != null) {
                     addInstruction(
