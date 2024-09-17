@@ -18,7 +18,7 @@ logback = "1.5.8"
 ktor = "2.3.12"
 
 # https://github.com/json-path/JsonPath
-jsonPath = "2.8.0"
+jsonPath = "2.9.0"
 
 androidTools = "31.7.0-beta01"
 

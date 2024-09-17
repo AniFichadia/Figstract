@@ -20,12 +20,14 @@ class RealAssetsCommand : AssetsCommand() {
     private val artworkCreateCropped by option("--artworkCreateCropped")
         .flag(default = false)
     private val artworkFilter by AssetFilterOptionGroup("artwork")
+    private val artworkJsonPath by option("--artworkJsonPath")
 
     private val iconsEnabled by option("--iconsEnabled")
         .boolean()
         .default(false)
     private val iconsFigmaFile by option("--iconsFigmaFile")
-    private val iconFilter by AssetFilterOptionGroup("icon")
+    private val iconFilter by AssetFilterOptionGroup("icons")
+    private val iconsJsonPath by option("--iconsJsonPath")
 
     private val platformOptions by PlatformOptionGroup()
 
@@ -50,6 +52,7 @@ class RealAssetsCommand : AssetsCommand() {
                     webOutDirectory = webOutDirectory,
                     assetFilter = artworkFilter.toAssetFilter(),
                     instructionLimit = instructionLimit,
+                    jsonPath = artworkJsonPath,
                 )
             } ?: throw BadParameterValue("Artwork is enabled but figma file is not specified")
         } else {
@@ -65,6 +68,7 @@ class RealAssetsCommand : AssetsCommand() {
                     webOutDirectory = webOutDirectory,
                     assetFilter = iconFilter.toAssetFilter(),
                     instructionLimit = instructionLimit,
+                    jsonPath = iconsJsonPath,
                 )
             } ?: throw BadParameterValue("Icons are enabled but figma file is not specified")
         } else {

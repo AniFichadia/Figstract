@@ -11,6 +11,7 @@ import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.Companion.addInstruction
+import com.anifichadia.figstract.importer.asset.model.JsonPathAssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.exporting.svg
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
@@ -36,6 +37,7 @@ internal fun createIconFigmaFileHandler(
     webOutDirectory: File?,
     assetFilter: AssetFilter,
     instructionLimit: Int?,
+    jsonPath: String?,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold("icons", "drawable")
@@ -80,74 +82,117 @@ internal fun createIconFigmaFileHandler(
         }
     }
 
-    val iconFileHandler = AssetFileHandler(
-        figmaFile = figmaFile,
-        // Icons are smaller, so we can retrieve more at the same time
-        assetsPerChunk = 50,
-        lifecycle = Lifecycle.Combined(
-            iosAssetCatalogLifecycle,
-            timingLifecycle,
-            timingLoggingLifecycle,
-        ),
-    ) { response, _ ->
-        val canvases = response.document.children
-            .filterIsInstance<Node.Canvas>()
-            .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
+    val lifecycle = Lifecycle.Combined(
+        iosAssetCatalogLifecycle,
+        timingLifecycle,
+        timingLoggingLifecycle,
+    )
+    // Icons are smaller, so we can retrieve more at the same time
+    val assetsPerChunk = 50
 
-        canvases.map { canvas ->
-            Instruction.buildInstructions {
-                canvas.traverseBreadthFirst { node, parent ->
-                    if (parent == null) return@traverseBreadthFirst
-                    if (node !is Node.Vector) return@traverseBreadthFirst
+    return if (jsonPath == null) {
+        AssetFileHandler(
+            figmaFile = figmaFile,
+            assetsPerChunk = assetsPerChunk,
+            lifecycle = lifecycle,
+        ) { response, _ ->
+            val canvases = response.document.children
+                .filterIsInstance<Node.Canvas>()
+                .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
 
-                    if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                    if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
+            canvases.map { canvas ->
+                Instruction.buildInstructions {
+                    canvas.traverseBreadthFirst { node, parent ->
+                        if (parent == null) return@traverseBreadthFirst
+                        if (node !is Node.Vector) return@traverseBreadthFirst
 
-                    val parentName = parent.name.let {
-                        if (it.contains("/")) {
-                            it.split("/")[1]
-                        } else {
-                            it
+                        if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
+                        if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
+
+                        val parentName = parent.name.let {
+                            if (it.contains("/")) {
+                                it.split("/")[1]
+                            } else {
+                                it
+                            }
+                        }
+
+                        if (androidImportPipeline != null) {
+                            addInstruction(
+                                exportNode = parent,
+                                exportConfig = svg,
+                                importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
+                                importPipeline = androidImportPipeline,
+                            )
+                        }
+
+                        if (iosImportPipeline != null) {
+                            addInstruction(
+                                exportNode = parent,
+                                exportConfig = iosIcon,
+                                importOutputName = parentName.sanitise().ToUpperCamelCase(),
+                                importPipeline = iosImportPipeline,
+                            )
+                        }
+
+                        if (webImportPipeline != null) {
+                            addInstruction(
+                                exportNode = parent,
+                                exportConfig = svg,
+                                importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
+                                importPipeline = webImportPipeline,
+                            )
                         }
                     }
-
-                    if (androidImportPipeline != null) {
-                        addInstruction(
-                            exportNode = parent,
-                            exportConfig = svg,
-                            importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
-                            importPipeline = androidImportPipeline,
-                        )
-                    }
-
-                    if (iosImportPipeline != null) {
-                        addInstruction(
-                            exportNode = parent,
-                            exportConfig = iosIcon,
-                            importOutputName = parentName.sanitise().ToUpperCamelCase(),
-                            importPipeline = iosImportPipeline,
-                        )
-                    }
-
-                    if (webImportPipeline != null) {
-                        addInstruction(
-                            exportNode = parent,
-                            exportConfig = svg,
-                            importOutputName = "ic_${parentName}".sanitise().to_snake_case(),
-                            importPipeline = webImportPipeline,
-                        )
+                }
+            }.flatten()
+                .let {
+                    if (instructionLimit != null) {
+                        it.take(instructionLimit)
+                    } else {
+                        it
                     }
                 }
-            }
-        }.flatten()
-            .let {
-                if (instructionLimit != null) {
-                    it.take(instructionLimit)
-                } else {
-                    it
+        }
+    } else {
+        JsonPathAssetFileHandler(
+            figmaFile = figmaFile,
+            jsonPath = jsonPath,
+            assetsPerChunk = assetsPerChunk,
+            lifecycle = lifecycle,
+            canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
+            nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
+        ) { node, _ ->
+            Instruction.buildInstructions {
+                val nodeName = node.name
+
+                if (androidImportPipeline != null) {
+                    addInstruction(
+                        exportNode = node,
+                        exportConfig = svg,
+                        importOutputName = "ic_${nodeName}".sanitise().to_snake_case(),
+                        importPipeline = androidImportPipeline,
+                    )
+                }
+
+                if (iosImportPipeline != null) {
+                    addInstruction(
+                        exportNode = node,
+                        exportConfig = iosIcon,
+                        importOutputName = nodeName.sanitise().ToUpperCamelCase(),
+                        importPipeline = iosImportPipeline,
+                    )
+                }
+
+                if (webImportPipeline != null) {
+                    addInstruction(
+                        exportNode = node,
+                        exportConfig = svg,
+                        importOutputName = "ic_${nodeName}".sanitise().to_snake_case(),
+                        importPipeline = webImportPipeline,
+                    )
                 }
             }
+        }
     }
-
-    return iconFileHandler
 }

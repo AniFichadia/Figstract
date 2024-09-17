@@ -15,5 +15,7 @@ dependencies {
 
     implementation(libs.bundles.scrimage)
 
+    implementation(libs.jsonPath)
+
     testImplementation(libs.bundles.unitTest.jvm)
 }
