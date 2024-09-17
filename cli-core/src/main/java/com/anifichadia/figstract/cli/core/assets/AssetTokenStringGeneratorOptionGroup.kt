@@ -3,6 +3,7 @@ package com.anifichadia.figstract.cli.core.assets
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.model.TokenStringGenerator.Casing
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
+import com.github.ajalt.clikt.parameters.options.OptionWithValues
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
@@ -36,11 +37,14 @@ class AssetTokenStringGeneratorOptionGroup(
             prefix: String,
             defaultFormat: String,
             casing: Casing,
-        ) = option(
-            "--${prefix}Format",
-            help = "Naming format for ${prefix}. Supported tokens: ${NodeTokenStringGenerator.tokens.joinToString(",") { it.tokenFormat }}",
-        )
-            .convert { NodeTokenStringGenerator(it, casing) }
-            .default(NodeTokenStringGenerator(defaultFormat, casing))
+        ): OptionWithValues<NodeTokenStringGenerator, NodeTokenStringGenerator, NodeTokenStringGenerator> {
+            val tokens = NodeTokenStringGenerator.tokens.joinToString(", ") { it.format.pattern }
+            return option(
+                "--${prefix}Format",
+                help = "Naming format for ${prefix}. Supported tokens: $tokens",
+            )
+                .convert { NodeTokenStringGenerator(it, casing) }
+                .default(NodeTokenStringGenerator(defaultFormat, casing))
+        }
     }
 }
