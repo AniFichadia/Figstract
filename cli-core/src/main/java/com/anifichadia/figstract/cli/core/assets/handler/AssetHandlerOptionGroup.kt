@@ -53,7 +53,8 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
 
 class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     private val artworkCreateCropped by option("--${prefix}CreateCropped")
-        .flag(default = false)
+        .boolean()
+        .default(false)
     override val namers by AssetTokenStringGeneratorOptionGroup(
         prefix = prefix,
         androidFormat = "artwork_{canvas.name}_{parentNode.name}",
