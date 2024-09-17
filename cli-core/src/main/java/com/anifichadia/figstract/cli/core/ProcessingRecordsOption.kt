@@ -1,12 +1,12 @@
 package com.anifichadia.figstract.cli.core
 
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.ParameterHolder
 import com.github.ajalt.clikt.parameters.options.OptionWithValues
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
 
-fun CliktCommand.processingRecordEnabled(): OptionWithValues<Boolean, Boolean, Boolean> {
+fun ParameterHolder.processingRecordEnabled(): OptionWithValues<Boolean, Boolean, Boolean> {
     return option(
         "--processingRecordEnabled",
         help = """

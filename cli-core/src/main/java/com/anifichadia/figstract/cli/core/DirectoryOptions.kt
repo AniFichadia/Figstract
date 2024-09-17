@@ -1,14 +1,14 @@
 package com.anifichadia.figstract.cli.core
 
 import com.anifichadia.figstract.type.fold
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.BaseCliktCommand
 import com.github.ajalt.clikt.parameters.options.OptionWithValues
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.file
 import java.io.File
 
-fun CliktCommand.outDirectory(): OptionWithValues<File, File, File> {
+fun <T : BaseCliktCommand<T>> BaseCliktCommand<T>.outDirectory(): OptionWithValues<File, File, File> {
     return option(
         "--out", "-o",
         help = """
