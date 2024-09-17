@@ -129,7 +129,6 @@ internal fun createArtworkFigmaFileHandler(
                         }
 
                         if (iosImportPipeline != null) {
-                            // TODO: casing for iOS?
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = ios3xImage,

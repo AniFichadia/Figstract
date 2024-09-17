@@ -57,7 +57,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     override val namers by AssetTokenStringGeneratorOptionGroup(
         prefix = prefix,
         androidFormat = "artwork_{canvas.name}_{node.name}",
-        iosFormat = "artwork_{canvas.name}_{node.name}",
+        iosFormat = "Artwork{canvas.name}{node.name}",
         webFormat = "artwork_{canvas.name}_{node.name}",
     )
 
