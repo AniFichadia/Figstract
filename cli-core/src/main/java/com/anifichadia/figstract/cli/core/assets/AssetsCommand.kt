@@ -9,23 +9,21 @@ import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figstract.model.tracking.NoOpProcessingRecordRepository
 import com.anifichadia.figstract.type.fold
-import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
+import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.findObject
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.sources.PropertiesValueSource
 import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
 import java.io.File
 
-abstract class AssetsCommand : CliktCommand(
+abstract class AssetsCommand : SuspendingCliktCommand(
     name = "assets",
-    help = """
-        Extracts assets from figma files, such as images and icons
-    """.trimIndent(),
-    printHelpOnEmptyArgs = true,
 ) {
+    override val printHelpOnEmptyArgs = true
+
     init {
         context {
             valueSources(
@@ -41,9 +39,15 @@ abstract class AssetsCommand : CliktCommand(
 
     private val outDirectory by outDirectory()
 
+    override fun help(context: Context): String {
+        return """
+        Extracts assets from figma files, such as images and icons
+    """.trimIndent()
+    }
+
     abstract fun createHandlers(outDirectory: File): List<AssetFileHandler>
 
-    override fun run() = runBlocking {
+    override suspend fun run() {
         val downloaderHttpClient = HttpClientFactory.downloader(
             proxy = proxyConfig,
         )

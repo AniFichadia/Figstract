@@ -5,19 +5,20 @@ import com.anifichadia.figstract.cli.core.assets.AssetsCommand
 import com.anifichadia.figstract.cli.core.variables.VariablesCommand
 import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.figma.api.FigmaApiImpl
+import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.BadParameterValue
-import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 
-class FigstractCommand private constructor() : CliktCommand(
+class FigstractCommand private constructor() : SuspendingCliktCommand(
     name = "figstract",
-    printHelpOnEmptyArgs = true,
 ) {
+    override val printHelpOnEmptyArgs = true
+
     private val auth by AuthOptionGroup()
     private val proxy by ProxyOptionGroup()
 
-    override fun run() {
+    override suspend fun run() {
         val authProvider = auth.authProvider
         currentContext.findOrSetObject { authProvider }
 

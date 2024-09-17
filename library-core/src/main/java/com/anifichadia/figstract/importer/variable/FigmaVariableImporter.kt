@@ -152,6 +152,7 @@ class FigmaVariableImporter(
                 }
             }
             .map { (handler, variableData, writer) ->
+                // TODO: better log message, should include info about variableData
                 logger.debug { "Importing ${handler.figmaFile}: Started" }
                 try {
                     writer.write(variableData)

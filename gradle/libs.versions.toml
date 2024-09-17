@@ -7,7 +7,7 @@ kotlinx-coroutines = "1.9.0"
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinx-serialization = "1.7.2"
 # https://github.com/ajalt/clikt
-clikt = "4.4.0"
+clikt = "5.0.0"
 
 # https://github.com/oshai/kotlin-logging
 kotlinLogging = "7.0.0"
