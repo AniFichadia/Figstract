@@ -34,9 +34,9 @@ internal fun createIconFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
-    androidNamer: NodeTokenStringGenerator,
-    iosNamer: NodeTokenStringGenerator,
-    webNamer: NodeTokenStringGenerator,
+    androidNameGenerator: NodeTokenStringGenerator,
+    iosNameGenerator: NodeTokenStringGenerator,
+    webNameGenerator: NodeTokenStringGenerator,
     jsonPath: String?,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -115,7 +115,7 @@ internal fun createIconFigmaFileHandler(
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = svg,
-                                importOutputName = androidNamer.generate(namingContext),
+                                importOutputName = androidNameGenerator.generate(namingContext),
                                 importPipeline = androidImportPipeline,
                             )
                         }
@@ -124,7 +124,7 @@ internal fun createIconFigmaFileHandler(
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = iosIcon,
-                                importOutputName = iosNamer.generate(namingContext),
+                                importOutputName = iosNameGenerator.generate(namingContext),
                                 importPipeline = iosImportPipeline,
                             )
                         }
@@ -133,7 +133,7 @@ internal fun createIconFigmaFileHandler(
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = svg,
-                                importOutputName = webNamer.generate(namingContext),
+                                importOutputName = webNameGenerator.generate(namingContext),
                                 importPipeline = webImportPipeline,
                             )
                         }
@@ -157,7 +157,7 @@ internal fun createIconFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = svg,
-                        importOutputName = androidNamer.generate(namingContext),
+                        importOutputName = androidNameGenerator.generate(namingContext),
                         importPipeline = androidImportPipeline,
                     )
                 }
@@ -166,7 +166,7 @@ internal fun createIconFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = iosIcon,
-                        importOutputName = iosNamer.generate(namingContext),
+                        importOutputName = iosNameGenerator.generate(namingContext),
                         importPipeline = iosImportPipeline,
                     )
                 }
@@ -175,7 +175,7 @@ internal fun createIconFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = svg,
-                        importOutputName = webNamer.generate(namingContext),
+                        importOutputName = webNameGenerator.generate(namingContext),
                         importPipeline = webImportPipeline,
                     )
                 }

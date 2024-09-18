@@ -36,9 +36,9 @@ internal fun createArtworkFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
-    androidNamer: NodeTokenStringGenerator,
-    iosNamer: NodeTokenStringGenerator,
-    webNamer: NodeTokenStringGenerator,
+    androidNameGenerator: NodeTokenStringGenerator,
+    iosNameGenerator: NodeTokenStringGenerator,
+    webNameGenerator: NodeTokenStringGenerator,
     jsonPath: String?,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -114,14 +114,14 @@ internal fun createArtworkFigmaFileHandler(
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = androidImageXxxHdpi,
-                                importOutputName = androidNamer.generate(namingContext),
+                                importOutputName = androidNameGenerator.generate(namingContext),
                                 importPipeline = androidImportPipeline,
                             )
                             if (createCropped) {
                                 addInstruction(
                                     exportNode = child,
                                     exportConfig = androidImageXxxHdpi,
-                                    importOutputName = androidNamer.generate(namingContext, suffix = "cropped"),
+                                    importOutputName = androidNameGenerator.generate(namingContext, suffix = "cropped"),
                                     importPipeline = androidImportPipeline,
                                 )
                             }
@@ -131,14 +131,14 @@ internal fun createArtworkFigmaFileHandler(
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = ios3xImage,
-                                importOutputName = iosNamer.generate(namingContext),
+                                importOutputName = iosNameGenerator.generate(namingContext),
                                 importPipeline = iosImportPipeline,
                             )
                             if (createCropped) {
                                 addInstruction(
                                     exportNode = child,
                                     exportConfig = ios3xImage,
-                                    importOutputName = iosNamer.generate(namingContext, suffix = "cropped"),
+                                    importOutputName = iosNameGenerator.generate(namingContext, suffix = "cropped"),
                                     importPipeline = iosImportPipeline,
                                 )
                             }
@@ -148,14 +148,14 @@ internal fun createArtworkFigmaFileHandler(
                             addInstruction(
                                 exportNode = node,
                                 exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                importOutputName = webNamer.generate(namingContext),
+                                importOutputName = webNameGenerator.generate(namingContext),
                                 importPipeline = webImportPipeline,
                             )
                             if (createCropped) {
                                 addInstruction(
                                     exportNode = child,
                                     exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                    importOutputName = webNamer.generate(namingContext, suffix = "cropped"),
+                                    importOutputName = webNameGenerator.generate(namingContext, suffix = "cropped"),
                                     importPipeline = webImportPipeline,
                                 )
                             }
@@ -179,7 +179,7 @@ internal fun createArtworkFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = androidImageXxxHdpi,
-                        importOutputName = androidNamer.generate(namingContext),
+                        importOutputName = androidNameGenerator.generate(namingContext),
                         importPipeline = androidImportPipeline,
                     )
                 }
@@ -188,7 +188,7 @@ internal fun createArtworkFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = ios3xImage,
-                        importOutputName = iosNamer.generate(namingContext),
+                        importOutputName = iosNameGenerator.generate(namingContext),
                         importPipeline = iosImportPipeline,
                     )
                 }
@@ -197,7 +197,7 @@ internal fun createArtworkFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                        importOutputName = webNamer.generate(namingContext),
+                        importOutputName = webNameGenerator.generate(namingContext),
                         importPipeline = webImportPipeline,
                     )
                 }
