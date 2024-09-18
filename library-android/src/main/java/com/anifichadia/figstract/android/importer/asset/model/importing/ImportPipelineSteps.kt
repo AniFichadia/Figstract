@@ -56,10 +56,12 @@ val androidSvgToAvd = ImportPipeline.Step("androidSvgToAvd()") { instruction, in
 }
 
 val androidVectorColorToPlaceholder = ImportPipeline.Step("androidVectorColorToPlaceholder()") { _, input ->
-    // TODO: use this regex instead? Color=\"#(?!FF00FF|00000000).+
     val updatedFileContents = input.data
         .decodeToString()
-        .replace("""Color="#000000"""", """Color="#FF00FF"""")
+        .replace(
+            """Color="#(?!(FF00FF|00000000))([0-9A-F]{1,8})"""".toRegex(RegexOption.IGNORE_CASE),
+            """Color="#FF00FF"""",
+        )
 
     input
         .copy(
