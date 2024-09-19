@@ -8,8 +8,6 @@ plugins {
     alias(libs.plugins.shadow) apply false
 }
 
-version = "0.0.1-alpha01"
-
 java {
     toolchain {
         languageVersion.set(javaLanguageVersion)
@@ -17,6 +15,8 @@ java {
 }
 
 subprojects {
+    version = property("VERSION_NAME") as String
+
     tasks.withType(Test::class.java) {
         useJUnitPlatform()
     }
