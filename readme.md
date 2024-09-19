@@ -94,18 +94,124 @@ TODO:
 
 ## Variables
 
-TODO:
+Figstract can extract [local variables](https://www.figma.com/developers/api#get-local-variables-endpoint) from Figma files.
+All variable types (booleans, numbers, strings and colors) are supported.
 
-- Output formats
-    - Web
-        - JSON
-    - Android
-        - Compose
-            - R-file-like Kotlin object with Constants
-        - XML UI
-            - Coming soon
-    - iOS
-        - Coming soon
+All variable types will be outputted by default, but can be configured to be omitted completely.
+
+### Output formats
+
+All output formats use the variable collection's name as the file name.
+Variables will be first grouped by mode then by variable type within each variable collection's file.
+Colors can be configured to be outputted as either Hex or RGBA values (RGBA values are floats between 0 and 1 inclusive).
+
+Note: Variable collection, mode and variable names will be sanitised to conform with platform / language conventions.
+
+#### Web / Any
+
+For web (or any platform), Figstract generates JSON files with the following format:
+
+*My Variable Collection.json*
+
+```json
+{
+  "My Mode": {
+    "booleans": {
+      "bool var 1": true,
+      "bool var 2": false
+    },
+    "numbers": {
+      "number var 1": 123.45,
+      "number var 2": -543.21
+    },
+    "strings": {
+      "string var 1": "Hello",
+      "string var 2": "World"
+    },
+    "colors": {
+      "color rgba var 1": {
+        "r": 0.1,
+        "g": 0.2,
+        "b": 0.3,
+        "a": 1.0
+      },
+      "color rgba var 2": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "color hex var 1": "0xFF19334C",
+      "color hex var 2": "0xFFFFFFFF"
+    }
+  }
+}
+```
+
+Refer to [JsonVariableDataWriter](library-core/src/main/java/com/anifichadia/figstract/importer/variable/model/JsonVariableDataWriter.kt) for the implementation.
+
+#### Android Compose
+
+Figstract generates an R-file-like Kotlin object with constants with the following format:
+
+*MyVariableCollection.kt*
+
+```kotlin
+package your.pkg.here
+
+import androidx.compose.ui.graphics.Color
+import kotlin.Double
+
+public object MyVariableCollection {
+    public object MyMode {
+        public object Booleans {
+            public val boolVar1: Boolean = true
+            public val boolVar2: Boolean = false
+        }
+
+        public object Numbers {
+            public val numberVar1: Double = 123.45
+            public val numberVar2: Double = -543.21
+        }
+
+        public object Strings {
+            public val stringVar1: String = "Hello"
+            public val stringVar2: String = "World"
+        }
+
+        public object Colors {
+            public val colorRgbaVar1: Color = Color(
+                red = 0.1f,
+                green = 0.2f,
+                blue = 0.3f,
+                alpha = 1.0f,
+            )
+            public val colorRgbaVar2: Color = Color(
+                red = 1.0f,
+                green = 1.0f,
+                blue = 1.0f,
+                alpha = 1.0f,
+            )
+            public val colorHexVar1: Color = Color(0xFF19334C)
+            public val colorHexVar2: Color = Color(0xFFFFFFFF)
+        }
+    }
+}
+```
+
+The package must be specified when configuring this output.
+
+Refer to [AndroidComposeVariableDataWriter](library-android/src/main/java/com/anifichadia/figstract/android/importer/variable/model/AndroidComposeVariableDataWriter.kt) for the implementation.
+
+#### Android XML
+
+> [!NOTE]
+> Coming soon
+
+#### iOS
+
+> [!NOTE]
+> Coming soon
 
 ## Module structure
 
