@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
-group = "com.anifichadia.figstract.android"
+group = "com.anifichadia.figstract.lib.android"
 version = "0.0.1-alpha01"
 
 dependencies {

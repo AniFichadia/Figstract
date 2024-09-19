@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-group = "com.anifichadia.figstract"
+group = "com.anifichadia.figstract.lib.core"
 version = "0.0.1-alpha01"
 
 dependencies {
