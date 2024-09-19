@@ -94,6 +94,7 @@ class JsonVariableDataWriter(
     companion object {
         private val json = Json {
             prettyPrint = true
+            explicitNulls = false
         }
     }
 }
