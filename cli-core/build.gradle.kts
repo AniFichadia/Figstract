@@ -3,7 +3,6 @@ plugins {
 }
 
 group = "com.anifichadia.figstract.cli.core"
-version = "0.0.1-alpha01"
 
 dependencies {
     api(project(":library-core"))

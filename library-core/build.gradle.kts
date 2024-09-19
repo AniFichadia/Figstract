@@ -4,7 +4,6 @@ plugins {
 }
 
 group = "com.anifichadia.figstract.lib.core"
-version = "0.0.1-alpha01"
 
 dependencies {
     implementation(libs.bundles.kotlin)
