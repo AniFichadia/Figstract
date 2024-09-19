@@ -71,10 +71,10 @@ class AndroidComposeVariableDataWriter(
                                 .indent()
                                 .withIndent {
                                     this
-                                        .addStatement("r = %L,", color.r)
-                                        .addStatement("g = %L,", color.g)
-                                        .addStatement("b = %L,", color.b)
-                                        .addStatement("a = %L,", color.a)
+                                        .addStatement("red = %L,", color.r.toFloat())
+                                        .addStatement("green = %L,", color.g.toFloat())
+                                        .addStatement("blue = %L,", color.b.toFloat())
+                                        .addStatement("alpha = %L,", color.a.toFloat())
                                 }
                                 .unindent()
                                 .add(")")
