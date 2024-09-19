@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow) apply false
+    alias(libs.plugins.dokka)
 }
 
 java {
@@ -21,6 +22,8 @@ allprojects {
 }
 
 subprojects {
+    apply(plugin = "org.jetbrains.dokka")
+
     tasks.withType(Test::class.java) {
         useJUnitPlatform()
     }

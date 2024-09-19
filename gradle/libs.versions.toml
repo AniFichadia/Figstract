@@ -35,6 +35,8 @@ junit4 = "4.13.2"
 #region Plugins
 # https://github.com/GradleUp/shadow
 shadow = "9.0.0-beta4"
+# https://github.com/Kotlin/dokka
+dokka = "1.9.20"
 #endregion
 
 [libraries]
@@ -112,3 +114,4 @@ unitTest-jvm = [
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
