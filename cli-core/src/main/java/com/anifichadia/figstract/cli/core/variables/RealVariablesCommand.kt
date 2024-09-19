@@ -23,6 +23,9 @@ class RealVariablesCommand : VariablesCommand() {
         .boolean()
         .default(false)
     private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose")
+    private val outputColorAsHex by option("--outputColorAsHex")
+        .boolean()
+        .default(true)
 
     override fun createHandlers(outDirectory: File): List<VariableFileHandler> {
         val writers = createWriters(outDirectory)
@@ -42,6 +45,7 @@ class RealVariablesCommand : VariablesCommand() {
             add(
                 JsonVariableDataWriter(
                     outDirectory = outDirectory.fold("json"),
+                    colorAsHex = outputColorAsHex,
                 )
             )
         }
@@ -51,6 +55,7 @@ class RealVariablesCommand : VariablesCommand() {
                     AndroidComposeVariableDataWriter(
                         outDirectory = outDirectory.fold("android", "compose"),
                         packageName = it.logicalGrouping,
+                        colorAsHex = outputColorAsHex,
                     )
                 )
             }
