@@ -18,7 +18,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
     private val figmaFile by option("--${prefix}FigmaFile")
     private val filters by AssetFilterOptionGroup(prefix)
     private val jsonPath by option("--${prefix}JsonPath")
-    protected abstract val namers: AssetTokenStringGeneratorOptionGroup
+    protected abstract val nameGenerators: AssetTokenStringGeneratorOptionGroup
 
     fun createHandler(
         androidOutDirectory: File?,
@@ -54,7 +54,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     private val artworkCreateCropped by option("--${prefix}CreateCropped")
         .boolean()
         .default(false)
-    override val namers by AssetTokenStringGeneratorOptionGroup(
+    override val nameGenerators by AssetTokenStringGeneratorOptionGroup(
         prefix = prefix,
         androidFormat = "artwork_{canvas.name}_{node.name}",
         iosFormat = "Artwork{canvas.name}{node.name}",
@@ -76,16 +76,16 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,
             assetFilter = filters.toAssetFilter(),
-            androidNamer = namers.android,
-            iosNamer = namers.ios,
-            webNamer = namers.web,
+            androidNameGenerator = nameGenerators.android,
+            iosNameGenerator = nameGenerators.ios,
+            webNameGenerator = nameGenerators.web,
             jsonPath = jsonPath,
         )
     }
 }
 
 class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
-    override val namers by AssetTokenStringGeneratorOptionGroup(
+    override val nameGenerators by AssetTokenStringGeneratorOptionGroup(
         prefix = "icons",
         androidFormat = """ic_{node.name.split "/" last}""",
         iosFormat = """{node.name.split "/" last}""",
@@ -106,9 +106,9 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,
             assetFilter = filters.toAssetFilter(),
-            androidNamer = namers.android,
-            iosNamer = namers.ios,
-            webNamer = namers.web,
+            androidNameGenerator = nameGenerators.android,
+            iosNameGenerator = nameGenerators.ios,
+            webNameGenerator = nameGenerators.web,
             jsonPath = jsonPath,
         )
     }
