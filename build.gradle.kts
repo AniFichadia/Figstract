@@ -1,3 +1,5 @@
+import java.util.*
+
 // Make sure these are always in sync
 val javaVersion = JavaVersion.VERSION_17
 val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(17)
@@ -50,11 +52,22 @@ subprojects {
         publishing {
             repositories {
                 maven {
-                    name = "sonatypeSnapshots"
-                    url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                    name = "SonatypeSnapshots"
+                    url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
                     credentials {
                         username = System.getenv("SONATYPE_USERNAME")
                         password = System.getenv("SONATYPE_PASSWORD")
+                    }
+                }
+
+                repositories {
+                    maven {
+                        name = "GitHubPackages"
+                        url = uri("https://maven.pkg.github.com/AniFichadia/Figstract")
+                        credentials {
+                            username = System.getenv("GITHUB_MAVEN_USERNAME")
+                            password = System.getenv("GITHUB_MAVEN_PASSWORD")
+                        }
                     }
                 }
             }
@@ -88,11 +101,17 @@ subprojects {
         }
 
         signing {
-            useInMemoryPgpKeys(
-                System.getenv("GPG_PRIVATE_KEY"),
-                System.getenv("GPG_KEY_PASSWORD")
-            )
-            sign(publishing.publications)
+            val encodedKey = System.getenv("GPG_PRIVATE_KEY")
+            val signingKey: String? = encodedKey?.let { String(Base64.getDecoder().decode(it)) }
+            val signingPassword: String? = System.getenv("GPG_KEY_PASSWORD")
+
+            if (!signingKey.isNullOrBlank() && !signingPassword.isNullOrBlank()) {
+                useInMemoryPgpKeys(
+                    signingKey,
+                    signingPassword,
+                )
+                sign(publishing.publications)
+            }
         }
     }
     //endregion
