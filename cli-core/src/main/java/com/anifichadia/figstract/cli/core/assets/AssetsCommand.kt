@@ -1,8 +1,8 @@
 package com.anifichadia.figstract.cli.core.assets
 
 import com.anifichadia.figstract.HttpClientFactory
+import com.anifichadia.figstract.cli.core.ProcessingRecordOptionGroup
 import com.anifichadia.figstract.cli.core.outDirectory
-import com.anifichadia.figstract.cli.core.processingRecordEnabled
 import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.importer.asset.FigmaAssetImporter
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
@@ -14,6 +14,7 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.findObject
 import com.github.ajalt.clikt.core.requireObject
+import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import com.github.ajalt.clikt.sources.PropertiesValueSource
 import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.coroutineScope
@@ -35,7 +36,7 @@ abstract class AssetsCommand : SuspendingCliktCommand(
     private val proxyConfig by findObject<ProxyConfig>()
     private val figmaApi by requireObject<FigmaApi>()
 
-    private val processingRecordEnabled by processingRecordEnabled()
+    private val processingRecordOptions by ProcessingRecordOptionGroup()
 
     private val outDirectory by outDirectory()
 
@@ -52,9 +53,10 @@ abstract class AssetsCommand : SuspendingCliktCommand(
             proxy = proxyConfig,
         )
 
-        val processingRecordRepository = if (processingRecordEnabled) {
+        val processingRecordRepository = if (processingRecordOptions.enabled) {
+            val name = processingRecordOptions.name?.let { "processing_record_$it.json" } ?: "processing_record.json"
             JsonFileProcessingRecordRepository(
-                recordFile = outDirectory.fold("processing_record.json"),
+                recordFile = outDirectory.fold(name),
             )
         } else {
             NoOpProcessingRecordRepository
