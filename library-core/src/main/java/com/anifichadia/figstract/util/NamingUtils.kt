@@ -1,11 +1,14 @@
 package com.anifichadia.figstract.util
 
 fun String.sanitise() = this
-    .replace('-', ' ')
+    .replace("-", " ")
+    .replace("_", " ")
     .replace("""[^\w\s]""".toRegex(), "")
     .replace("""\s+""".toRegex(), " ")
 
 fun String.sanitiseFileName() = this
+    .replace("-", " ")
+    .replace("_", " ")
     .replace("""[^\w\s]""".toRegex(), " ")
     .replace("""\""", "")
     .replace("""/""", "")
