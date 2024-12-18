@@ -26,7 +26,7 @@ androidTools = "31.9.0-alpha06"
 scrimage = "4.2.0"
 
 # https://github.com/square/kotlinpoet
-kotlinPoet = "1.18.1"
+kotlinPoet = "2.0.0"
 
 #region Testing
 junit4 = "4.13.2"
