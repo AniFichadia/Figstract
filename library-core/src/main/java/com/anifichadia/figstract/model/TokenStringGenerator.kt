@@ -17,9 +17,9 @@ abstract class TokenStringGenerator<T> {
         }
 
         return listOfNotNull(prefix, tokenised, suffix)
+            .map { it.sanitise() }
             .map { casing.transform(it) }
             .let { casing.concat(it) }
-            .sanitise()
     }
 
     enum class Casing {

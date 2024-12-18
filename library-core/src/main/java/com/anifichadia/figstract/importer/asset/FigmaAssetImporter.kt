@@ -14,7 +14,7 @@ import com.anifichadia.figstract.util.createLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
-import io.ktor.util.toByteArray
+import io.ktor.utils.io.toByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
