@@ -23,4 +23,5 @@ application {
 
 tasks.withType<ShadowJar> {
     mergeServiceFiles()
+    // TODO: enable minimize()
 }
