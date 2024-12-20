@@ -20,7 +20,7 @@ abstract class VariablesCommand : SuspendingCliktCommand(
     init {
         context {
             valueSources(
-                PropertiesValueSource.from("$commandName.properties"),
+                PropertiesValueSource.from("./$commandName.properties"),
             )
         }
     }

@@ -52,6 +52,8 @@ Run the following command to run Figstract and list the subcommands and options:
 java -jar /path/to/cli.jar --help
 ```
 
+The CLI can be configured with CLI args, or by supplying a `[subcommandName].properties` file with the same keys as the arguments in the working directory (e.g. `assets.properties`).
+
 ## Authentication
 
 Figstract supports the following authentication mechanisms to accessing Figma:

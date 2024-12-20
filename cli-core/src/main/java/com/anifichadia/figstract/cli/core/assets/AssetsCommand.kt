@@ -28,7 +28,7 @@ abstract class AssetsCommand : SuspendingCliktCommand(
     init {
         context {
             valueSources(
-                PropertiesValueSource.from("$commandName.properties"),
+                PropertiesValueSource.from("./$commandName.properties"),
             )
         }
     }
