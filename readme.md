@@ -1,5 +1,7 @@
 # Figstract
 
+[![Maven Central Version](https://img.shields.io/maven-central/v/com.anifichadia.figstract/cli)](https://central.sonatype.com/search?q=com.anifichadia.figstract)
+
 Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.
 
 This tool extracts the following design system tokens produced by designers in [Figma](https://www.figma.com/):
