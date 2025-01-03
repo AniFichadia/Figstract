@@ -1,0 +1,49 @@
+name: Build
+on:
+  push:
+    tags:
+      - '**'
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GPG_PRIVATE_KEY: ${{ env.GPG_PRIVATE_KEY }}
+      GPG_KEY_PASSWORD: ${{ env.GPG_KEY_PASSWORD }}
+
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ env.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ env.MAVEN_CENTRAL_PASSWORD }}
+
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          java-version: ${{ vars.JAVA_VERSION }}
+          distribution: ${{ vars.JAVA_DISTRIBUTION }}
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          cache-read-only: false
+
+      - name: Build
+        run: |
+          ./gradlew build --no-configuration-cache
+
+      - name: Publish to Maven Central
+        run: |
+          ./gradlew publishAllPublicationsToMavenCentralRepository --stacktrace --no-configuration-cache
+
+      - name: Publish to Github Packages
+        run: |
+          ./gradlew publishAllPublicationsToGithubPackagesRepository --stacktrace --no-configuration-cache 
