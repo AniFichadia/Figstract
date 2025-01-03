@@ -1,4 +1,6 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -7,7 +9,6 @@ plugins {
 }
 
 group = "com.anifichadia.figstract.cli"
-version = "0.0.1-alpha01"
 
 dependencies {
     implementation(project(":cli-core"))
@@ -23,4 +24,14 @@ application {
 
 tasks.withType<ShadowJar> {
     mergeServiceFiles()
+    // TODO: enable minimize()
+}
+
+mavenPublishing {
+    configure(
+        KotlinJvm(
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            sourcesJar = true,
+        )
+    )
 }

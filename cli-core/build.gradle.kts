@@ -1,9 +1,11 @@
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.KotlinJvm
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
 group = "com.anifichadia.figstract.cli.core"
-version = "0.0.1-alpha01"
 
 dependencies {
     api(project(":library-core"))
@@ -18,4 +20,13 @@ dependencies {
     implementation(libs.logback)
 
     testImplementation(libs.bundles.unitTest.jvm)
+}
+
+mavenPublishing {
+    configure(
+        KotlinJvm(
+            javadocJar = JavadocJar.Dokka("dokkaHtml"),
+            sourcesJar = true,
+        )
+    )
 }
