@@ -1,6 +1,6 @@
 # Figstract
 
-Figstract bridges the process for maintaining design systems between frontend engineers and designers and helps automate mundane upkeep tasks.
+Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.
 
 This tool extracts the following design system tokens produced by designers in [Figma](https://www.figma.com/):
 
