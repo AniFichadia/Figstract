@@ -15,11 +15,11 @@ jobs:
       contents: read
       packages: write
     env:
-      GPG_PRIVATE_KEY: ${{ env.GPG_PRIVATE_KEY }}
-      GPG_KEY_PASSWORD: ${{ env.GPG_KEY_PASSWORD }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_KEY_PASSWORD: ${{ secrets.GPG_KEY_PASSWORD }}
 
-      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ env.MAVEN_CENTRAL_USERNAME }}
-      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ env.MAVEN_CENTRAL_PASSWORD }}
+      ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
 
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
