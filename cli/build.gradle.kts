@@ -24,7 +24,9 @@ application {
 
 tasks.withType<ShadowJar> {
     mergeServiceFiles()
-    // TODO: enable minimize()
+    minimize {
+        exclude(dependency("com.github.ajalt.mordant:.*:.*"))
+    }
 }
 
 mavenPublishing {
