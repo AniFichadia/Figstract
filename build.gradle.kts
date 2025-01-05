@@ -16,6 +16,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow) apply false
     alias(libs.plugins.dokka)
+    alias(libs.plugins.dokkaJavadoc)
     alias(libs.plugins.maven.publish)
     `maven-publish`
     signing
@@ -35,6 +36,7 @@ subprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
     apply(plugin = "org.jetbrains.dokka")
+    apply(plugin = "org.jetbrains.dokka-javadoc")
     apply(plugin = "com.vanniktech.maven.publish")
 
     tasks.withType(Test::class.java) {
@@ -54,9 +56,7 @@ subprojects {
         from(tasks.javadoc)
     }
 
-    tasks.register<Jar>("dokkaJar") {
-        archiveClassifier.set("javadoc")
-        from(tasks.dokkaHtml)
+    dokka {
     }
 
     //region Property remappings
