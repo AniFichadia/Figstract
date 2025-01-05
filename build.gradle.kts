@@ -15,8 +15,8 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow) apply false
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.dokkaJavadoc)
+    alias(libs.plugins.dokka.core)
+    alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.maven.publish)
     `maven-publish`
     signing
