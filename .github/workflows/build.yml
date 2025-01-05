@@ -30,9 +30,22 @@ jobs:
         with:
           cache-read-only: false
 
+      # TODO: for later
+      #      - name: Lint
+      #        run: |
+      #          ./gradlew test
+
+      - name: Run tests
+        run: |
+          ./gradlew test
+
+      - name: Generate documentation
+        run: |
+          ./gradlew dokkaGenerate
+
       - name: Build
         run: |
-          ./gradlew build --no-configuration-cache
+          ./gradlew assemble
 
       - name: Publish snapshot
         if: github.ref == 'refs/heads/main'
