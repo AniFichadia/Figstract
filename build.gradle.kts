@@ -106,15 +106,9 @@ subprojects {
 }
 
 fun resolveVersion(originalVersionName: String): String {
-    val snapshotVersion = System.getenv("SNAPSHOT_VERSION")
-
-    return if (!snapshotVersion.isNullOrBlank()) {
-        buildString {
-            append(originalVersionName)
-            append("-")
-            append(snapshotVersion)
-            append("-SNAPSHOT")
-        }
+    val isSnapshot = System.getenv("IS_SNAPSHOT")?.toBooleanStrictOrNull()
+    return if (isSnapshot == true) {
+        "$originalVersionName-SNAPSHOT"
     } else {
         originalVersionName
     }
