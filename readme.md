@@ -1,6 +1,8 @@
 # Figstract
 
-[![Maven Central Version](https://img.shields.io/maven-central/v/com.anifichadia.figstract/cli)](https://central.sonatype.com/search?q=com.anifichadia.figstract)
+[![Maven Central Version](https://img.shields.io/maven-central/v/com.anifichadia.figstract/cli)](https://central.sonatype.com/namespace/com.anifichadia.figstract)
+![Release](https://github.com/AniFichadia/Figstract/actions/workflows/release.yml/badge.svg)
+![Build](https://github.com/AniFichadia/Figstract/actions/workflows/build.yml/badge.svg)
 
 Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.
 
