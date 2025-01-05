@@ -71,7 +71,32 @@ subprojects {
 
         signAllPublications()
 
-        pom { configure() }
+        pom {
+            name.set(project.name)
+            description.set("Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.")
+            url.set("https://github.com/$githubAuthor/$githubRepo")
+
+            developers {
+                developer {
+                    id = "AniFichadia"
+                    name = "Aniruddh Fichadia"
+                    email = "Ani.Fichadia@gmail.com"
+                }
+            }
+
+            licenses {
+                license {
+                    name = "$githubRepo license"
+                    url = "https://github.com/$githubAuthor/$githubRepo/blob/main/LICENSE"
+                }
+            }
+
+            scm {
+                connection.set("scm:git:git://github.com/$githubAuthor/$githubRepo.git")
+                developerConnection.set("scm:git:ssh://github.com/$githubAuthor/$githubRepo.git")
+                url.set("https://github.com/$githubAuthor/$githubRepo")
+            }
+        }
     }
 
     afterEvaluate {
@@ -131,31 +156,4 @@ fun Project.remapSystemPropertyProperty(
 //            project.extensions.extraProperties.set(newName, it)
 //            project.extensions.extraProperties[newName] = it
         }
-}
-
-fun MavenPom.configure() {
-    name.set(project.name)
-    description.set("Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.")
-    url.set("https://github.com/$githubAuthor/$githubRepo")
-
-    developers {
-        developer {
-            id = "AniFichadia"
-            name = "Aniruddh Fichadia"
-            email = "Ani.Fichadia@gmail.com"
-        }
-    }
-
-    licenses {
-        license {
-            name = "$githubRepo license"
-            url = "https://github.com/$githubAuthor/$githubRepo/blob/main/LICENSE"
-        }
-    }
-
-    scm {
-        connection.set("scm:git:git://github.com/$githubAuthor/$githubRepo.git")
-        developerConnection.set("scm:git:ssh://github.com/$githubAuthor/$githubRepo.git")
-        url.set("https://github.com/$githubAuthor/$githubRepo")
-    }
 }
