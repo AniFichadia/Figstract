@@ -118,4 +118,5 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+dokkaJavadoc = { id = "org.jetbrains.dokka-javadoc", version.ref = "dokka" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }

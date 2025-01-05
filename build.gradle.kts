@@ -16,6 +16,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow) apply false
     alias(libs.plugins.dokka)
+    alias(libs.plugins.dokkaJavadoc)
     alias(libs.plugins.maven.publish)
     `maven-publish`
     signing
@@ -35,6 +36,7 @@ subprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "signing")
     apply(plugin = "org.jetbrains.dokka")
+    apply(plugin = "org.jetbrains.dokka-javadoc")
     apply(plugin = "com.vanniktech.maven.publish")
 
     tasks.withType(Test::class.java) {
@@ -54,9 +56,7 @@ subprojects {
         from(tasks.javadoc)
     }
 
-    tasks.register<Jar>("dokkaJar") {
-        archiveClassifier.set("javadoc")
-        from(tasks.dokkaHtml)
+    dokka {
     }
 
     //region Property remappings
@@ -66,55 +66,73 @@ subprojects {
     remapSystemPropertyProperty("GPG_KEY_PASSWORD", "signingInMemoryKeyPassword")
     //endregion
 
+    publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/AniFichadia/Figstract")
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
+
     mavenPublishing {
         publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
         signAllPublications()
 
-        pom { configure() }
-    }
+        pom {
+            name.set(project.name)
+            description.set("Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.")
+            url.set("https://github.com/$githubAuthor/$githubRepo")
 
-    afterEvaluate {
-        publishing {
-            repositories {
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/AniFichadia/Figstract")
-                    credentials {
-                        username = System.getenv("GITHUB_ACTOR")
-                        password = System.getenv("GITHUB_TOKEN")
-                    }
+            developers {
+                developer {
+                    id = "AniFichadia"
+                    name = "Aniruddh Fichadia"
+                    email = "Ani.Fichadia@gmail.com"
                 }
             }
-        }
 
-        signing {
-            val encodedKey = System.getenv("GPG_PRIVATE_KEY")
-            val signingKey: String? = encodedKey?.let { String(Base64.getDecoder().decode(it)) }
-            val signingPassword: String? = System.getenv("GPG_KEY_PASSWORD")
-
-            if (!signingKey.isNullOrBlank() && !signingPassword.isNullOrBlank()) {
-                useInMemoryPgpKeys(
-                    signingKey,
-                    signingPassword,
-                )
-                sign(publishing.publications)
+            licenses {
+                license {
+                    name = "$githubRepo license"
+                    url = "https://github.com/$githubAuthor/$githubRepo/blob/main/LICENSE"
+                }
             }
+
+            scm {
+                connection.set("scm:git:git://github.com/$githubAuthor/$githubRepo.git")
+                developerConnection.set("scm:git:ssh://github.com/$githubAuthor/$githubRepo.git")
+                url.set("https://github.com/$githubAuthor/$githubRepo")
+            }
+        }
+    }
+
+    // Note: this should be after publishing to override any previously applied signing configs from publishing plugins
+    signing {
+        val encodedKey = System.getenv("GPG_PRIVATE_KEY")
+        val signingKey: String? = encodedKey?.let { String(Base64.getDecoder().decode(it)) }
+        val signingPassword: String? = System.getenv("GPG_KEY_PASSWORD")
+
+        if (!signingKey.isNullOrBlank() && !signingPassword.isNullOrBlank()) {
+            useInMemoryPgpKeys(
+                signingKey,
+                signingPassword,
+            )
+            sign(publishing.publications)
         }
     }
     //endregion
 }
 
 fun resolveVersion(originalVersionName: String): String {
-    val snapshotVersion = System.getenv("SNAPSHOT_VERSION")
-
-    return if (!snapshotVersion.isNullOrBlank()) {
-        buildString {
-            append(originalVersionName)
-            append("-")
-            append(snapshotVersion)
-            append("-SNAPSHOT")
-        }
+    val isSnapshot = System.getenv("IS_SNAPSHOT")?.toBooleanStrictOrNull()
+    return if (isSnapshot == true) {
+        "$originalVersionName-SNAPSHOT"
     } else {
         originalVersionName
     }
@@ -137,31 +155,4 @@ fun Project.remapSystemPropertyProperty(
 //            project.extensions.extraProperties.set(newName, it)
 //            project.extensions.extraProperties[newName] = it
         }
-}
-
-fun MavenPom.configure() {
-    name.set(project.name)
-    description.set("Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.")
-    url.set("https://github.com/$githubAuthor/$githubRepo")
-
-    developers {
-        developer {
-            id = "AniFichadia"
-            name = "Aniruddh Fichadia"
-            email = "Ani.Fichadia@gmail.com"
-        }
-    }
-
-    licenses {
-        license {
-            name = "$githubRepo license"
-            url = "https://github.com/$githubAuthor/$githubRepo/blob/main/LICENSE"
-        }
-    }
-
-    scm {
-        connection.set("scm:git:git://github.com/$githubAuthor/$githubRepo.git")
-        developerConnection.set("scm:git:ssh://github.com/$githubAuthor/$githubRepo.git")
-        url.set("https://github.com/$githubAuthor/$githubRepo")
-    }
 }

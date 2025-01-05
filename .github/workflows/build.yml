@@ -30,18 +30,33 @@ jobs:
         with:
           cache-read-only: false
 
+      # TODO: for later
+      #      - name: Lint
+      #        run: |
+      #          ./gradlew test
+
+      - name: Run tests
+        run: |
+          ./gradlew test
+
+      - name: Generate documentation
+        run: |
+          ./gradlew dokkaGenerate
+
       - name: Build
         run: |
-          ./gradlew build --no-configuration-cache
+          ./gradlew assemble
 
       - name: Publish snapshot
         if: github.ref == 'refs/heads/main'
         env:
-          SNAPSHOT_VERSION: ${{ env.TIMESTAMP }}
-          SONATYPE_USERNAME: ${{ env.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ env.SONATYPE_PASSWORD }}
+          IS_SNAPSHOT: true
+
           GPG_PRIVATE_KEY: ${{ env.GPG_PRIVATE_KEY }}
           GPG_KEY_PASSWORD: ${{ env.GPG_KEY_PASSWORD }}
+
+          SONATYPE_USERNAME: ${{ env.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ env.SONATYPE_PASSWORD }}
         run: |
           echo "Publishing snapshot"
 #          TODO: make non-inert when credentials are ready
