@@ -2,7 +2,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import java.util.*
 
-val VERSION = "0.0.1-alpha01"
+val VERSION = "0.0.1"
 
 // Make sure these are always in sync
 val javaVersion = JavaVersion.VERSION_17
@@ -15,8 +15,8 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.shadow) apply false
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.dokkaJavadoc)
+    alias(libs.plugins.dokka.core)
+    alias(libs.plugins.dokka.javadoc)
     alias(libs.plugins.maven.publish)
     `maven-publish`
     signing
