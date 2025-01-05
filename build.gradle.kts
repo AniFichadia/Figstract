@@ -66,6 +66,19 @@ subprojects {
     remapSystemPropertyProperty("GPG_KEY_PASSWORD", "signingInMemoryKeyPassword")
     //endregion
 
+    publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/AniFichadia/Figstract")
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
+
     mavenPublishing {
         publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
@@ -99,32 +112,18 @@ subprojects {
         }
     }
 
-    afterEvaluate {
-        publishing {
-            repositories {
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/AniFichadia/Figstract")
-                    credentials {
-                        username = System.getenv("GITHUB_ACTOR")
-                        password = System.getenv("GITHUB_TOKEN")
-                    }
-                }
-            }
-        }
+    // Note: this should be after publishing to override any previously applied signing configs from publishing plugins
+    signing {
+        val encodedKey = System.getenv("GPG_PRIVATE_KEY")
+        val signingKey: String? = encodedKey?.let { String(Base64.getDecoder().decode(it)) }
+        val signingPassword: String? = System.getenv("GPG_KEY_PASSWORD")
 
-        signing {
-            val encodedKey = System.getenv("GPG_PRIVATE_KEY")
-            val signingKey: String? = encodedKey?.let { String(Base64.getDecoder().decode(it)) }
-            val signingPassword: String? = System.getenv("GPG_KEY_PASSWORD")
-
-            if (!signingKey.isNullOrBlank() && !signingPassword.isNullOrBlank()) {
-                useInMemoryPgpKeys(
-                    signingKey,
-                    signingPassword,
-                )
-                sign(publishing.publications)
-            }
+        if (!signingKey.isNullOrBlank() && !signingPassword.isNullOrBlank()) {
+            useInMemoryPgpKeys(
+                signingKey,
+                signingPassword,
+            )
+            sign(publishing.publications)
         }
     }
     //endregion
