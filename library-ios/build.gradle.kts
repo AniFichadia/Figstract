@@ -15,6 +15,8 @@ dependencies {
 
     implementation(libs.bundles.scrimage)
 
+    implementation(libs.swiftPoet)
+
     testImplementation(libs.bundles.unitTest.jvm)
 }
 

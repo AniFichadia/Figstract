@@ -4,6 +4,7 @@ import com.anifichadia.figstract.android.importer.variable.model.AndroidComposeV
 import com.anifichadia.figstract.importer.variable.model.JsonVariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
+import com.anifichadia.figstract.ios.importer.variable.model.IosSwiftUiVariableDataWriter
 import com.anifichadia.figstract.type.fold
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
@@ -22,7 +23,8 @@ class RealVariablesCommand : VariablesCommand() {
     private val outputJson by option("--outputJson")
         .boolean()
         .default(false)
-    private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose")
+    private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose", "PackageName")
+    private val outputIosSwiftUi by OutputCodeOptionGroup("IosSwiftUi", "ModuleName")
     private val outputColorAsHex by option("--outputColorAsHex")
         .boolean()
         .default(true)
@@ -40,7 +42,7 @@ class RealVariablesCommand : VariablesCommand() {
         }
     }
 
-    fun createWriters(outDirectory: File): List<VariableDataWriter> = buildList {
+    private fun createWriters(outDirectory: File): List<VariableDataWriter> = buildList {
         if (outputJson) {
             add(
                 JsonVariableDataWriter(
@@ -56,6 +58,16 @@ class RealVariablesCommand : VariablesCommand() {
                         outDirectory = outDirectory.fold("android", "compose"),
                         packageName = it.logicalGrouping,
                         colorAsHex = outputColorAsHex,
+                    )
+                )
+            }
+        }
+        outputIosSwiftUi?.let {
+            if (it.enabled) {
+                add(
+                    IosSwiftUiVariableDataWriter(
+                        outDirectory = outDirectory.fold("ios", "swiftui"),
+                        moduleName = it.logicalGrouping,
                     )
                 )
             }
