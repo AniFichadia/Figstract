@@ -2,5 +2,14 @@ dependencies:
   - 'gradle/libs.versions.toml'
 cli:
   - 'cli/*'
+  - 'cli-core/*'
 library:
-  - 'library/*'
+  - 'library-core/*'
+  - 'library-android/*'
+  - 'library-ios/*'
+core:
+  - 'library-core/*'
+android:
+  - 'library-android/*'
+ios:
+  - 'library-ios/*'
