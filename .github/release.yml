@@ -1,0 +1,29 @@
+changelog:
+  categories:
+    - title: Library
+      labels:
+        - 'library'
+      exclude:
+        labels:
+          - dependencies
+    - title: Android
+      labels:
+        - 'android'
+      exclude:
+        labels:
+          - dependencies
+    - title: iOS
+      labels:
+        - 'ios'
+      exclude:
+        labels:
+          - dependencies
+    - title: CLI
+      labels:
+        - 'cli'
+      exclude:
+        labels:
+          - dependencies
+    - title: 👒 Dependencies
+      labels:
+        - dependencies
