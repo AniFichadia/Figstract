@@ -26,6 +26,7 @@ tasks.withType<ShadowJar> {
     mergeServiceFiles()
     minimize {
         exclude(dependency("com.github.ajalt.mordant:.*:.*"))
+        exclude(dependency("io.ktor:.*:.*"))
     }
 }
 
