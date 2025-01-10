@@ -1,5 +1,6 @@
 package com.anifichadia.figstract.cli.core.variables
 
+import com.anifichadia.figstract.cli.core.defaultPropertyValueSource
 import com.anifichadia.figstract.cli.core.outDirectory
 import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.importer.variable.FigmaVariableImporter
@@ -8,7 +9,6 @@ import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.requireObject
-import com.github.ajalt.clikt.sources.PropertiesValueSource
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 
@@ -19,9 +19,7 @@ abstract class VariablesCommand : SuspendingCliktCommand(
 
     init {
         context {
-            valueSources(
-                PropertiesValueSource.from("./$commandName.properties"),
-            )
+            valueSources(defaultPropertyValueSource())
         }
     }
 

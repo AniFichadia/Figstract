@@ -2,6 +2,7 @@ package com.anifichadia.figstract.cli.core.assets
 
 import com.anifichadia.figstract.HttpClientFactory
 import com.anifichadia.figstract.cli.core.ProcessingRecordOptionGroup
+import com.anifichadia.figstract.cli.core.defaultPropertyValueSource
 import com.anifichadia.figstract.cli.core.outDirectory
 import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.importer.asset.FigmaAssetImporter
@@ -15,7 +16,6 @@ import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.findObject
 import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import com.github.ajalt.clikt.sources.PropertiesValueSource
 import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.coroutineScope
 import java.io.File
@@ -27,9 +27,7 @@ abstract class AssetsCommand : SuspendingCliktCommand(
 
     init {
         context {
-            valueSources(
-                PropertiesValueSource.from("./$commandName.properties"),
-            )
+            valueSources(defaultPropertyValueSource())
         }
     }
 
