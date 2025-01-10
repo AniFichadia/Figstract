@@ -2,7 +2,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import java.util.*
 
-val VERSION = "0.0.1"
+val VERSION = "0.0.2"
 
 // Make sure these are always in sync
 val javaVersion = JavaVersion.VERSION_17
