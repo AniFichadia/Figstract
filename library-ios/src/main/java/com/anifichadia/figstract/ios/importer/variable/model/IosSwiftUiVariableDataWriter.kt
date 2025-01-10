@@ -12,6 +12,7 @@ import io.outfoxx.swiftpoet.CodeBlock
 import io.outfoxx.swiftpoet.DOUBLE
 import io.outfoxx.swiftpoet.DeclaredTypeName
 import io.outfoxx.swiftpoet.FileSpec
+import io.outfoxx.swiftpoet.Modifier
 import io.outfoxx.swiftpoet.PropertySpec
 import io.outfoxx.swiftpoet.STRING
 import io.outfoxx.swiftpoet.TypeName
@@ -71,14 +72,16 @@ class IosSwiftUiVariableDataWriter(
         typeName: TypeName,
         initializer: (value: T) -> CodeBlock = { CodeBlock.of("%L", it) },
     ): TypeSpec {
-        return TypeSpec.classBuilder(name)
+        return TypeSpec.enumBuilder(name)
             .addDoc("%L\n", name)
             .addProperties(
                 variables.entries.map { (variableName, value) ->
                     PropertySpec.builder(
                         name = variableName.sanitise().toLowerCamelCase(),
                         type = typeName,
+                        modifiers = arrayOf(Modifier.STATIC),
                     )
+                        .mutable(false)
                         .addDoc("%L\n", variableName)
                         .initializer(initializer(value))
                         .build()
