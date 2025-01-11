@@ -24,7 +24,7 @@ class OutputCodeOptionGroup private constructor(
     companion object {
         operator fun invoke(
             name: String,
-            logicalGroupingName: String = "PackageName",
+            logicalGroupingName: String,
         ) = OutputCodeOptionGroup(name, logicalGroupingName).cooccurring()
     }
 }

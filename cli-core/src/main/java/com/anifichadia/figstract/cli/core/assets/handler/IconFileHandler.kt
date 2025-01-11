@@ -18,12 +18,12 @@ import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figstract.ios.figma.model.iosIcon
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Scale
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Type
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.createAssetCatalogContentDirectory
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figstract.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosStoreInAssetCatalog
+import com.anifichadia.figstract.ios.importer.assetcatalog.Scale
+import com.anifichadia.figstract.ios.importer.assetcatalog.Type
+import com.anifichadia.figstract.ios.importer.assetcatalog.createAssetCatalogContentDirectory
+import com.anifichadia.figstract.ios.importer.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figstract.type.fold
 import java.io.File
 
