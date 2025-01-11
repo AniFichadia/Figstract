@@ -3,7 +3,7 @@ package com.anifichadia.figstract.ios.figma.model
 import com.anifichadia.figstract.figma.model.ExportSetting
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig.Companion.SCALE_PLACEHOLDER
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Scale
+import com.anifichadia.figstract.ios.assetcatalog.Scale
 
 val iosIcon = ExportConfig(
     format = ExportSetting.Format.PDF,

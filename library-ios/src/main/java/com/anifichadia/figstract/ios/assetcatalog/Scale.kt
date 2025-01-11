@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.ios.importer.asset.model.assetcatalog
+package com.anifichadia.figstract.ios.assetcatalog
 
 enum class Scale(val scale: Float) {
     `1x`(1f),

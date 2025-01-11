@@ -20,12 +20,12 @@ import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.ios.figma.model.ios3xImage
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Scale
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Type
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.createAssetCatalogContentDirectory
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figstract.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosScaleAndStoreInAssetCatalog
+import com.anifichadia.figstract.ios.importer.assetcatalog.Scale
+import com.anifichadia.figstract.ios.importer.assetcatalog.Type
+import com.anifichadia.figstract.ios.importer.assetcatalog.createAssetCatalogContentDirectory
+import com.anifichadia.figstract.ios.importer.assetcatalog.createAssetCatalogRootDirectory
 import java.io.File
 
 @Suppress("SameParameterValue")

@@ -6,11 +6,11 @@ import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.S
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolvePathElements
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.sideEffect
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Content
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Scale
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Type
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.assetCatalogJson
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.getAssetCatalogDirectoryName
+import com.anifichadia.figstract.ios.assetcatalog.Content
+import com.anifichadia.figstract.ios.assetcatalog.Scale
+import com.anifichadia.figstract.ios.assetcatalog.Type
+import com.anifichadia.figstract.ios.assetcatalog.assetCatalogJson
+import com.anifichadia.figstract.ios.assetcatalog.getAssetCatalogDirectoryName
 import com.anifichadia.figstract.type.fold
 import com.anifichadia.figstract.type.replaceOrAdd
 import com.anifichadia.figstract.util.FileLockRegistry

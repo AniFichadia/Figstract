@@ -8,12 +8,12 @@ import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.S
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figstract.importer.asset.model.importing.renameSuffix
 import com.anifichadia.figstract.importer.asset.model.importing.scale
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Content
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Scale
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Type
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.asFileSuffix
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.ensureAssetCatalogSubdirectoriesHaveContentFiles
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.writeAssetCatalogRootContent
+import com.anifichadia.figstract.ios.assetcatalog.Content
+import com.anifichadia.figstract.ios.assetcatalog.Scale
+import com.anifichadia.figstract.ios.assetcatalog.Type
+import com.anifichadia.figstract.ios.assetcatalog.asFileSuffix
+import com.anifichadia.figstract.ios.assetcatalog.ensureAssetCatalogSubdirectoriesHaveContentFiles
+import com.anifichadia.figstract.ios.assetcatalog.writeAssetCatalogRootContent
 import com.anifichadia.figstract.util.FileLockRegistry
 import java.io.File
 
