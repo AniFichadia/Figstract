@@ -5,7 +5,7 @@ kotlin = "2.1.0"
 # https://github.com/Kotlin/kotlinx.coroutines
 kotlinx-coroutines = "1.10.1"
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinx-serialization = "1.7.3"
+kotlinx-serialization = "1.8.0"
 # https://github.com/ajalt/clikt
 clikt = "5.0.2"
 
