@@ -79,6 +79,12 @@ When generating credentials, ensure that the following [scopes](https://www.figm
 
 Either one auth credential can be generated with all the scopes above, or specific auth credentials can be created for each subcommand.
 
+## Logging
+
+Figstract uses [kotlin-logging](https://github.com/oshai/kotlin-logging) and [Logback](https://logback.qos.ch/) for logging, and logs errors to the console by default.
+When using the CLI, the log level can be configured using the `--logLevel` option (e.g.
+`--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
+
 ## Assets
 
 TODO:
