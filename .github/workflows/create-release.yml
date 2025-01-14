@@ -1,0 +1,58 @@
+name: Create release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version for release"
+        required: true
+        type: string
+
+concurrency:
+  group: restrict-concurrency
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Validate version
+        run: |
+          echo "Validating version"
+      #          TODO: check version matches semver
+      #          TODO: check version is greater than previous version
+
+      - name: Configure git
+        run: |
+          git config --global user.name 'Figstract release manager'
+          git config --global user.email 'figstractreleasemanager@anifichadia.com'
+
+      - name: Update version
+        run: |
+          NEW_VERSION="${{ github.event.inputs.version }}"
+
+          echo "Updating version to: $NEW_VERSION"
+          sed -i "s/^VERSION=.*$/VERSION=$NEW_VERSION/" gradle.properties
+
+          git add -A
+          git commit -m "Prepare release $NEW_VERSION"
+          git push
+
+      # Re-checkout to get the latest main
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Create release
+        run: |
+          gh release create "${{ github.event.inputs.version }}" \
+          --title "${{ github.event.inputs.version }}" \
+          --generate-notes \
