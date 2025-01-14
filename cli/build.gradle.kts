@@ -27,6 +27,7 @@ tasks.withType<ShadowJar> {
     minimize {
         exclude(dependency("com.github.ajalt.mordant:.*:.*"))
         exclude(dependency("io.ktor:.*:.*"))
+        exclude(dependency("ch.qos.logback:.*:.*"))
     }
 }
 
