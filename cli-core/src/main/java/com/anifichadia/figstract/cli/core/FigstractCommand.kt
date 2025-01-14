@@ -18,7 +18,10 @@ class FigstractCommand private constructor() : SuspendingCliktCommand(
     private val auth by AuthOptionGroup()
     private val proxy by ProxyOptionGroup()
 
+    private val logLevel by logLevel()
+
     override suspend fun run() {
+        getRootLogger().level = logLevel.toLogbackLogLevel()
         val authProvider = auth.authProvider
         currentContext.findOrSetObject { authProvider }
 
