@@ -2,8 +2,6 @@ import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import java.util.*
 
-val VERSION = "0.0.4"
-
 // Make sure these are always in sync
 val javaVersion = JavaVersion.VERSION_17
 val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(17)
@@ -29,7 +27,7 @@ java {
 }
 
 allprojects {
-    version = resolveVersion(VERSION)
+    version = resolveVersion()
 }
 
 subprojects {
@@ -129,7 +127,8 @@ subprojects {
     //endregion
 }
 
-fun resolveVersion(originalVersionName: String): String {
+fun Project.resolveVersion(): String {
+    val originalVersionName = property("VERSION").toString()
     val isSnapshot = System.getenv("IS_SNAPSHOT")?.toBooleanStrictOrNull()
     return if (isSnapshot == true) {
         "$originalVersionName-SNAPSHOT"
