@@ -37,7 +37,7 @@ class JsonFileProcessingRecordRepository(
             if (recordFile.exists()) {
                 recordFile.delete()
             }
-            recordFile.parentFile.mkdir()
+            recordFile.parentFile.mkdirs()
             recordFile.writeText(json.encodeToString(records))
         }
     }
