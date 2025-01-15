@@ -8,12 +8,14 @@ on:
         required: false
         type: boolean
         default: false
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: [ "Build" ]
+    types:
+      - completed
 
 jobs:
   check_version_and_release:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
