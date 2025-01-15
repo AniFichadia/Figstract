@@ -2,6 +2,12 @@ name: Create release
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run"
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - main
@@ -11,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Extract VERSION from Gradle properties
         id: extract_version
@@ -20,7 +28,7 @@ jobs:
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_ENV
 
           # Get the previous commit hash for comparison
-          PREV_COMMIT=$(git rev-parse HEAD~1)
+          PREV_COMMIT=$(git rev-parse HEAD^)
 
           # Extract the previous version from the previous commit
           PREV_VERSION=$(git show $PREV_COMMIT:gradle.properties | grep "^VERSION=" | cut -d'=' -f2)
@@ -29,12 +37,16 @@ jobs:
       - name: Check for version update
         id: check_version_update
         run: |
+          echo "Current version: $current_version"
+          echo "Previous version: $previous_version"
+          
           if [[ "$current_version" != "$previous_version" ]]; then
             echo "VERSION has changed: $previous_version -> $current_version"
             echo "version_changed=true" >> $GITHUB_ENV
           else
             echo "VERSION has not changed."
             echo "version_changed=false" >> $GITHUB_ENV
+          fi
 
       - name: Ensure Main Branch is Checked Out
         if: env.version_changed == 'true'
@@ -44,7 +56,7 @@ jobs:
           git pull origin main
 
       - name: Create release on version changes
-        if: env.version_changed == 'true'
+        if: github.event.inputs.dry_run == 'false' && env.version_changed == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
