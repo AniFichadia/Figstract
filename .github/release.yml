@@ -24,6 +24,12 @@ changelog:
       exclude:
         labels:
           - dependencies
+    - title: Bugs
+      labels:
+        - 'bug'
+      exclude:
+        labels:
+          - dependencies
     - title: 👒 Dependencies
       labels:
         - dependencies
