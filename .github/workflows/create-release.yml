@@ -1,58 +1,53 @@
 name: Create release
+
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version for release"
-        required: true
-        type: string
-
-concurrency:
-  group: restrict-concurrency
-  cancel-in-progress: true
-
-permissions:
-  contents: write
-  pull-requests: write
-  id-token: write
+  push:
+    branches:
+      - main
 
 jobs:
-  create-release:
+  check_version_and_release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
 
-      - name: Validate version
+      - name: Extract VERSION from Gradle properties
+        id: extract_version
         run: |
-          echo "Validating version"
-      #          TODO: check version matches semver
-      #          TODO: check version is greater than previous version
+          # Extract the current version
+          CURRENT_VERSION=$(grep "^VERSION=" gradle.properties | cut -d'=' -f2)
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_ENV
 
-      - name: Configure git
+          # Get the previous commit hash for comparison
+          PREV_COMMIT=$(git rev-parse HEAD~1)
+
+          # Extract the previous version from the previous commit
+          PREV_VERSION=$(git show $PREV_COMMIT:gradle.properties | grep "^VERSION=" | cut -d'=' -f2)
+          echo "previous_version=$PREV_VERSION" >> $GITHUB_ENV
+
+      - name: Check for version update
+        id: check_version_update
         run: |
-          git config --global user.name 'Figstract release manager'
-          git config --global user.email 'figstractreleasemanager@anifichadia.com'
+          if [[ "$current_version" != "$previous_version" ]]; then
+            echo "VERSION has changed: $previous_version -> $current_version"
+            echo "version_changed=true" >> $GITHUB_ENV
+          else
+            echo "VERSION has not changed."
+            echo "version_changed=false" >> $GITHUB_ENV
 
-      - name: Update version
+      - name: Ensure Main Branch is Checked Out
+        if: env.version_changed == 'true'
         run: |
-          NEW_VERSION="${{ github.event.inputs.version }}"
+          git fetch origin main
+          git checkout main
+          git pull origin main
 
-          echo "Updating version to: $NEW_VERSION"
-          sed -i "s/^VERSION=.*$/VERSION=$NEW_VERSION/" gradle.properties
-
-          git add -A
-          git commit -m "Prepare release $NEW_VERSION"
-          git push
-
-      # Re-checkout to get the latest main
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Create release
+      - name: Create release on version changes
+        if: env.version_changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ github.event.inputs.version }}" \
-          --title "${{ github.event.inputs.version }}" \
-          --generate-notes \
+          gh release create "$current_version" \
+            --title "$current_version" \
+            --generate-notes \
