@@ -3,8 +3,9 @@ package com.anifichadia.figstract.cli.core.assets
 import com.anifichadia.figstract.HttpClientFactory
 import com.anifichadia.figstract.cli.core.ProcessingRecordOptionGroup
 import com.anifichadia.figstract.cli.core.defaultPropertyValueSource
+import com.anifichadia.figstract.cli.core.getFigmaApi
+import com.anifichadia.figstract.cli.core.getProxy
 import com.anifichadia.figstract.cli.core.outDirectory
-import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.importer.asset.FigmaAssetImporter
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.model.tracking.JsonFileProcessingRecordRepository
@@ -13,10 +14,7 @@ import com.anifichadia.figstract.type.fold
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.context
-import com.github.ajalt.clikt.core.findObject
-import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
-import io.ktor.client.engine.ProxyConfig
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 
@@ -31,8 +29,8 @@ abstract class AssetsCommand : SuspendingCliktCommand(
         }
     }
 
-    private val proxyConfig by findObject<ProxyConfig>()
-    private val figmaApi by requireObject<FigmaApi>()
+    private val proxyConfig by getProxy()
+    private val figmaApi by getFigmaApi()
 
     private val processingRecordOptions by ProcessingRecordOptionGroup()
 
