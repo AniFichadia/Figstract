@@ -2,24 +2,21 @@ package com.anifichadia.figstract.cli.core
 
 import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.engine.ProxyConfig
-import io.ktor.client.engine.ProxyType
 import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
 import io.ktor.http.URLProtocol
 
+enum class ProxyType {
+    HTTP,
+    SOCKS,
+    NONE,
+}
+
 @Throws(IllegalArgumentException::class)
 fun ProxyType.toProxyConfig(host: String?, port: Int?): ProxyConfig? {
     return when (this) {
-        ProxyType.SOCKS -> {
-            when {
-                host == null -> throw IllegalArgumentException("host must be specified for SOCKS proxy")
-                port == null -> throw IllegalArgumentException("port must be specified for SOCKS proxy")
-                else -> ProxyBuilder.socks(host, port)
-            }
-        }
-
         ProxyType.HTTP -> {
-            if (host == null) throw IllegalArgumentException("host must be specified for HTTP proxy")
+            requireNotNull(host) { "host must be specified for HTTP proxy" }
 
             ProxyBuilder.http(
                 URLBuilder(
@@ -30,7 +27,14 @@ fun ProxyType.toProxyConfig(host: String?, port: Int?): ProxyConfig? {
             )
         }
 
-        ProxyType.UNKNOWN -> {
+        ProxyType.SOCKS -> {
+            requireNotNull(host) { "host must be specified for SOCKS proxy" }
+            requireNotNull(port) { "port must be specified for SOCKS proxy" }
+
+            ProxyBuilder.socks(host, port)
+        }
+
+        ProxyType.NONE -> {
             null
         }
     }

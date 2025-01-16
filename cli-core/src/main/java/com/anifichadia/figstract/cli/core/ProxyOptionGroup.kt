@@ -6,12 +6,11 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import io.ktor.client.engine.ProxyConfig
-import io.ktor.client.engine.ProxyType
 
 class ProxyOptionGroup : OptionGroup() {
     val type: ProxyType by option("--proxyType")
         .enum<ProxyType>(ignoreCase = true)
-        .default(ProxyType.UNKNOWN)
+        .default(ProxyType.NONE)
     val host: String? by option("--proxyHost")
     val port: Int? by option("--proxyPort")
         .int()
