@@ -2,35 +2,59 @@ package com.anifichadia.figstract.cli.core
 
 import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.engine.ProxyConfig
-import io.ktor.client.engine.ProxyType
-import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
+
+enum class ProxyType {
+    HTTP,
+    SOCKS,
+    AUTO,
+    NONE,
+}
 
 @Throws(IllegalArgumentException::class)
 fun ProxyType.toProxyConfig(host: String?, port: Int?): ProxyConfig? {
     return when (this) {
-        ProxyType.SOCKS -> {
-            when {
-                host == null -> throw IllegalArgumentException("host must be specified for SOCKS proxy")
-                port == null -> throw IllegalArgumentException("port must be specified for SOCKS proxy")
-                else -> ProxyBuilder.socks(host, port)
-            }
-        }
-
         ProxyType.HTTP -> {
-            if (host == null) throw IllegalArgumentException("host must be specified for HTTP proxy")
+            requireNotNull(host) { "host must be specified for HTTP proxy" }
 
-            ProxyBuilder.http(
-                URLBuilder(
-                    protocol = URLProtocol.HTTP,
-                    host = host,
-                    port = port ?: DEFAULT_PORT,
-                ).build()
-            )
+            val url = URLBuilder(host)
+                .apply {
+                    if (port != null) {
+                        this.port = port
+                    }
+                }
+                .build()
+            ProxyBuilder.http(url)
         }
 
-        ProxyType.UNKNOWN -> {
+        ProxyType.SOCKS -> {
+            requireNotNull(host) { "host must be specified for SOCKS proxy" }
+            requireNotNull(port) { "port must be specified for SOCKS proxy" }
+
+            ProxyBuilder.socks(host, port)
+        }
+
+        ProxyType.AUTO -> {
+            // Check system properties first
+            System.getProperty("https.proxyHost")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, System.getProperty("https.proxyPort")?.toInt())
+            }
+            System.getProperty("http.proxyHost")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, System.getProperty("http.proxyPort")?.toInt())
+            }
+
+            // Check environment variables
+            System.getenv("HTTPS_PROXY")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, null)
+            }
+            System.getenv("HTTP_PROXY")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, null)
+            }
+
+            null
+        }
+
+        ProxyType.NONE -> {
             null
         }
     }
