@@ -23,7 +23,6 @@ jobs:
       }}
     runs-on: ubuntu-latest
     permissions:
-      # Required for gh release create
       contents: write
     steps:
       - uses: actions/checkout@v4
