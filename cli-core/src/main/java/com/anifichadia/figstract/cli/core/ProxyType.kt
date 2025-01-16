@@ -7,6 +7,7 @@ import io.ktor.http.URLBuilder
 enum class ProxyType {
     HTTP,
     SOCKS,
+    AUTO,
     NONE,
 }
 
@@ -31,6 +32,26 @@ fun ProxyType.toProxyConfig(host: String?, port: Int?): ProxyConfig? {
             requireNotNull(port) { "port must be specified for SOCKS proxy" }
 
             ProxyBuilder.socks(host, port)
+        }
+
+        ProxyType.AUTO -> {
+            // Check system properties first
+            System.getProperty("https.proxyHost")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, System.getProperty("https.proxyPort")?.toInt())
+            }
+            System.getProperty("http.proxyHost")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, System.getProperty("http.proxyPort")?.toInt())
+            }
+
+            // Check environment variables
+            System.getenv("HTTPS_PROXY")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, null)
+            }
+            System.getenv("HTTP_PROXY")?.let {
+                return ProxyType.HTTP.toProxyConfig(it, null)
+            }
+
+            null
         }
 
         ProxyType.NONE -> {
