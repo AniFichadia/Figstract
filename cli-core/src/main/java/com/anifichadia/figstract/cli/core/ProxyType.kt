@@ -2,9 +2,7 @@ package com.anifichadia.figstract.cli.core
 
 import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.engine.ProxyConfig
-import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
-import io.ktor.http.URLProtocol
 
 enum class ProxyType {
     HTTP,
@@ -18,13 +16,14 @@ fun ProxyType.toProxyConfig(host: String?, port: Int?): ProxyConfig? {
         ProxyType.HTTP -> {
             requireNotNull(host) { "host must be specified for HTTP proxy" }
 
-            ProxyBuilder.http(
-                URLBuilder(
-                    protocol = URLProtocol.HTTP,
-                    host = host,
-                    port = port ?: DEFAULT_PORT,
-                ).build()
-            )
+            val url = URLBuilder(host)
+                .apply {
+                    if (port != null) {
+                        this.port = port
+                    }
+                }
+                .build()
+            ProxyBuilder.http(url)
         }
 
         ProxyType.SOCKS -> {
