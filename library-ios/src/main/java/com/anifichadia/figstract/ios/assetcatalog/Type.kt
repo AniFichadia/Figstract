@@ -5,4 +5,8 @@ sealed class Type(val directorySuffix: String) {
         data object ImageSet : Image("imageset")
         data object IconSet : Image("iconset")
     }
+
+    sealed class Theme(directorySuffix: String) : Type(directorySuffix) {
+        data object ColorSet : Theme("colorset")
+    }
 }

@@ -112,6 +112,45 @@ class AssetCatalog(
             }
         }
 
+        suspend fun addColor(
+            name: String,
+            red: Float,
+            green: Float,
+            blue: Float,
+            alpha: Float,
+            appearances: List<Content.Color.Appearance>?,
+            idiom: Content.Idiom = Content.Idiom.default,
+        ) {
+            val directory = File(contentDirectory, "${name}.${Type.Theme.ColorSet.directorySuffix}").also {
+                it.mkdirs()
+            }
+
+            val color = Content.Color(
+                color = Content.Color.ColorValue(
+                    components = Content.Color.ColorValue.Components(
+                        red = red,
+                        green = green,
+                        blue = blue,
+                        alpha = alpha,
+                    ),
+                ),
+                appearances = appearances,
+                idiom = idiom,
+            )
+
+            contentFileOperation(directory) { contentToUpdate ->
+                contentToUpdate.copy(
+                    colors = (contentToUpdate.colors ?: emptyList())
+                        .replaceOrAdd(
+                            predicate = { it == color },
+                            replacement = { color },
+                        )
+                        // Ensures file is deterministically generated
+                        .sortedBy { it.idiom },
+                )
+            }
+        }
+
         private suspend fun contentFileOperation(
             directory: File,
             update: (Content) -> Content,
