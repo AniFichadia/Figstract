@@ -19,10 +19,9 @@ import com.anifichadia.figstract.importer.asset.model.JsonPathAssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
+import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.Scale
 import com.anifichadia.figstract.ios.assetcatalog.Type
-import com.anifichadia.figstract.ios.assetcatalog.createAssetCatalogContentDirectory
-import com.anifichadia.figstract.ios.assetcatalog.createAssetCatalogRootDirectory
 import com.anifichadia.figstract.ios.figma.model.ios3xImage
 import com.anifichadia.figstract.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosScaleAndStoreInAssetCatalog
@@ -53,14 +52,18 @@ internal fun createArtworkFigmaFileHandler(
     val iosImportPipeline: ImportPipeline?
     val iosAssetCatalogLifecycle: Lifecycle
     if (iosOutDirectory != null) {
-        val iosOutputDirectory = File(iosOutDirectory, "artwork")
-        val iosAssetCatalogRootDirectory = createAssetCatalogRootDirectory(iosOutputDirectory)
-        val iosContentDirectory = createAssetCatalogContentDirectory(iosAssetCatalogRootDirectory, "Images")
+        val iosDirectory = File(iosOutDirectory, "artwork")
+        val assetCatalog = AssetCatalog(iosDirectory)
 
         iosImportPipeline = ImportPipeline(
-            steps = iosScaleAndStoreInAssetCatalog(iosContentDirectory, Type.IMAGE_SET, Scale.`3x`),
+            steps = iosScaleAndStoreInAssetCatalog(
+                assetCatalog = assetCatalog,
+                contentName = "Images",
+                type = Type.IMAGE_SET,
+                sourceScale = Scale.`3x`,
+            ),
         )
-        iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory)
+        iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(assetCatalog)
     } else {
         iosImportPipeline = null
         iosAssetCatalogLifecycle = Lifecycle.NoOp
