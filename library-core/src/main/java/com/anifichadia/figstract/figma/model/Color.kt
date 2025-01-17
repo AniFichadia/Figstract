@@ -21,8 +21,10 @@ data class Color(
         return (a shl 24) or (r shl 16) or (g shl 8) or b
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     fun toHexString(): String {
-        return "0x${String.format("%08x", toArgb()).uppercase()}"
+        val hexValue = this.toArgb().toHexString(format = HexFormat.UpperCase)
+        return "0x$hexValue"
     }
 
     override fun toString(): String {
