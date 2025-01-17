@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.ios.importer.asset.model.assetcatalog
+package com.anifichadia.figstract.ios.assetcatalog
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -21,29 +21,31 @@ data class Content(
 
     @Serializable
     data class Image(
-        // https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/ImageSetType.html#//apple_ref/doc/uid/TP40015170-CH25-SW2
         val idiom: Idiom,
         val scale: Scale,
         val filename: String,
-    ) {
-        enum class Idiom {
-            appLauncher,
-            companionSettings,
-            `ios-marketing`,
-            iphone,
-            ipad,
-            mac,
-            notificationCenter,
-            quickLook,
-            tv,
-            universal,
-            watch,
-            `watch-marketing`,
-            ;
+    )
 
-            companion object {
-                val default = universal
-            }
+    /**
+     * https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/ImageSetType.html#//apple_ref/doc/uid/TP40015170-CH25-SW2
+     */
+    enum class Idiom {
+        appLauncher,
+        companionSettings,
+        `ios-marketing`,
+        iphone,
+        ipad,
+        mac,
+        notificationCenter,
+        quickLook,
+        tv,
+        universal,
+        watch,
+        `watch-marketing`,
+        ;
+
+        companion object {
+            val default = universal
         }
     }
 

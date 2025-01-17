@@ -1,58 +1,74 @@
 package com.anifichadia.figstract.ios.importer.asset.model.importing
 
 import com.anifichadia.figstract.importer.Lifecycle
+import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
-import com.anifichadia.figstract.importer.asset.model.importing.Destination.Companion.directoryDestination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.and
+import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveExtension
+import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
-import com.anifichadia.figstract.importer.asset.model.importing.renameSuffix
 import com.anifichadia.figstract.importer.asset.model.importing.scale
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Content
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Scale
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.Type
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.asFileSuffix
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.ensureAssetCatalogSubdirectoriesHaveContentFiles
-import com.anifichadia.figstract.ios.importer.asset.model.assetcatalog.writeAssetCatalogRootContent
+import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
+import com.anifichadia.figstract.ios.assetcatalog.Content
+import com.anifichadia.figstract.ios.assetcatalog.Scale
+import com.anifichadia.figstract.ios.assetcatalog.Type
 import com.anifichadia.figstract.util.FileLockRegistry
-import java.io.File
 
 /** Note: Make sure the destination is set to [Destination.None], and that the file name doesn't contain any scale suffixes */
 fun iosScaleAndStoreInAssetCatalog(
-    contentDirectory: File,
+    assetCatalog: AssetCatalog,
+    contentName: String,
     type: Type,
     sourceScale: Scale,
     scales: List<Scale> = Scale.entries,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
-    idiom: Content.Image.Idiom = Content.Image.Idiom.default,
+    idiom: Content.Idiom = Content.Idiom.default,
 ): ImportPipeline.Step {
     return scales
         .map { targetScale ->
             scale(sourceScale.scaleRelativeTo(targetScale)) then
-                iosStoreInAssetCatalog(contentDirectory, type, targetScale, fileLockRegistry, idiom)
+                iosStoreInAssetCatalog(
+                    assetCatalog = assetCatalog,
+                    contentName = contentName,
+                    type = type,
+                    scale = targetScale,
+                    fileLockRegistry = fileLockRegistry,
+                    idiom = idiom,
+                )
         }
         .and()
 }
 
 fun iosStoreInAssetCatalog(
-    outputDirectory: File,
+    assetCatalog: AssetCatalog,
+    contentName: String,
     type: Type,
     scale: Scale,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
-    idiom: Content.Image.Idiom = Content.Image.Idiom.default,
-): ImportPipeline.Step {
-    return renameSuffix(scale.asFileSuffix()) then
-            appendAssetDirectoryPathElements(type, scale, true) then
-            updateAssetCatalog(outputDirectory, fileLockRegistry, scale, idiom) then
-            directoryDestination(outputDirectory)
+    idiom: Content.Idiom = Content.Idiom.default,
+) = object : Destination() {
+    override suspend fun write(instruction: Instruction, input: ImportPipeline.Output) {
+        val outputName = resolveOutputName(instruction, input)
+        val extension = resolveExtension(instruction, input)
+        assetCatalog
+            .contentBuilder(contentName, fileLockRegistry) {
+                addImage(
+                    content = input.data,
+                    name = outputName,
+                    extension = extension,
+                    type = type,
+                    scale = scale,
+                    idiom = idiom,
+                )
+            }
+    }
 }
 
-fun assetCatalogFinalisationLifecycle(iosIconAssetCatalogRootDirectory: File): Lifecycle {
+fun assetCatalogFinalisationLifecycle(assetCatalog: AssetCatalog): Lifecycle {
     return object : Lifecycle {
         override suspend fun onImportFinished() {
-            iosIconAssetCatalogRootDirectory.mkdirs()
-            writeAssetCatalogRootContent(iosIconAssetCatalogRootDirectory)
-            ensureAssetCatalogSubdirectoriesHaveContentFiles(iosIconAssetCatalogRootDirectory)
+            assetCatalog.finalizeContents()
         }
     }
 }
