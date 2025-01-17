@@ -14,9 +14,3 @@ enum class Scale(val scale: Float) {
 fun Scale.asFileSuffix(): String {
     return "@$this"
 }
-
-fun Scale.removeSuffix(from: String): String {
-    val scaleSuffix = this.asFileSuffix()
-
-    return from.substringBeforeLast(scaleSuffix)
-}
