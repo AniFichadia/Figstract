@@ -42,7 +42,7 @@ fun updateAssetCatalog(
     directory: File,
     fileLockRegistry: FileLockRegistry,
     scale: Scale,
-    idiom: Content.Image.Idiom = Content.Image.Idiom.default,
+    idiom: Content.Idiom = Content.Idiom.default,
 ): ImportPipeline.Step {
     return sideEffect { instruction, input ->
         val outputName = resolveOutputName(instruction, input)

@@ -24,7 +24,7 @@ fun iosScaleAndStoreInAssetCatalog(
     sourceScale: Scale,
     scales: List<Scale> = Scale.entries,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
-    idiom: Content.Image.Idiom = Content.Image.Idiom.default,
+    idiom: Content.Idiom = Content.Idiom.default,
 ): ImportPipeline.Step {
     return scales
         .map { targetScale ->
@@ -39,7 +39,7 @@ fun iosStoreInAssetCatalog(
     type: Type,
     scale: Scale,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
-    idiom: Content.Image.Idiom = Content.Image.Idiom.default,
+    idiom: Content.Idiom = Content.Idiom.default,
 ): ImportPipeline.Step {
     return renameSuffix(scale.asFileSuffix()) then
             appendAssetDirectoryPathElements(type, scale, true) then
@@ -47,12 +47,12 @@ fun iosStoreInAssetCatalog(
             directoryDestination(outputDirectory)
 }
 
-fun assetCatalogFinalisationLifecycle(iosIconAssetCatalogRootDirectory: File): Lifecycle {
+fun assetCatalogFinalisationLifecycle(iosAssetCatalogRootDirectory: File): Lifecycle {
     return object : Lifecycle {
         override suspend fun onImportFinished() {
-            iosIconAssetCatalogRootDirectory.mkdirs()
-            writeAssetCatalogRootContent(iosIconAssetCatalogRootDirectory)
-            ensureAssetCatalogSubdirectoriesHaveContentFiles(iosIconAssetCatalogRootDirectory)
+            iosAssetCatalogRootDirectory.mkdirs()
+            writeAssetCatalogRootContent(iosAssetCatalogRootDirectory)
+            ensureAssetCatalogSubdirectoriesHaveContentFiles(iosAssetCatalogRootDirectory)
         }
     }
 }
