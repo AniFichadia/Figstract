@@ -65,13 +65,6 @@ jobs:
             echo "version_changed=false" >> $GITHUB_ENV
           fi
 
-      - name: Ensure Main Branch is Checked Out
-        if: env.version_changed == 'true'
-        run: |
-          git fetch origin main
-          git checkout main
-          git pull origin main
-
       - name: Create release on version changes
         if: env.dry_run == 'false' && env.version_changed == 'true'
         env:
@@ -80,3 +73,6 @@ jobs:
           gh release create "$current_version" \
             --title "$current_version" \
             --generate-notes \
+
+          git tag "$current_version"
+          git push origin "$current_version"
