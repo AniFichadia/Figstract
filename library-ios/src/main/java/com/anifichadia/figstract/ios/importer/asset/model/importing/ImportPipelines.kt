@@ -19,7 +19,7 @@ import com.anifichadia.figstract.util.FileLockRegistry
 fun iosScaleAndStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
     contentName: String,
-    type: Type,
+    type: Type.Image,
     sourceScale: Scale,
     scales: List<Scale> = Scale.entries,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
@@ -43,7 +43,7 @@ fun iosScaleAndStoreInAssetCatalog(
 fun iosStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
     contentName: String,
-    type: Type,
+    type: Type.Image,
     scale: Scale,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,
