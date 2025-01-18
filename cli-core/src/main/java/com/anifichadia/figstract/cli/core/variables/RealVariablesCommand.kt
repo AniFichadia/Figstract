@@ -5,6 +5,7 @@ import com.anifichadia.figstract.android.importer.variable.model.AndroidComposeV
 import com.anifichadia.figstract.importer.variable.model.JsonVariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
+import com.anifichadia.figstract.ios.importer.variable.model.IosAssetCatalogVariableDataWriter
 import com.anifichadia.figstract.ios.importer.variable.model.IosSwiftUiVariableDataWriter
 import com.anifichadia.figstract.type.fold
 import com.github.ajalt.clikt.core.BadParameterValue
@@ -26,6 +27,7 @@ class RealVariablesCommand : VariablesCommand() {
         .default(false)
     private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose", "PackageName")
     private val outputIosSwiftUi by OutputCodeOptionGroup("IosSwiftUi", "Module")
+    private val outputIosAssetCatalog by OutputCodeOptionGroup("IosAssetCatalog", "Module")
     private val outputColorAsHex by option("--outputColorAsHex")
         .boolean()
         .default(true)
@@ -66,6 +68,13 @@ class RealVariablesCommand : VariablesCommand() {
             IosSwiftUiVariableDataWriter(
                 outDirectory = outDirectory.fold("ios", "swiftui"),
                 modulePath = it.logicalGrouping,
+            )
+        }
+        addIfEnabled(outputIosAssetCatalog) {
+            println("Warning: iOS Asset Catalog variable output is experimental and is subject to change")
+
+            IosAssetCatalogVariableDataWriter(
+                outDirectory = outDirectory.fold("ios", "asset catalog"),
             )
         }
     }
