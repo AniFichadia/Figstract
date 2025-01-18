@@ -7,10 +7,10 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 class AssetCatalog(
-    directory: File,
+    parentDirectory: File,
     assetsFileName: String = DEFAULT_ASSETS_FILE_NAME,
 ) {
-    private val assetCatalogRootDirectory = File(directory, assetsFileName).also {
+    private val assetCatalogRootDirectory = File(parentDirectory, "${assetsFileName}.xcassets").also {
         it.mkdirs()
     }
 
@@ -79,10 +79,10 @@ class AssetCatalog(
         }
 
         suspend fun addImage(
-            content: ByteArray,
             name: String,
             extension: String,
-            type: Type,
+            content: ByteArray,
+            type: Type.Image,
             scale: Scale,
             idiom: Content.Idiom = Content.Idiom.default,
         ) {
@@ -123,7 +123,7 @@ class AssetCatalog(
     }
 
     companion object {
-        const val DEFAULT_ASSETS_FILE_NAME = "Assets.xcassets"
+        const val DEFAULT_ASSETS_FILE_NAME = "Assets"
 
         val DEFAULT_CONTENT_PROPERTIES = Content.Properties(providesNamespace = true)
 

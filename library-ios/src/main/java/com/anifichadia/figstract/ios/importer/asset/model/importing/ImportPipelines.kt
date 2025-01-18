@@ -54,9 +54,9 @@ fun iosStoreInAssetCatalog(
         assetCatalog
             .contentBuilder(contentName, fileLockRegistry) {
                 addImage(
-                    content = input.data,
                     name = outputName,
                     extension = extension,
+                    content = input.data,
                     type = type,
                     scale = scale,
                     idiom = idiom,
