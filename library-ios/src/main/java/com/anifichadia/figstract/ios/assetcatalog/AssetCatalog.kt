@@ -93,15 +93,8 @@ class AssetCatalog(
             val file = File(directory, fileName)
             file.writeBytes(content)
 
-            val contentsFile = File(directory, Content.FILE_NAME)
-            fileLockRegistry.withLock(contentsFile) {
-                val contentToUpdate = if (contentsFile.exists()) {
-                    assetCatalogJson.decodeFromString<Content>(contentsFile.readText())
-                } else {
-                    Content(info = Content.Info.xcode)
-                }
-
-                val updatedContent = contentToUpdate.copy(
+            contentFileOperation(directory) { contentToUpdate ->
+                contentToUpdate.copy(
                     images = (contentToUpdate.images ?: emptyList())
                         .replaceOrAdd(
                             predicate = { it.scale == scale },
@@ -116,6 +109,22 @@ class AssetCatalog(
                         // Ensures file is deterministically generated
                         .sortedBy { it.scale }
                 )
+            }
+        }
+
+        private suspend fun contentFileOperation(
+            directory: File,
+            update: (Content) -> Content,
+        ) {
+            val contentsFile = File(directory, Content.FILE_NAME)
+            fileLockRegistry.withLock(contentsFile) {
+                val contentToUpdate = if (contentsFile.exists()) {
+                    assetCatalogJson.decodeFromString<Content>(contentsFile.readText())
+                } else {
+                    Content(info = Content.Info.xcode)
+                }
+
+                val updatedContent = update(contentToUpdate)
 
                 contentsFile.writeText(assetCatalogJson.encodeToString(updatedContent))
             }
