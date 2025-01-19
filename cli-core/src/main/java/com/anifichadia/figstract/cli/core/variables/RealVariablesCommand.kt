@@ -49,16 +49,21 @@ class RealVariablesCommand : VariablesCommand() {
                 )
             )
         }
-        outputAndroidCompose?.let {
-            if (it.enabled) {
-                add(
-                    AndroidComposeVariableDataWriter(
-                        outDirectory = outDirectory.fold("android", "compose"),
-                        packageName = it.logicalGrouping,
-                        colorAsHex = outputColorAsHex,
-                    )
-                )
-            }
+        addIfEnabled(outputAndroidCompose) {
+            AndroidComposeVariableDataWriter(
+                outDirectory = outDirectory.fold("android", "compose"),
+                packageName = it.logicalGrouping,
+                colorAsHex = outputColorAsHex,
+            )
         }
+    }
+
+    private fun MutableList<VariableDataWriter>.addIfEnabled(
+        option: OutputCodeOptionGroup?,
+        create: (OutputCodeOptionGroup) -> VariableDataWriter,
+    ) {
+        if (option == null || !option.enabled) return
+
+        add(create(option))
     }
 }
