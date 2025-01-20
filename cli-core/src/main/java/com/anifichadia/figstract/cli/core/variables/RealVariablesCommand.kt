@@ -61,6 +61,7 @@ class RealVariablesCommand : VariablesCommand() {
             VariableFileHandler(
                 figmaFile = figmaFile,
                 filter = filters.toVariableFilter(),
+                themeVariantMappings = themeVariantMappings,
                 writers = writers,
             )
         }

@@ -5,9 +5,13 @@ import com.anifichadia.figstract.figma.model.Color
 import com.anifichadia.figstract.figma.model.Mode
 import com.anifichadia.figstract.figma.model.VariableCollection
 
-class VariableData(
+data class VariableData(
     val variableCollection: VariableCollection,
     val variablesByMode: List<VariablesByMode>,
+    val booleansProvided: Boolean,
+    val numbersProvided: Boolean,
+    val stringsProvided: Boolean,
+    val colorsProvided: Boolean,
 ) {
     data class VariablesByMode(
         val mode: Mode,

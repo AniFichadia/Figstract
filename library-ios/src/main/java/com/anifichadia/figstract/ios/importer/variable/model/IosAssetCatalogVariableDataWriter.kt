@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.ios.importer.variable.model
 
 import com.anifichadia.figstract.ExperimentalFigstractApi
+import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
@@ -13,7 +14,10 @@ import java.io.File
 class IosAssetCatalogVariableDataWriter(
     private val outDirectory: File,
 ) : VariableDataWriter {
-    override suspend fun write(variableData: VariableData) {
+    override suspend fun write(
+        variableData: VariableData,
+        resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+    ) {
         val assetCatalog = AssetCatalog(outDirectory, variableData.variableCollection.name)
 
         variableData.variablesByMode.forEach { variablesByMode ->
