@@ -1,5 +1,7 @@
 package com.anifichadia.figstract.android.importer.variable.model
 
+import com.anifichadia.figstract.figma.model.Color
+import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.util.ToUpperCamelCase
@@ -28,7 +30,10 @@ class AndroidComposeVariableDataWriter(
         require(!outDirectory.exists() || outDirectory.isDirectory)
     }
 
-    override suspend fun write(variableData: VariableData) {
+    override suspend fun write(
+        variableData: VariableData,
+        resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+    ) {
         val fileSpec = FileSpec.builder(
             packageName = packageName,
             fileName = variableData.variableCollection.name.sanitiseFileName().ToUpperCamelCase(),
