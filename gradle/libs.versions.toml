@@ -28,6 +28,9 @@ scrimage = "4.3.0"
 # https://github.com/square/kotlinpoet
 kotlinPoet = "2.0.0"
 
+# https://github.com/outfoxx/swiftpoet
+swiftPoet = "1.6.6"
+
 #region Testing
 junit4 = "4.13.2"
 #endregion
@@ -68,6 +71,7 @@ ktor-client-contentNegotiation = { group = "io.ktor", name = "ktor-client-conten
 jsonPath = { group = "com.jayway.jsonpath", name = "json-path", version.ref = "jsonPath" }
 
 kotlinPoet = { group = "com.squareup", name = "kotlinpoet", version.ref = "kotlinPoet" }
+swiftPoet = { group = "io.outfoxx", name = "swiftpoet", version.ref = "swiftPoet" }
 
 #region Android tools
 androidTools-sdkCommon = { group = "com.android.tools", name = "sdk-common", version.ref = "androidTools" }

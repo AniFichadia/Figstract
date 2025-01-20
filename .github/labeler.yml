@@ -25,3 +25,7 @@ ios:
   - changed-files:
       - any-glob-to-any-file:
           - 'library-ios/**'
+cicd:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**'

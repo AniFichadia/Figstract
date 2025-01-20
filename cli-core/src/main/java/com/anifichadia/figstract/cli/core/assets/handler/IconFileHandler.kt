@@ -59,7 +59,7 @@ internal fun createIconFigmaFileHandler(
             steps = iosStoreInAssetCatalog(
                 assetCatalog = assetCatalog,
                 contentName = "Icon",
-                type = Type.IMAGE_SET,
+                type = Type.Image.ImageSet,
                 scale = Scale.`1x`,
             ),
         )

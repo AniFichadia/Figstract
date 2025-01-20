@@ -7,10 +7,10 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 class AssetCatalog(
-    directory: File,
+    parentDirectory: File,
     assetsFileName: String = DEFAULT_ASSETS_FILE_NAME,
 ) {
-    private val assetCatalogRootDirectory = File(directory, assetsFileName).also {
+    private val assetCatalogRootDirectory = File(parentDirectory, "${assetsFileName}.xcassets").also {
         it.mkdirs()
     }
 
@@ -79,10 +79,10 @@ class AssetCatalog(
         }
 
         suspend fun addImage(
-            content: ByteArray,
             name: String,
             extension: String,
-            type: Type,
+            content: ByteArray,
+            type: Type.Image,
             scale: Scale,
             idiom: Content.Idiom = Content.Idiom.default,
         ) {
@@ -93,15 +93,8 @@ class AssetCatalog(
             val file = File(directory, fileName)
             file.writeBytes(content)
 
-            val contentsFile = File(directory, Content.FILE_NAME)
-            fileLockRegistry.withLock(contentsFile) {
-                val contentToUpdate = if (contentsFile.exists()) {
-                    assetCatalogJson.decodeFromString<Content>(contentsFile.readText())
-                } else {
-                    Content(info = Content.Info.xcode)
-                }
-
-                val updatedContent = contentToUpdate.copy(
+            contentFileOperation(directory) { contentToUpdate ->
+                contentToUpdate.copy(
                     images = (contentToUpdate.images ?: emptyList())
                         .replaceOrAdd(
                             predicate = { it.scale == scale },
@@ -116,6 +109,61 @@ class AssetCatalog(
                         // Ensures file is deterministically generated
                         .sortedBy { it.scale }
                 )
+            }
+        }
+
+        suspend fun addColor(
+            name: String,
+            red: Float,
+            green: Float,
+            blue: Float,
+            alpha: Float,
+            appearances: List<Content.Color.Appearance>?,
+            idiom: Content.Idiom = Content.Idiom.default,
+        ) {
+            val directory = File(contentDirectory, "${name}.${Type.Theme.ColorSet.directorySuffix}").also {
+                it.mkdirs()
+            }
+
+            val color = Content.Color(
+                color = Content.Color.ColorValue(
+                    components = Content.Color.ColorValue.Components(
+                        red = red,
+                        green = green,
+                        blue = blue,
+                        alpha = alpha,
+                    ),
+                ),
+                appearances = appearances,
+                idiom = idiom,
+            )
+
+            contentFileOperation(directory) { contentToUpdate ->
+                contentToUpdate.copy(
+                    colors = (contentToUpdate.colors ?: emptyList())
+                        .replaceOrAdd(
+                            predicate = { it == color },
+                            replacement = { color },
+                        )
+                        // Ensures file is deterministically generated
+                        .sortedBy { it.idiom },
+                )
+            }
+        }
+
+        private suspend fun contentFileOperation(
+            directory: File,
+            update: (Content) -> Content,
+        ) {
+            val contentsFile = File(directory, Content.FILE_NAME)
+            fileLockRegistry.withLock(contentsFile) {
+                val contentToUpdate = if (contentsFile.exists()) {
+                    assetCatalogJson.decodeFromString<Content>(contentsFile.readText())
+                } else {
+                    Content(info = Content.Info.xcode)
+                }
+
+                val updatedContent = update(contentToUpdate)
 
                 contentsFile.writeText(assetCatalogJson.encodeToString(updatedContent))
             }
@@ -123,7 +171,7 @@ class AssetCatalog(
     }
 
     companion object {
-        const val DEFAULT_ASSETS_FILE_NAME = "Assets.xcassets"
+        const val DEFAULT_ASSETS_FILE_NAME = "Assets"
 
         val DEFAULT_CONTENT_PROPERTIES = Content.Properties(providesNamespace = true)
 

@@ -59,7 +59,7 @@ internal fun createArtworkFigmaFileHandler(
             steps = iosScaleAndStoreInAssetCatalog(
                 assetCatalog = assetCatalog,
                 contentName = "Images",
-                type = Type.IMAGE_SET,
+                type = Type.Image.ImageSet,
                 sourceScale = Scale.`3x`,
             ),
         )
