@@ -1,15 +1,27 @@
 dependencies:
-  - 'gradle/libs.versions.toml'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'gradle/libs.versions.toml'
 cli:
-  - 'cli/*'
-  - 'cli-core/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'cli/**'
+          - 'cli-core/**'
 library:
-  - 'library-core/*'
-  - 'library-android/*'
-  - 'library-ios/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'library-core/**'
+          - 'library-android/**'
+          - 'library-ios/**'
 core:
-  - 'library-core/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'library-core/**'
 android:
-  - 'library-android/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'library-android/**'
 ios:
-  - 'library-ios/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'library-ios/**'
