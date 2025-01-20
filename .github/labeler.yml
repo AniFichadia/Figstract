@@ -25,6 +25,16 @@ ios:
   - changed-files:
       - any-glob-to-any-file:
           - 'library-ios/**'
+assets:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/asset/**'
+          - '**/assets/**'
+variables:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/variable/**'
+          - '**/variables/**'
 cicd:
   - changed-files:
       - any-glob-to-any-file:
