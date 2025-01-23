@@ -27,7 +27,7 @@ class RealVariablesCommand : VariablesCommand() {
         .default(false)
     private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose", "PackageName")
     private val outputIosSwiftUi by OutputCodeOptionGroup("IosSwiftUi", "Module")
-    private val outputIosAssetCatalog by OutputCodeOptionGroup("IosAssetCatalog", "Module")
+    private val outputIosAssetCatalog by OutputCodeOptionGroup("IosAssetCatalog", "Namespace")
     private val outputColorAsHex by option("--outputColorAsHex")
         .boolean()
         .default(true)

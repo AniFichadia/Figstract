@@ -13,6 +13,7 @@ class RealAssetsCommand : AssetsCommand() {
     private val iconHandlerOptions by IconsHandlerOptionGroup()
 
     private val platformOptions by PlatformOptionGroup()
+    // TODO: iOS Asset catalog namespace
 
     override fun createHandlers(outDirectory: File): List<AssetFileHandler> {
         if (platformOptions.noneEnabled()) throw BadParameterValue("No platforms have been enabled")
