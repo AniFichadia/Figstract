@@ -5,6 +5,7 @@ import com.anifichadia.figstract.android.importer.variable.model.AndroidComposeV
 import com.anifichadia.figstract.importer.variable.model.JsonVariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
+import com.anifichadia.figstract.importer.variable.model.VariableFileFilter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
 import com.anifichadia.figstract.ios.importer.variable.model.IosAssetCatalogVariableDataWriter
 import com.anifichadia.figstract.ios.importer.variable.model.IosSwiftUiVariableDataWriter
@@ -54,13 +55,14 @@ class RealVariablesCommand : VariablesCommand() {
             emptyMap()
         }
 
-        val writers = createWriters(outDirectory)
+        val filters = filters.toVariableFilter()
+        val writers = createWriters(outDirectory, filters)
         if (writers.isEmpty()) throw BadParameterValue("No outputs have been defined")
 
         return figmaFiles.map { figmaFile ->
             VariableFileHandler(
                 figmaFile = figmaFile,
-                filter = filters.toVariableFilter(),
+                filter = filters,
                 themeVariantMappings = themeVariantMappings,
                 writers = writers,
             )
@@ -68,7 +70,7 @@ class RealVariablesCommand : VariablesCommand() {
     }
 
     @OptIn(ExperimentalFigstractApi::class)
-    private fun createWriters(outDirectory: File): List<VariableDataWriter> = buildList {
+    private fun createWriters(outDirectory: File, filters: VariableFileFilter): List<VariableDataWriter> = buildList {
         if (outputJson) {
             add(
                 JsonVariableDataWriter(
@@ -94,6 +96,13 @@ class RealVariablesCommand : VariablesCommand() {
         }
         addIfEnabled(outputIosAssetCatalog) {
             println("Warning: iOS Asset Catalog variable output is experimental and is subject to change")
+
+            if (filters.variableTypeFilter.includeBooleans) {
+                println("Warning: iOS Asset Catalog variable output does not support booleans")
+            }
+            if (filters.variableTypeFilter.includeNumbers) {
+                println("Warning: iOS Asset Catalog variable output does not support numbers")
+            }
 
             IosAssetCatalogVariableDataWriter(
                 outDirectory = outDirectory.fold("ios", "asset catalog"),
