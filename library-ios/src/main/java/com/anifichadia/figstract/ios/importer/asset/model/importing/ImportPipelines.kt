@@ -9,15 +9,15 @@ import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.S
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figstract.importer.asset.model.importing.scale
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
+import com.anifichadia.figstract.ios.assetcatalog.AssetType
 import com.anifichadia.figstract.ios.assetcatalog.Content
 import com.anifichadia.figstract.ios.assetcatalog.Scale
-import com.anifichadia.figstract.ios.assetcatalog.Type
 import com.anifichadia.figstract.util.FileLockRegistry
 
 /** Note: Make sure the destination is set to [Destination.None], and that the file name doesn't contain any scale suffixes */
 fun iosScaleAndStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
-    type: Type.Image,
+    assetType: AssetType.Image,
     sourceScale: Scale,
     scales: List<Scale> = Scale.entries,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
@@ -28,7 +28,7 @@ fun iosScaleAndStoreInAssetCatalog(
             scale(sourceScale.scaleRelativeTo(targetScale)) then
                 iosStoreInAssetCatalog(
                     assetCatalog = assetCatalog,
-                    type = type,
+                    assetType = assetType,
                     scale = targetScale,
                     fileLockRegistry = fileLockRegistry,
                     idiom = idiom,
@@ -39,7 +39,7 @@ fun iosScaleAndStoreInAssetCatalog(
 
 fun iosStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
-    type: Type.Image,
+    assetType: AssetType.Image,
     scale: Scale,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,
@@ -55,7 +55,7 @@ fun iosStoreInAssetCatalog(
                 name = outputName,
                 extension = extension,
                 content = input.data,
-                type = type,
+                assetType = assetType,
                 scale = scale,
                 idiom = idiom,
             )

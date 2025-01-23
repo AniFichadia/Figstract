@@ -51,11 +51,11 @@ class AssetCatalog(
             name: String,
             extension: String,
             content: ByteArray,
-            type: Type.Image,
+            assetType: AssetType.Image,
             scale: Scale,
             idiom: Content.Idiom = Content.Idiom.default,
         ) {
-            val directory = File(contentDirectory, "${name}.${type.directorySuffix}").also {
+            val directory = File(contentDirectory, assetType.directoryName(name)).also {
                 it.mkdirs()
             }
             val fileName = "${name}${scale.asFileSuffix()}.${extension}"
@@ -90,7 +90,7 @@ class AssetCatalog(
             appearances: List<Content.Color.Appearance>?,
             idiom: Content.Idiom = Content.Idiom.default,
         ) {
-            val directory = File(contentDirectory, "${name}.${Type.Theme.ColorSet.directorySuffix}").also {
+            val directory = File(contentDirectory, AssetType.Theme.ColorSet.directoryName(name)).also {
                 it.mkdirs()
             }
 
