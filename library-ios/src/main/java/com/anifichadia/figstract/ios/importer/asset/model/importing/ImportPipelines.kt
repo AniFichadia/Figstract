@@ -1,6 +1,5 @@
 package com.anifichadia.figstract.ios.importer.asset.model.importing
 
-import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
@@ -18,7 +17,6 @@ import com.anifichadia.figstract.util.FileLockRegistry
 /** Note: Make sure the destination is set to [Destination.None], and that the file name doesn't contain any scale suffixes */
 fun iosScaleAndStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
-    contentName: String,
     type: Type.Image,
     sourceScale: Scale,
     scales: List<Scale> = Scale.entries,
@@ -30,7 +28,6 @@ fun iosScaleAndStoreInAssetCatalog(
             scale(sourceScale.scaleRelativeTo(targetScale)) then
                 iosStoreInAssetCatalog(
                     assetCatalog = assetCatalog,
-                    contentName = contentName,
                     type = type,
                     scale = targetScale,
                     fileLockRegistry = fileLockRegistry,
@@ -42,7 +39,6 @@ fun iosScaleAndStoreInAssetCatalog(
 
 fun iosStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
-    contentName: String,
     type: Type.Image,
     scale: Scale,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
@@ -51,24 +47,18 @@ fun iosStoreInAssetCatalog(
     override suspend fun write(instruction: Instruction, input: ImportPipeline.Output) {
         val outputName = resolveOutputName(instruction, input)
         val extension = resolveExtension(instruction, input)
-        assetCatalog
-            .contentBuilder(contentName, fileLockRegistry) {
-                addImage(
-                    name = outputName,
-                    extension = extension,
-                    content = input.data,
-                    type = type,
-                    scale = scale,
-                    idiom = idiom,
-                )
-            }
-    }
-}
-
-fun assetCatalogFinalisationLifecycle(assetCatalog: AssetCatalog): Lifecycle {
-    return object : Lifecycle {
-        override suspend fun onImportFinished() {
-            assetCatalog.finalizeContents()
+        assetCatalog.contentBuilder(
+            groups = listOf(AssetCatalog.GroupName.Images.directoryName),
+            fileLockRegistry = fileLockRegistry,
+        ) {
+            addImage(
+                name = outputName,
+                extension = extension,
+                content = input.data,
+                type = type,
+                scale = scale,
+                idiom = idiom,
+            )
         }
     }
 }

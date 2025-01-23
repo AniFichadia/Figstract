@@ -17,7 +17,10 @@ class IosAssetCatalogVariableDataWriter(
         val assetCatalog = AssetCatalog(outDirectory, variableData.variableCollection.name)
 
         variableData.variablesByMode.forEach { variablesByMode ->
-            assetCatalog.contentBuilder(variablesByMode.mode.name, FileLockRegistry()) {
+            assetCatalog.contentBuilder(
+                groups = listOf(AssetCatalog.GroupName.Colors.directoryName, variablesByMode.mode.name),
+                fileLockRegistry = FileLockRegistry(),
+            ) {
                 variablesByMode.colorVariables?.forEach { (name, color) ->
                     addColor(
                         name = name.sanitiseFileName().ToUpperCamelCase(),
@@ -32,7 +35,5 @@ class IosAssetCatalogVariableDataWriter(
                 }
             }
         }
-
-        assetCatalog.finalizeContents()
     }
 }

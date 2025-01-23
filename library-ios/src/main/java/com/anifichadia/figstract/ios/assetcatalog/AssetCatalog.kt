@@ -1,83 +1,52 @@
 package com.anifichadia.figstract.ios.assetcatalog
 
+import com.anifichadia.figstract.type.fold
 import com.anifichadia.figstract.type.replaceOrAdd
 import com.anifichadia.figstract.util.FileLockRegistry
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
+/**
+ * https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html
+ * https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/FolderStructure.html#//apple_ref/doc/uid/TP40015170-CH33-SW1
+ */
 class AssetCatalog(
     parentDirectory: File,
     assetsFileName: String = DEFAULT_ASSETS_FILE_NAME,
 ) {
     private val assetCatalogRootDirectory = File(parentDirectory, "${assetsFileName}.xcassets").also {
         it.mkdirs()
+        writeAssetCatalogRootContent(it)
     }
 
     inline fun contentBuilder(
-        contentName: String,
+        groups: List<String>,
         fileLockRegistry: FileLockRegistry,
         block: ContentBuilder.() -> Unit,
     ) = this.apply {
-        ContentBuilder(contentName, fileLockRegistry).apply(block)
+        ContentBuilder(
+            groups = groups,
+            fileLockRegistry = fileLockRegistry,
+        ).apply(block)
     }
 
-    fun finalizeContents() {
-        assetCatalogRootDirectory.mkdirs()
-        writeAssetCatalogRootContent()
-        ensureAssetCatalogSubdirectoriesHaveContentFiles()
-    }
-
-    private fun writeAssetCatalogRootContent() {
-        File(assetCatalogRootDirectory, Content.FILE_NAME).writeText(
-            assetCatalogJson.encodeToString(
-                Content(
-                    info = Content.Info.xcode,
-                )
-            )
-        )
-    }
-
-    private fun ensureAssetCatalogSubdirectoriesHaveContentFiles(
-        properties: Content.Properties = DEFAULT_CONTENT_PROPERTIES,
-    ) {
-        assetCatalogRootDirectory
-            .walkTopDown()
-            .filter { it.isDirectory }
-            .forEach { subdirectory ->
-                val hasContentFile = subdirectory
-                    .listFiles { file -> file.name == Content.FILE_NAME }
-                    ?.any()
-                    ?: false
-
-                if (!hasContentFile) {
-                    writeAssetCatalogBlankContent(subdirectory, properties)
-                }
-            }
-    }
-
-    private fun writeAssetCatalogBlankContent(
-        directory: File,
-        properties: Content.Properties = DEFAULT_CONTENT_PROPERTIES,
-    ) {
-        File(directory, Content.FILE_NAME).writeText(
-            assetCatalogJson.encodeToString(
-                Content(
-                    info = Content.Info.xcode,
-                    properties = properties,
-                )
-            )
-        )
+    enum class GroupName(val directoryName: String) {
+        Colors("Colors"),
+        Images("Images"),
+        ;
     }
 
     inner class ContentBuilder(
-        contentName: String,
+        groups: List<String>,
         private val fileLockRegistry: FileLockRegistry,
     ) {
-        private val contentDirectory = File(assetCatalogRootDirectory, contentName).also {
-            it.mkdirs()
-        }
+        private val contentDirectory: File = groups
+            .fold(assetCatalogRootDirectory) { acc, s ->
+                acc.fold(s).also { prepareNamespaceDirectory(it) }
+            }
 
+        // https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/ImageSetType.html#//apple_ref/doc/uid/TP40015170-CH25-SW1
         suspend fun addImage(
             name: String,
             extension: String,
@@ -173,13 +142,47 @@ class AssetCatalog(
     companion object {
         const val DEFAULT_ASSETS_FILE_NAME = "Assets"
 
-        val DEFAULT_CONTENT_PROPERTIES = Content.Properties(providesNamespace = true)
+        private val NAMESPACE_CONTENT_PROPERTIES = Content.Properties(providesNamespace = true)
 
         /**
          * Standard [Json] instance used for asset catalogs
          */
         private val assetCatalogJson = Json {
             prettyPrint = true
+        }
+
+        private fun writeAssetCatalogRootContent(directory: File) {
+            val file = File(directory, Content.FILE_NAME)
+            if (file.exists()) return
+
+            file.writeText(
+                assetCatalogJson.encodeToString(
+                    Content(
+                        info = Content.Info.xcode,
+                    )
+                )
+            )
+        }
+
+        private fun prepareNamespaceDirectory(directory: File) {
+            directory.mkdirs()
+            writeContentsFileForNamespacedDirectory(directory)
+        }
+
+        private fun writeContentsFileForNamespacedDirectory(
+            directory: File,
+        ) {
+            val file = File(directory, Content.FILE_NAME)
+            if (file.exists()) return
+
+            file.writeText(
+                assetCatalogJson.encodeToString(
+                    Content(
+                        info = Content.Info.xcode,
+                        properties = NAMESPACE_CONTENT_PROPERTIES,
+                    )
+                )
+            )
         }
     }
 }
