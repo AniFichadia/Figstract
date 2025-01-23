@@ -149,6 +149,7 @@ class AssetCatalog(
          */
         private val assetCatalogJson = Json {
             prettyPrint = true
+            explicitNulls = false
         }
 
         private fun writeAssetCatalogRootContent(directory: File) {
