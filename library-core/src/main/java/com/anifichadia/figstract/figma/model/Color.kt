@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.figma.model
 
 import com.anifichadia.figstract.figma.Number
+import com.anifichadia.figstract.util.toHexString
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -21,11 +22,7 @@ data class Color(
         return (a shl 24) or (r shl 16) or (g shl 8) or b
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
-    fun toHexString(): String {
-        val hexValue = this.toArgb().toHexString(format = HexFormat.UpperCase)
-        return "0x$hexValue"
-    }
+    fun toHexString(): String = this.toArgb().toHexString()
 
     override fun toString(): String {
         return toHexString()

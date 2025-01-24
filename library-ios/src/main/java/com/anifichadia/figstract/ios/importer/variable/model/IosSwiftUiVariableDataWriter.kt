@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.ios.importer.variable.model
 
 import com.anifichadia.figstract.ExperimentalFigstractApi
+import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.type.fold
@@ -26,7 +27,10 @@ class IosSwiftUiVariableDataWriter(
     private val outDirectory: File,
     private val modulePath: String,
 ) : VariableDataWriter {
-    override suspend fun write(variableData: VariableData) {
+    override suspend fun write(
+        variableData: VariableData,
+        resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+    ) {
         val fileSpec = FileSpec.builder(
             moduleName = modulePath,
             fileName = variableData.variableCollection.name.sanitiseFileName().ToUpperCamelCase(),

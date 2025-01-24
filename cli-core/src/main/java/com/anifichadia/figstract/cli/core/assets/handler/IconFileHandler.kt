@@ -18,10 +18,9 @@ import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
+import com.anifichadia.figstract.ios.assetcatalog.AssetType
 import com.anifichadia.figstract.ios.assetcatalog.Scale
-import com.anifichadia.figstract.ios.assetcatalog.Type
 import com.anifichadia.figstract.ios.figma.model.iosIcon
-import com.anifichadia.figstract.ios.importer.asset.model.importing.assetCatalogFinalisationLifecycle
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosStoreInAssetCatalog
 import com.anifichadia.figstract.type.fold
 import java.io.File
@@ -50,7 +49,6 @@ internal fun createIconFigmaFileHandler(
     }
 
     val iosImportPipeline: ImportPipeline?
-    val iosAssetCatalogLifecycle: Lifecycle
     if (iosOutDirectory != null) {
         val iosDirectory = File(iosOutDirectory, "icons")
         val assetCatalog = AssetCatalog(iosDirectory)
@@ -58,15 +56,12 @@ internal fun createIconFigmaFileHandler(
         iosImportPipeline = ImportPipeline(
             steps = iosStoreInAssetCatalog(
                 assetCatalog = assetCatalog,
-                contentName = "Icon",
-                type = Type.Image.ImageSet,
+                assetType = AssetType.Image.ImageSet,
                 scale = Scale.`1x`,
             ),
         )
-        iosAssetCatalogLifecycle = assetCatalogFinalisationLifecycle(assetCatalog)
     } else {
         iosImportPipeline = null
-        iosAssetCatalogLifecycle = Lifecycle.NoOp
     }
 
     val webImportPipeline = if (webOutDirectory != null) {
@@ -86,7 +81,6 @@ internal fun createIconFigmaFileHandler(
     }
 
     val lifecycle = Lifecycle.Combined(
-        iosAssetCatalogLifecycle,
         timingLifecycle,
         timingLoggingLifecycle,
     )

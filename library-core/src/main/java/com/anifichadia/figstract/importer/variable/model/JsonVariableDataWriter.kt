@@ -9,7 +9,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
@@ -23,7 +22,10 @@ class JsonVariableDataWriter(
         require(!outDirectory.exists() || outDirectory.isDirectory)
     }
 
-    override suspend fun write(variableData: VariableData) {
+    override suspend fun write(
+        variableData: VariableData,
+        resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+    ) {
         val data = variableData.variablesByMode.associate {
             val modeOutput = ModeOutput(
                 booleans = it.booleanVariables,

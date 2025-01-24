@@ -8,8 +8,12 @@ import com.anifichadia.figstract.figma.model.Color
 import com.anifichadia.figstract.figma.model.GetLocalVariablesResponse
 import com.anifichadia.figstract.figma.model.Mode
 import com.anifichadia.figstract.figma.model.Variable
+import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
+import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
+import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
+import com.anifichadia.figstract.importer.variable.model.resolve
 import com.anifichadia.figstract.util.createLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -119,10 +123,16 @@ class FigmaVariableImporter(
                                 ),
                             )
                         }
-                        handler to VariableData(
+                        val variableData = VariableData(
                             variableCollection = variableCollection,
                             variablesByMode = variablesByMode,
+                            booleansProvided = filter.variableTypeFilter.includeBooleans,
+                            numbersProvided = filter.variableTypeFilter.includeNumbers,
+                            stringsProvided = filter.variableTypeFilter.includeStrings,
+                            colorsProvided = filter.variableTypeFilter.includeColors,
                         )
+
+                        handler to variableData
                     }
             }
             .flatMapConcat {
@@ -141,21 +151,34 @@ class FigmaVariableImporter(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun createImportFlow(exportFlow: Flow<ExportOutput>): Flow<Unit> {
+        data class WriterInput(
+            val handler: VariableFileHandler,
+            val variableData: VariableData,
+            val resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+            val writer: VariableDataWriter,
+        )
+
         return exportFlow
             .flatMapConcat { exportOutput ->
                 val handler = exportOutput.handler
                 val variableData = exportOutput.variableData
+
+                val mapping = handler.themeVariantMappings.getOrElse(variableData.variableCollection.name) {
+                    ThemeVariantMapping.None
+                }
+                val resolvedMapping = mapping.resolve(variableData)
+
                 flow {
                     handler.writers.forEach { writer ->
-                        emit(Triple(handler, variableData, writer))
+                        emit(WriterInput(handler, variableData, resolvedMapping, writer))
                     }
                 }
             }
-            .map { (handler, variableData, writer) ->
+            .map { (handler, variableData, resolvedMapping, writer) ->
                 // TODO: better log message, should include info about variableData
                 logger.debug { "Importing ${handler.figmaFile}: Started" }
                 try {
-                    writer.write(variableData)
+                    writer.write(variableData, resolvedMapping)
                     logger.info { "Importing ${handler.figmaFile}: Finished true" }
                 } catch (e: Throwable) {
                     logger.error(e) { "Importing ${handler.figmaFile}: Finished false" }
