@@ -1,7 +1,7 @@
 [versions]
 # https://kotlinlang.org/
 # https://kotlinlang.org/docs/releases.html
-kotlin = "2.1.0"
+kotlin = "2.1.10"
 # https://github.com/Kotlin/kotlinx.coroutines
 kotlinx-coroutines = "1.10.1"
 # https://github.com/Kotlin/kotlinx.serialization
