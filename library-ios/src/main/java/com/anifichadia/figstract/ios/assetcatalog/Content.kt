@@ -1,5 +1,6 @@
 package com.anifichadia.figstract.ios.assetcatalog
 
+import com.anifichadia.figstract.util.toHexString
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -86,11 +87,15 @@ data class Content(
                     blue: Float,
                     alpha: Float,
                 ) : this(
-                    red = red.toString(),
-                    green = green.toString(),
-                    blue = blue.toString(),
+                    red = red.toColorHexString(),
+                    green = green.toColorHexString(),
+                    blue = blue.toColorHexString(),
                     alpha = alpha.toString(),
                 )
+            }
+
+            companion object {
+                private fun Float.toColorHexString(): String = this.toHexString(2)
             }
         }
 
