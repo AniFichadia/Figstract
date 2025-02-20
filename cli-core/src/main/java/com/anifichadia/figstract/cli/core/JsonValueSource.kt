@@ -4,6 +4,7 @@ import com.github.ajalt.clikt.core.Context
 import com.github.ajalt.clikt.core.InvalidFileFormat
 import com.github.ajalt.clikt.parameters.options.Option
 import com.github.ajalt.clikt.sources.ValueSource
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -43,15 +44,21 @@ class JsonValueSource(
     }
 
     companion object {
+        @OptIn(ExperimentalSerializationApi::class)
+        fun defaultJson() = Json {
+            allowComments = true
+        }
+
         fun from(
             file: File,
+            json: Json = defaultJson(),
             requireValid: Boolean = false,
             getKey: (Context, Option) -> String = ValueSource.getKey(joinSubcommands = "."),
         ): JsonValueSource {
             if (!file.isFile) return JsonValueSource(JsonObject(emptyMap()), getKey)
 
-            val json = try {
-                Json.parseToJsonElement(file.readText()) as? JsonObject
+            val jsonOutput = try {
+                json.parseToJsonElement(file.readText()) as? JsonObject
                     ?: throw InvalidFileFormat(file.path, "object expected", 1)
             } catch (e: SerializationException) {
                 if (requireValid) {
@@ -59,15 +66,7 @@ class JsonValueSource(
                 }
                 JsonObject(emptyMap())
             }
-            return JsonValueSource(json, getKey)
-        }
-
-        fun from(
-            file: String,
-            requireValid: Boolean = false,
-            getKey: (Context, Option) -> String = ValueSource.getKey(joinSubcommands = "."),
-        ): JsonValueSource {
-            return from(File(file), requireValid, getKey)
+            return JsonValueSource(jsonOutput, getKey)
         }
     }
 }
