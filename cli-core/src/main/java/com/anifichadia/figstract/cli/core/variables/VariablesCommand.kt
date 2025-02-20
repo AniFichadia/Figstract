@@ -1,5 +1,6 @@
 package com.anifichadia.figstract.cli.core.variables
 
+import com.anifichadia.figstract.cli.core.defaultJsonValueSource
 import com.anifichadia.figstract.cli.core.defaultPropertyValueSource
 import com.anifichadia.figstract.cli.core.getFigmaApi
 import com.anifichadia.figstract.cli.core.outDirectory
@@ -18,7 +19,10 @@ abstract class VariablesCommand : SuspendingCliktCommand(
 
     init {
         context {
-            valueSources(defaultPropertyValueSource())
+            valueSources(
+                defaultPropertyValueSource(),
+                defaultJsonValueSource(),
+            )
         }
     }
 
