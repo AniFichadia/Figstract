@@ -16,6 +16,15 @@ fun BaseCliktCommand<*>.defaultPropertyValueSource(
     )
 }
 
+fun BaseCliktCommand<*>.defaultJsonValueSource(
+    file: File = File("$commandName.json"),
+): ValueSource {
+    return JsonValueSource.from(
+        file = file,
+        getKey = ValueSource.nameOnlyKey(),
+    )
+}
+
 fun ValueSource.Companion.nameOnlyKey(): (Context, Option) -> String = { _, option ->
     // Just uses the option name without leading hyphens
     name(option).replace("-", "")

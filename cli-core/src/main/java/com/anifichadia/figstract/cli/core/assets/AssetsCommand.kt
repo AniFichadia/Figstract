@@ -2,6 +2,7 @@ package com.anifichadia.figstract.cli.core.assets
 
 import com.anifichadia.figstract.HttpClientFactory
 import com.anifichadia.figstract.cli.core.ProcessingRecordOptionGroup
+import com.anifichadia.figstract.cli.core.defaultJsonValueSource
 import com.anifichadia.figstract.cli.core.defaultPropertyValueSource
 import com.anifichadia.figstract.cli.core.getFigmaApi
 import com.anifichadia.figstract.cli.core.getProxy
@@ -25,7 +26,10 @@ abstract class AssetsCommand : SuspendingCliktCommand(
 
     init {
         context {
-            valueSources(defaultPropertyValueSource())
+            valueSources(
+                defaultPropertyValueSource(),
+                defaultJsonValueSource(),
+            )
         }
     }
 
