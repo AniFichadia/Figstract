@@ -37,20 +37,25 @@ fun ProxyType.toProxyConfig(host: String?, port: Int?): ProxyConfig? {
         ProxyType.AUTO -> {
             // Check system properties first
             System.getProperty("https.proxyHost")?.let {
+                println("Proxy auto detection: using system property https.proxyHost=$it")
                 return ProxyType.HTTP.toProxyConfig(it, System.getProperty("https.proxyPort")?.toInt())
             }
             System.getProperty("http.proxyHost")?.let {
+                println("Proxy auto detection: using system property http.proxyHost=$it")
                 return ProxyType.HTTP.toProxyConfig(it, System.getProperty("http.proxyPort")?.toInt())
             }
 
             // Check environment variables
             System.getenv("HTTPS_PROXY")?.let {
+                println("Proxy auto detection: using environment variable property HTTPS_PROXY=$it")
                 return ProxyType.HTTP.toProxyConfig(it, null)
             }
             System.getenv("HTTP_PROXY")?.let {
+                println("Proxy auto detection: using environment variable property HTTP_PROXY=$it")
                 return ProxyType.HTTP.toProxyConfig(it, null)
             }
 
+            println("Proxy auto detection: no proxy detected")
             null
         }
 
