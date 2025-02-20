@@ -43,8 +43,9 @@ class FigmaApiProxyWithFlowControl(
         key: FileKey,
         ids: List<String>,
         format: ExportSetting.Format,
-        scale: Float,
+        scale: Float?,
         contentsOnly: Boolean?,
+        useAbsoluteBounds: Boolean?,
     ): ApiResponse<GetImageResponse> = wrapRequest {
         getImages(
             key = key,
@@ -52,6 +53,7 @@ class FigmaApiProxyWithFlowControl(
             format = format,
             scale = scale,
             contentsOnly = contentsOnly,
+            useAbsoluteBounds = useAbsoluteBounds,
         )
     }
 

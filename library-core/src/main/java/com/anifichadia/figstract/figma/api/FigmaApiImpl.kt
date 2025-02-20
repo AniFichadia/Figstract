@@ -42,8 +42,9 @@ class FigmaApiImpl(
         key: FileKey,
         ids: List<String>,
         format: ExportSetting.Format,
-        scale: Float,
+        scale: Float?,
         contentsOnly: Boolean?,
+        useAbsoluteBounds: Boolean?,
     ) = apiRequest<GetImageResponse>(
         method = HttpMethod.Get,
         path = "/v1/images/$key",
@@ -53,6 +54,7 @@ class FigmaApiImpl(
             "format" to format,
             "scale" to scale,
             "contents_only" to contentsOnly,
+            "use_absolute_bounds" to useAbsoluteBounds,
         ),
     )
 
