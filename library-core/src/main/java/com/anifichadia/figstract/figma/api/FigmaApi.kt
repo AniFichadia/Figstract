@@ -19,8 +19,9 @@ interface FigmaApi {
         key: FileKey,
         ids: List<String>,
         format: ExportSetting.Format,
-        scale: Float,
+        scale: Float?,
         contentsOnly: Boolean? = null,
+        useAbsoluteBounds: Boolean? = null,
     ): ApiResponse<GetImageResponse>
 
     suspend fun getLocalVariables(

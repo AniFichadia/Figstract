@@ -7,11 +7,12 @@ import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig.Com
 data class ExportConfig(
     val format: ExportSetting.Format,
     /** Must be in range [SCALE_MIN] and [SCALE_MAX] */
-    val scale: Float = SCALE_ORIGINAL,
+    val scale: Float? = SCALE_ORIGINAL,
     val contentsOnly: Boolean? = null,
+    val useAbsoluteBounds: Boolean? = null,
 ) {
     init {
-        require(scale.isNaN() || scale in SCALE_MIN..SCALE_MAX) { "$scale must be between $SCALE_MIN and $SCALE_MAX" }
+        require(scale == null || scale.isNaN() || scale in SCALE_MIN..SCALE_MAX) { "$scale must be null or between $SCALE_MIN and $SCALE_MAX" }
     }
 
     companion object {
