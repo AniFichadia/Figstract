@@ -28,6 +28,7 @@ tasks.withType<ShadowJar> {
         exclude(dependency("com.github.ajalt.mordant:.*:.*"))
         exclude(dependency("io.ktor:.*:.*"))
         exclude(dependency("ch.qos.logback:.*:.*"))
+        exclude(dependency("com.sksamuel.scrimage:.*:.*"))
     }
 }
 
