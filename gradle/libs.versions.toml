@@ -15,7 +15,7 @@ kotlinLogging = "7.0.5"
 logback = "1.5.17"
 
 # https://ktor.io/
-ktor = "3.1.1"
+ktor = "3.1.2"
 
 # https://github.com/json-path/JsonPath
 jsonPath = "2.9.0"
