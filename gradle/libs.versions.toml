@@ -20,7 +20,7 @@ ktor = "3.1.2"
 # https://github.com/json-path/JsonPath
 jsonPath = "2.9.0"
 
-androidTools = "31.11.0-alpha03"
+androidTools = "31.11.0-alpha07"
 
 # https://github.com/sksamuel/scrimage
 scrimage = "4.3.0"
