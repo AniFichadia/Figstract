@@ -23,7 +23,7 @@ jsonPath = "2.9.0"
 androidTools = "31.11.0-alpha03"
 
 # https://github.com/sksamuel/scrimage
-scrimage = "4.3.0"
+scrimage = "4.3.1"
 
 # https://github.com/square/kotlinpoet
 kotlinPoet = "2.1.0"
