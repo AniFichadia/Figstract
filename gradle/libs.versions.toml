@@ -12,7 +12,7 @@ clikt = "5.0.3"
 # https://github.com/oshai/kotlin-logging
 kotlinLogging = "7.0.13"
 # http://logback.qos.ch/download.html
-logback = "1.5.18"
+logback = "1.5.20"
 
 # https://ktor.io/
 ktor = "3.3.0"
