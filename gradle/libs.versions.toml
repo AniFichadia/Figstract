@@ -39,7 +39,7 @@ junit4 = "4.13.2"
 # https://github.com/GradleUp/shadow
 shadow = "9.1.0"
 # https://github.com/Kotlin/dokka
-dokka = "2.0.0"
+dokka = "2.1.0"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 # https://vanniktech.github.io/gradle-maven-publish-plugin/
 vanniktech-maven-publish = "0.31.0"
