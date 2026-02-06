@@ -29,7 +29,7 @@ scrimage = "4.3.5"
 kotlinPoet = "2.2.0"
 
 # https://github.com/outfoxx/swiftpoet
-swiftPoet = "1.6.6"
+swiftPoet = "1.6.11"
 
 #region Testing
 junit4 = "4.13.2"
