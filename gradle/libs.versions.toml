@@ -42,7 +42,7 @@ shadow = "9.1.0"
 dokka = "2.1.0"
 # https://github.com/vanniktech/gradle-maven-publish-plugin
 # https://vanniktech.github.io/gradle-maven-publish-plugin/
-vanniktech-maven-publish = "0.31.0"
+vanniktech-maven-publish = "0.36.0"
 #endregion
 
 [libraries]
