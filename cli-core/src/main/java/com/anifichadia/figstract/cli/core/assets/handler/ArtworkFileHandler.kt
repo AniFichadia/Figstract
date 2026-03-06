@@ -17,6 +17,7 @@ import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.Companion.addInstruction
 import com.anifichadia.figstract.importer.asset.model.JsonPathAssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figstract.importer.asset.model.exporting.pngUnscaled
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
@@ -29,6 +30,7 @@ import java.io.File
 @Suppress("SameParameterValue")
 internal fun createArtworkFigmaFileHandler(
     figmaFile: FileKey,
+    createUncropped: Boolean,
     createCropped: Boolean,
     androidOutDirectory: File?,
     iosOutDirectory: File?,
@@ -38,9 +40,12 @@ internal fun createArtworkFigmaFileHandler(
     iosNameGenerator: NodeTokenStringGenerator,
     webNameGenerator: NodeTokenStringGenerator,
     jsonPath: String?,
+    androidExportConfig: ExportConfig = androidImageXxxHdpi,
+    iosExportConfig: ExportConfig = ios3xImage,
+    webExportConfig: ExportConfig = pngUnscaled,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
-        val androidOutputDirectory = File(androidOutDirectory, "artwork")
+        val androidOutputDirectory = File(androidOutDirectory, artworkDirectoryName)
         ImportPipeline(
             steps = androidImageScaleAndStoreInDensityBuckets(androidOutputDirectory, DensityBucket.XXXHDPI),
         )
@@ -48,12 +53,11 @@ internal fun createArtworkFigmaFileHandler(
         null
     }
 
-    val iosImportPipeline: ImportPipeline?
-    if (iosOutDirectory != null) {
-        val iosDirectory = File(iosOutDirectory, "artwork")
+    val iosImportPipeline = if (iosOutDirectory != null) {
+        val iosDirectory = File(iosOutDirectory, artworkDirectoryName)
         val assetCatalog = AssetCatalog(iosDirectory)
 
-        iosImportPipeline = ImportPipeline(
+        ImportPipeline(
             steps = iosScaleAndStoreInAssetCatalog(
                 assetCatalog = assetCatalog,
                 assetType = AssetType.Image.ImageSet,
@@ -61,11 +65,11 @@ internal fun createArtworkFigmaFileHandler(
             ),
         )
     } else {
-        iosImportPipeline = null
+        null
     }
 
     val webImportPipeline = if (webOutDirectory != null) {
-        val webOutputDirectory = File(webOutDirectory, "artwork")
+        val webOutputDirectory = File(webOutDirectory, artworkDirectoryName)
         ImportPipeline(
             steps = Destination.directoryDestination(webOutputDirectory),
         )
@@ -107,55 +111,51 @@ internal fun createArtworkFigmaFileHandler(
 
                         val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
 
-                        if (androidImportPipeline != null) {
-                            addInstruction(
-                                exportNode = node,
-                                exportConfig = androidImageXxxHdpi,
-                                importOutputName = androidNameGenerator.generate(namingContext),
-                                importPipeline = androidImportPipeline,
-                            )
+                        fun addInstructions(
+                            exportConfig: ExportConfig,
+                            nameGenerator: NodeTokenStringGenerator,
+                            importPipeline: ImportPipeline,
+                        ) {
+                            if (createUncropped) {
+                                addInstruction(
+                                    exportNode = node,
+                                    exportConfig = exportConfig,
+                                    importOutputName = nameGenerator.generate(namingContext),
+                                    importPipeline = importPipeline,
+                                )
+                            }
                             if (createCropped) {
                                 addInstruction(
                                     exportNode = child,
-                                    exportConfig = androidImageXxxHdpi,
-                                    importOutputName = androidNameGenerator.generate(namingContext, suffix = "cropped"),
-                                    importPipeline = androidImportPipeline,
+                                    exportConfig = exportConfig,
+                                    importOutputName = nameGenerator.generate(namingContext, suffix = "cropped"),
+                                    importPipeline = importPipeline,
                                 )
                             }
+                        }
+
+                        if (androidImportPipeline != null) {
+                            addInstructions(
+                                exportConfig = androidExportConfig,
+                                nameGenerator = androidNameGenerator,
+                                importPipeline = androidImportPipeline,
+                            )
                         }
 
                         if (iosImportPipeline != null) {
-                            addInstruction(
-                                exportNode = node,
-                                exportConfig = ios3xImage,
-                                importOutputName = iosNameGenerator.generate(namingContext),
+                            addInstructions(
+                                exportConfig = iosExportConfig,
+                                nameGenerator = iosNameGenerator,
                                 importPipeline = iosImportPipeline,
                             )
-                            if (createCropped) {
-                                addInstruction(
-                                    exportNode = child,
-                                    exportConfig = ios3xImage,
-                                    importOutputName = iosNameGenerator.generate(namingContext, suffix = "cropped"),
-                                    importPipeline = iosImportPipeline,
-                                )
-                            }
                         }
 
                         if (webImportPipeline != null) {
-                            addInstruction(
-                                exportNode = node,
-                                exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                importOutputName = webNameGenerator.generate(namingContext),
+                            addInstructions(
+                                exportConfig = webExportConfig,
+                                nameGenerator = webNameGenerator,
                                 importPipeline = webImportPipeline,
                             )
-                            if (createCropped) {
-                                addInstruction(
-                                    exportNode = child,
-                                    exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                                    importOutputName = webNameGenerator.generate(namingContext, suffix = "cropped"),
-                                    importPipeline = webImportPipeline,
-                                )
-                            }
                         }
                     }
                 }
@@ -202,3 +202,5 @@ internal fun createArtworkFigmaFileHandler(
         }
     }
 }
+
+private const val artworkDirectoryName = "artwork"

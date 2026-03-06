@@ -1,10 +1,13 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
+import com.anifichadia.figstract.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.exporting.pngUnscaled
+import com.anifichadia.figstract.ios.figma.model.ios3xImage
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
@@ -26,16 +29,19 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
         webOutDirectory: File?,
     ): AssetFileHandler? {
         if (enabled) {
-            figmaFile?.let {
+            val figmaFile = this.figmaFile
+            if (figmaFile != null) {
                 return createHandlerInternal(
-                    figmaFile = it,
+                    figmaFile = figmaFile,
                     androidOutDirectory = androidOutDirectory,
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
                     filters = filters,
                     jsonPath = jsonPath,
                 )
-            } ?: throw BadParameterValue("$prefix are enabled but figma file is not specified")
+            } else {
+                throw BadParameterValue("$prefix are enabled but figma file is not specified")
+            }
         }
         return null
     }
@@ -51,6 +57,9 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
 }
 
 class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
+    private val artworkCreateUncropped by option("--${prefix}CreateUncropped")
+        .boolean()
+        .default(true)
     private val artworkCreateCropped by option("--${prefix}CreateCropped")
         .boolean()
         .default(false)
@@ -69,8 +78,11 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
     ): AssetFileHandler {
+        if (!(artworkCreateUncropped || artworkCreateCropped)) throw BadParameterValue("Atleast createUncropped or createCropped must be set to true")
+
         return createArtworkFigmaFileHandler(
             figmaFile = figmaFile,
+            createUncropped = artworkCreateUncropped,
             createCropped = artworkCreateCropped,
             androidOutDirectory = androidOutDirectory,
             iosOutDirectory = iosOutDirectory,
@@ -80,6 +92,9 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             iosNameGenerator = nameGenerators.ios,
             webNameGenerator = nameGenerators.web,
             jsonPath = jsonPath,
+            androidExportConfig = androidImageXxxHdpi,
+            iosExportConfig = ios3xImage,
+            webExportConfig = pngUnscaled,
         )
     }
 }
