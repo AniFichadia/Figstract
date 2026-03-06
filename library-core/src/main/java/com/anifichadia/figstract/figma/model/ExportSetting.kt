@@ -8,6 +8,7 @@ data class ExportSetting(
     val format: Format,
     val constraint: Constraint,
 ) {
+    @Serializable
     enum class Format {
         JPG,
         PNG,

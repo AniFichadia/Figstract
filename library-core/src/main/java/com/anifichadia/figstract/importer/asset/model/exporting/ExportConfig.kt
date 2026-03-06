@@ -3,7 +3,9 @@ package com.anifichadia.figstract.importer.asset.model.exporting
 import com.anifichadia.figstract.figma.model.ExportSetting
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig.Companion.SCALE_MAX
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig.Companion.SCALE_MIN
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ExportConfig(
     val format: ExportSetting.Format,
     /** Must be in range [SCALE_MIN] and [SCALE_MAX] */
