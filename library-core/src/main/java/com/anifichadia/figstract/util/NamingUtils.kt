@@ -5,6 +5,7 @@ fun String.sanitise() = this
     .replace("_", " ")
     .replace("""[^\w\s]""".toRegex(), "")
     .replace("""\s+""".toRegex(), " ")
+    .trim()
 
 fun String.sanitiseFileName() = this
     .replace("-", " ")
@@ -13,6 +14,7 @@ fun String.sanitiseFileName() = this
     .replace("""\""", "")
     .replace("""/""", "")
     .replace("""\s+""".toRegex(), " ")
+    .trim()
 
 private val spaceRegex = """\s""".toRegex()
 
