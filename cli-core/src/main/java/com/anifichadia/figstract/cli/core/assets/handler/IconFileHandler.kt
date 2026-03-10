@@ -87,6 +87,37 @@ internal fun createIconFigmaFileHandler(
     // Icons are smaller, so we can retrieve more at the same time
     val assetsPerChunk = 50
 
+    fun MutableList<Instruction>.generateInstructions(canvas: Node.Canvas, node: Node) {
+        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+
+        if (androidImportPipeline != null) {
+            addInstruction(
+                exportNode = node,
+                exportConfig = svg,
+                importOutputName = androidNameGenerator.generate(namingContext),
+                importPipeline = androidImportPipeline,
+            )
+        }
+
+        if (iosImportPipeline != null) {
+            addInstruction(
+                exportNode = node,
+                exportConfig = iosIcon,
+                importOutputName = iosNameGenerator.generate(namingContext),
+                importPipeline = iosImportPipeline,
+            )
+        }
+
+        if (webImportPipeline != null) {
+            addInstruction(
+                exportNode = node,
+                exportConfig = svg,
+                importOutputName = webNameGenerator.generate(namingContext),
+                importPipeline = webImportPipeline,
+            )
+        }
+    }
+
     return if (jsonPath == null) {
         AssetFileHandler(
             figmaFile = figmaFile,
@@ -101,39 +132,17 @@ internal fun createIconFigmaFileHandler(
                 Instruction.buildInstructions {
                     canvas.traverseBreadthFirst { node, parent ->
                         if (node !is Node.Parent) return@traverseBreadthFirst
+                        // Look for first descendants of the canvas
+                        if (parent !== canvas) return@traverseBreadthFirst
+
                         node.children.filterIsInstance<Node.Vector>().firstOrNull() ?: return@traverseBreadthFirst
 
                         if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                        if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
+                        if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+                        val nodeToExport = node as? Node.Component ?: return@traverseBreadthFirst
 
-                        if (androidImportPipeline != null) {
-                            addInstruction(
-                                exportNode = node,
-                                exportConfig = svg,
-                                importOutputName = androidNameGenerator.generate(namingContext),
-                                importPipeline = androidImportPipeline,
-                            )
-                        }
-
-                        if (iosImportPipeline != null) {
-                            addInstruction(
-                                exportNode = node,
-                                exportConfig = iosIcon,
-                                importOutputName = iosNameGenerator.generate(namingContext),
-                                importPipeline = iosImportPipeline,
-                            )
-                        }
-
-                        if (webImportPipeline != null) {
-                            addInstruction(
-                                exportNode = node,
-                                exportConfig = svg,
-                                importOutputName = webNameGenerator.generate(namingContext),
-                                importPipeline = webImportPipeline,
-                            )
-                        }
+                        generateInstructions(canvas, nodeToExport)
                     }
                 }
             }.flatten()
@@ -148,34 +157,7 @@ internal fun createIconFigmaFileHandler(
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
         ) { node, canvas ->
             Instruction.buildInstructions {
-                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
-
-                if (androidImportPipeline != null) {
-                    addInstruction(
-                        exportNode = node,
-                        exportConfig = svg,
-                        importOutputName = androidNameGenerator.generate(namingContext),
-                        importPipeline = androidImportPipeline,
-                    )
-                }
-
-                if (iosImportPipeline != null) {
-                    addInstruction(
-                        exportNode = node,
-                        exportConfig = iosIcon,
-                        importOutputName = iosNameGenerator.generate(namingContext),
-                        importPipeline = iosImportPipeline,
-                    )
-                }
-
-                if (webImportPipeline != null) {
-                    addInstruction(
-                        exportNode = node,
-                        exportConfig = svg,
-                        importOutputName = webNameGenerator.generate(namingContext),
-                        importPipeline = webImportPipeline,
-                    )
-                }
+                generateInstructions(canvas, node)
             }
         }
     }
