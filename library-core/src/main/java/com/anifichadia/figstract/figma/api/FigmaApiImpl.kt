@@ -28,10 +28,14 @@ class FigmaApiImpl(
      */
     override suspend fun getFile(
         key: FileKey,
+        branchData: Boolean?,
     ) = apiRequest<GetFilesResponse>(
         method = HttpMethod.Get,
         path = "/v1/files/$key",
         authenticated = true,
+        queryParams = mapOf(
+            "branch_data" to branchData,
+        ),
     )
 
     /**

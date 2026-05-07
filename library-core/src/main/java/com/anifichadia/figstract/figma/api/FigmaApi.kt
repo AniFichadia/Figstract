@@ -10,6 +10,7 @@ import com.anifichadia.figstract.figma.model.GetLocalVariablesResponse
 interface FigmaApi {
     suspend fun getFile(
         key: FileKey,
+        branchData: Boolean? = null,
     ): ApiResponse<GetFilesResponse>
 
     /**

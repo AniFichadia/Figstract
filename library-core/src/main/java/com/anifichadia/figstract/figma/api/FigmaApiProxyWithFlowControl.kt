@@ -35,8 +35,12 @@ class FigmaApiProxyWithFlowControl(
 
     override suspend fun getFile(
         key: FileKey,
+        branchData: Boolean?,
     ): ApiResponse<GetFilesResponse> = wrapRequest {
-        getFile(key = key)
+        getFile(
+            key = key,
+            branchData = branchData,
+        )
     }
 
     override suspend fun getImages(

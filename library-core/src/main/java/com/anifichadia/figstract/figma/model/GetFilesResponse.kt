@@ -19,4 +19,5 @@ data class GetFilesResponse(
     val schemaVersion: Int,
     val styles: Map<String, Style>,
     val linkAccess: String,
+    val branches: List<BranchData>? = null,
 )
