@@ -24,6 +24,7 @@ import java.io.File
 class RealVariablesCommand : VariablesCommand() {
     private val figmaFiles by option("--figmaFile")
         .multiple()
+    private val figmaFileBranchName by option("--figmaFileBranchName")
 
     private val filters by VariableFilterOptionGroup()
 
@@ -62,6 +63,7 @@ class RealVariablesCommand : VariablesCommand() {
         return figmaFiles.map { figmaFile ->
             VariableFileHandler(
                 figmaFile = figmaFile,
+                figmaFileBranchName = figmaFileBranchName,
                 filter = filters,
                 themeVariantMappings = themeVariantMappings,
                 writers = writers,

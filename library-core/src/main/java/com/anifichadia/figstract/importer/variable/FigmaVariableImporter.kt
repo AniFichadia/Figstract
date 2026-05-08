@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
@@ -49,6 +50,42 @@ class FigmaVariableImporter(
     }
 
     private fun createProcessingFlow(handler: VariableFileHandler): Flow<Unit> {
+        return flow {
+            val resolvedHandler = variableFileHandlerForBranch(handler)
+            emitAll(createResolvedProcessingFlow(resolvedHandler))
+        }
+    }
+
+    private suspend fun variableFileHandlerForBranch(handler: VariableFileHandler): VariableFileHandler {
+        val figmaFileBranchName = handler.figmaFileBranchName
+
+        logger.debug { "Resolving branch '$figmaFileBranchName' for ${handler.figmaFile}" }
+
+        if (figmaFileBranchName == null) {
+            return handler
+        }
+
+        val response = figmaApi.getFile(
+            key = handler.figmaFile,
+            branchData = true,
+        )
+
+        val branches = response
+            .successBodyOrThrow()
+            .branches
+
+        logger.debug { "Branches: $branches" }
+
+        val branchKey = branches
+            ?.firstOrNull { it.name == figmaFileBranchName }?.key
+            ?: error("Branch '$figmaFileBranchName' not found in ${handler.figmaFile}")
+
+        logger.debug { "Resolved branch '$figmaFileBranchName' to key: $branchKey" }
+
+        return handler.withResolvedBranchKey(branchKey)
+    }
+
+    private fun createResolvedProcessingFlow(handler: VariableFileHandler): Flow<Unit> {
         val handlersFlow = flowOf(handler)
 
         val fileFlow = createFigmaFileFlow(handlersFlow)
