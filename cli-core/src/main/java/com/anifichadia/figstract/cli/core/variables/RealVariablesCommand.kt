@@ -25,6 +25,7 @@ class RealVariablesCommand : VariablesCommand() {
     private val figmaFiles by option("--figmaFile")
         .multiple()
     private val figmaFileBranchName by option("--figmaFileBranchName")
+    private val figmaFileVersion by option("--figmaFileVersion")
 
     private val filters by VariableFilterOptionGroup()
 
@@ -64,6 +65,7 @@ class RealVariablesCommand : VariablesCommand() {
             VariableFileHandler(
                 figmaFile = figmaFile,
                 figmaFileBranchName = figmaFileBranchName,
+                figmaFileVersion = figmaFileVersion,
                 filter = filters,
                 themeVariantMappings = themeVariantMappings,
                 writers = writers,

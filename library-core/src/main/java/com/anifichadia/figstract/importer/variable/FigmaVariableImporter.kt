@@ -104,6 +104,7 @@ class FigmaVariableImporter(
                 logger.debug { "Fetching ${handler.figmaFile}: Start" }
                 val getLocalVariablesResponse = figmaApi.getLocalVariables(
                     key = handler.figmaFile,
+                    version = handler.figmaFileVersion,
                 )
                 logger.info { "Fetching ${handler.figmaFile}: Finish ${getLocalVariablesResponse.isSuccess()}" }
                 getLocalVariablesResponse.logError { "Fetching ${handler.figmaFile}" }
