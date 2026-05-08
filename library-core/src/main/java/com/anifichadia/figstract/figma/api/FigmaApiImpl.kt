@@ -29,12 +29,14 @@ class FigmaApiImpl(
     override suspend fun getFile(
         key: FileKey,
         branchData: Boolean?,
+        version: String?,
     ) = apiRequest<GetFilesResponse>(
         method = HttpMethod.Get,
         path = "/v1/files/$key",
         authenticated = true,
         queryParams = mapOf(
             "branch_data" to branchData,
+            "version" to version,
         ),
     )
 
@@ -68,10 +70,14 @@ class FigmaApiImpl(
      */
     override suspend fun getLocalVariables(
         key: FileKey,
+        version: String?,
     ): ApiResponse<GetLocalVariablesResponse> = apiRequest<GetLocalVariablesResponse>(
         method = HttpMethod.Get,
         path = "/v1/files/${key}/variables/local",
         authenticated = true,
+        queryParams = mapOf(
+            "version" to version,
+        ),
     )
 }
 

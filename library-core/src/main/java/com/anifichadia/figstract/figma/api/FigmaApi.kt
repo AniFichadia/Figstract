@@ -11,6 +11,7 @@ interface FigmaApi {
     suspend fun getFile(
         key: FileKey,
         branchData: Boolean? = null,
+        version: String? = null,
     ): ApiResponse<GetFilesResponse>
 
     /**
@@ -27,5 +28,6 @@ interface FigmaApi {
 
     suspend fun getLocalVariables(
         key: FileKey,
+        version: String? = null,
     ): ApiResponse<GetLocalVariablesResponse>
 }

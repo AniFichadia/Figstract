@@ -36,10 +36,12 @@ class FigmaApiProxyWithFlowControl(
     override suspend fun getFile(
         key: FileKey,
         branchData: Boolean?,
+        version: String?,
     ): ApiResponse<GetFilesResponse> = wrapRequest {
         getFile(
             key = key,
             branchData = branchData,
+            version = version,
         )
     }
 
@@ -63,9 +65,11 @@ class FigmaApiProxyWithFlowControl(
 
     override suspend fun getLocalVariables(
         key: FileKey,
+        version: String?,
     ): ApiResponse<GetLocalVariablesResponse> = wrapRequest {
         getLocalVariables(
             key = key,
+            version = version,
         )
     }
 
