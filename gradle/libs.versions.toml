@@ -26,7 +26,7 @@ androidTools = "32.3.0-alpha01"
 scrimage = "4.4.2"
 
 # https://github.com/square/kotlinpoet
-kotlinPoet = "2.2.0"
+kotlinPoet = "2.3.0"
 
 # https://github.com/outfoxx/swiftpoet
 swiftPoet = "1.6.11"
