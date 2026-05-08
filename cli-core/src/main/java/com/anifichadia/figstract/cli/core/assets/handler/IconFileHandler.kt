@@ -28,6 +28,7 @@ import java.io.File
 @Suppress("SameParameterValue")
 internal fun createIconFigmaFileHandler(
     figmaFile: FileKey,
+    figmaFileBranchName: String?,
     androidOutDirectory: File?,
     iosOutDirectory: File?,
     webOutDirectory: File?,
@@ -121,6 +122,7 @@ internal fun createIconFigmaFileHandler(
     return if (jsonPath == null) {
         AssetFileHandler(
             figmaFile = figmaFile,
+            figmaFileBranchName = figmaFileBranchName,
             assetsPerChunk = assetsPerChunk,
             lifecycle = lifecycle,
         ) { response, _ ->
@@ -150,6 +152,7 @@ internal fun createIconFigmaFileHandler(
     } else {
         JsonPathAssetFileHandler(
             figmaFile = figmaFile,
+            figmaFileBranchName = figmaFileBranchName,
             jsonPath = jsonPath,
             assetsPerChunk = assetsPerChunk,
             lifecycle = lifecycle,

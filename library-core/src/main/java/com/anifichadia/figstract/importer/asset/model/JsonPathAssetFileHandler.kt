@@ -17,6 +17,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 @Suppress("FunctionName")
 fun JsonPathAssetFileHandler(
     figmaFile: FileKey,
+    figmaFileBranchName: String?,
     jsonPath: String,
     assetsPerChunk: Int = AssetFileHandler.DEFAULT_ASSETS_PER_CHUNK,
     lifecycle: Lifecycle = Lifecycle.NoOp,
@@ -30,6 +31,7 @@ fun JsonPathAssetFileHandler(
 
     return AssetFileHandler(
         figmaFile = figmaFile,
+        figmaFileBranchName = figmaFileBranchName,
         assetsPerChunk = assetsPerChunk,
         lifecycle = lifecycle,
     ) { response, _ ->

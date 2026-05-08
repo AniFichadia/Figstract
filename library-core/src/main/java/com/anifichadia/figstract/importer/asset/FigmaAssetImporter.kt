@@ -20,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapMerge
@@ -61,6 +62,43 @@ class FigmaAssetImporter(
     }
 
     private fun createProcessingFlowForHandler(handler: AssetFileHandler): Flow<Unit> {
+        return flow {
+            val resolvedHandler = assetFileHandlerForBranch(handler)
+            val flow = createResolvedProcessingFlow(resolvedHandler)
+            emitAll(flow)
+        }
+    }
+
+    private suspend fun assetFileHandlerForBranch(handler: AssetFileHandler): AssetFileHandler {
+        val figmaFileBranchName = handler.figmaFileBranchName
+
+        logger.debug { "Resolving branch '$figmaFileBranchName' for ${handler.figmaFile}" }
+
+        if (figmaFileBranchName == null) {
+            return handler
+        }
+
+        val response = figmaApi.getFile(
+            key = handler.figmaFile,
+            branchData = true,
+        )
+
+        val branches = response
+            .successBodyOrThrow()
+            .branches
+
+        logger.debug { "Branches: $branches" }
+
+        val branchKey = branches
+            ?.firstOrNull { it.name == figmaFileBranchName }?.key
+            ?: error("Branch '$figmaFileBranchName' not found in ${handler.figmaFile}")
+
+        logger.debug { "Resolved branch '$figmaFileBranchName' to key: $branchKey" }
+
+        return handler.withResolvedBranchKey(branchKey)
+    }
+
+    private fun createResolvedProcessingFlow(handler: AssetFileHandler): Flow<Unit> {
         val figmaFile = handler.figmaFile
         var lastUpdated: OffsetDateTime? = null
 

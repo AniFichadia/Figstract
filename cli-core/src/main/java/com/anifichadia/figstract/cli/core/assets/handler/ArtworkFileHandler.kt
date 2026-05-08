@@ -30,6 +30,7 @@ import java.io.File
 @Suppress("SameParameterValue")
 internal fun createArtworkFigmaFileHandler(
     figmaFile: FileKey,
+    figmaFileBranchName: String?,
     createUncropped: Boolean,
     createCropped: Boolean,
     androidOutDirectory: File?,
@@ -92,6 +93,7 @@ internal fun createArtworkFigmaFileHandler(
     return if (jsonPath == null) {
         AssetFileHandler(
             figmaFile = figmaFile,
+            figmaFileBranchName = figmaFileBranchName,
             lifecycle = lifecycle,
         ) { response, _ ->
             val canvases = response.document.children
@@ -164,6 +166,7 @@ internal fun createArtworkFigmaFileHandler(
     } else {
         JsonPathAssetFileHandler(
             figmaFile = figmaFile,
+            figmaFileBranchName = figmaFileBranchName,
             jsonPath = jsonPath,
             lifecycle = lifecycle,
             canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
