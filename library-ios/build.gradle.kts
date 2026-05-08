@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.SourcesJar
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -23,8 +24,8 @@ dependencies {
 mavenPublishing {
     configure(
         KotlinJvm(
-            javadocJar = JavadocJar.Dokka(tasks.dokkaGenerateModuleJavadoc.name),
-            sourcesJar = true,
+            javadocJar = JavadocJar.Dokka(tasks.dokkaGenerateModuleJavadoc),
+            sourcesJar = SourcesJar.Sources(),
         )
     )
 }

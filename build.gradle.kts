@@ -1,10 +1,9 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
 import java.util.*
 
 // Make sure these are always in sync
-val javaVersion = JavaVersion.VERSION_17
-val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(17)
+val javaVersion = JavaVersion.VERSION_21
+val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(21)
 
 val githubAuthor = "AniFichadia"
 val githubRepo = "Figstract"
@@ -78,7 +77,7 @@ subprojects {
     }
 
     mavenPublishing {
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+        publishToMavenCentral()
 
         signAllPublications()
 
