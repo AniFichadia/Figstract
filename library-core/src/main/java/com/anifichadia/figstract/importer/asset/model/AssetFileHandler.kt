@@ -7,6 +7,7 @@ import com.anifichadia.figstract.importer.Lifecycle
 data class AssetFileHandler(
     val figmaFile: FileKey,
     val figmaFileBranchName: String?,
+    val figmaFileVersion: String?,
     val assetsPerChunk: Int = DEFAULT_ASSETS_PER_CHUNK,
     val lifecycle: Lifecycle = Lifecycle.NoOp,
     val extractor: Extractor,

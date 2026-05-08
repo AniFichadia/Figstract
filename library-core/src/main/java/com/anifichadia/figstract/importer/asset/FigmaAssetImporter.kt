@@ -142,6 +142,7 @@ class FigmaAssetImporter(
                 logger.debug { "Fetching ${handler.figmaFile}: Start" }
                 val getFileApiResponse = figmaApi.getFile(
                     key = handler.figmaFile,
+                    version = handler.figmaFileVersion,
                 )
                 logger.info { "Fetching ${handler.figmaFile}: Finish ${getFileApiResponse.isSuccess()}" }
                 getFileApiResponse.logError { "Fetching ${handler.figmaFile}" }
