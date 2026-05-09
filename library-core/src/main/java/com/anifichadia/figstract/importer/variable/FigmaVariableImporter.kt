@@ -8,6 +8,7 @@ import com.anifichadia.figstract.figma.model.Color
 import com.anifichadia.figstract.figma.model.GetLocalVariablesResponse
 import com.anifichadia.figstract.figma.model.Mode
 import com.anifichadia.figstract.figma.model.Variable
+import com.anifichadia.figstract.importer.getFileWithBranchName
 import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
@@ -19,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
@@ -49,6 +51,25 @@ class FigmaVariableImporter(
     }
 
     private fun createProcessingFlow(handler: VariableFileHandler): Flow<Unit> {
+        return flow {
+            val resolvedHandler = variableFileHandlerForBranch(handler)
+            emitAll(createResolvedProcessingFlow(resolvedHandler))
+        }
+    }
+
+    private suspend fun variableFileHandlerForBranch(handler: VariableFileHandler): VariableFileHandler {
+        val figmaFileBranchName = handler.figmaFileBranchName ?: return handler
+
+        val branchKey = figmaApi.getFileWithBranchName(
+            key = handler.figmaFile,
+            branchName = figmaFileBranchName,
+            logger = logger,
+        )
+
+        return handler.withResolvedBranchKey(branchKey)
+    }
+
+    private fun createResolvedProcessingFlow(handler: VariableFileHandler): Flow<Unit> {
         val handlersFlow = flowOf(handler)
 
         val fileFlow = createFigmaFileFlow(handlersFlow)
@@ -67,6 +88,7 @@ class FigmaVariableImporter(
                 logger.debug { "Fetching ${handler.figmaFile}: Start" }
                 val getLocalVariablesResponse = figmaApi.getLocalVariables(
                     key = handler.figmaFile,
+                    version = handler.figmaFileVersion,
                 )
                 logger.info { "Fetching ${handler.figmaFile}: Finish ${getLocalVariablesResponse.isSuccess()}" }
                 getLocalVariablesResponse.logError { "Fetching ${handler.figmaFile}" }

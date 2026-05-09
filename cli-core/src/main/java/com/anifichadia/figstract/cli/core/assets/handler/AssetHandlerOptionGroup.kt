@@ -19,6 +19,8 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
         .boolean()
         .default(false)
     private val figmaFile by option("--${prefix}FigmaFile")
+    private val figmaFileBranchName by option("--${prefix}FigmaFileBranchName")
+    private val figmaFileVersion by option("--${prefix}FigmaFileVersion")
     private val filters by AssetFilterOptionGroup(prefix)
     private val jsonPath by option("--${prefix}JsonPath")
     protected abstract val nameGenerators: AssetTokenStringGeneratorOptionGroup
@@ -33,6 +35,8 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
             if (figmaFile != null) {
                 return createHandlerInternal(
                     figmaFile = figmaFile,
+                    figmaFileBranchName = figmaFileBranchName,
+                    figmaFileVersion = figmaFileVersion,
                     androidOutDirectory = androidOutDirectory,
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
@@ -48,6 +52,8 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
 
     protected abstract fun createHandlerInternal(
         figmaFile: String,
+        figmaFileBranchName: String?,
+        figmaFileVersion: String?,
         androidOutDirectory: File?,
         iosOutDirectory: File?,
         webOutDirectory: File?,
@@ -72,6 +78,8 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
 
     override fun createHandlerInternal(
         figmaFile: String,
+        figmaFileBranchName: String?,
+        figmaFileVersion: String?,
         androidOutDirectory: File?,
         iosOutDirectory: File?,
         webOutDirectory: File?,
@@ -82,6 +90,8 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
 
         return createArtworkFigmaFileHandler(
             figmaFile = figmaFile,
+            figmaFileBranchName = figmaFileBranchName,
+            figmaFileVersion = figmaFileVersion,
             createUncropped = artworkCreateUncropped,
             createCropped = artworkCreateCropped,
             androidOutDirectory = androidOutDirectory,
@@ -109,6 +119,8 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
 
     override fun createHandlerInternal(
         figmaFile: String,
+        figmaFileBranchName: String?,
+        figmaFileVersion: String?,
         androidOutDirectory: File?,
         iosOutDirectory: File?,
         webOutDirectory: File?,
@@ -117,6 +129,8 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
     ): AssetFileHandler {
         return createIconFigmaFileHandler(
             figmaFile = figmaFile,
+            figmaFileBranchName = figmaFileBranchName,
+            figmaFileVersion = figmaFileVersion,
             androidOutDirectory = androidOutDirectory,
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,

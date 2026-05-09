@@ -4,12 +4,19 @@ import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.figma.model.GetFilesResponse
 import com.anifichadia.figstract.importer.Lifecycle
 
-class AssetFileHandler(
+data class AssetFileHandler(
     val figmaFile: FileKey,
+    val figmaFileBranchName: String?,
+    val figmaFileVersion: String?,
     val assetsPerChunk: Int = DEFAULT_ASSETS_PER_CHUNK,
     val lifecycle: Lifecycle = Lifecycle.NoOp,
     val extractor: Extractor,
 ) {
+    fun withResolvedBranchKey(branchKey: FileKey) = copy(
+        figmaFile = branchKey,
+        figmaFileBranchName = null,
+    )
+
     /**
      * Process a Figma [GetFilesResponse] to create [Instruction] on how to extract from the file
      */

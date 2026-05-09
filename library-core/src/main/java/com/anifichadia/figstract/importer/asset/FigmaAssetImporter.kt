@@ -9,6 +9,7 @@ import com.anifichadia.figstract.figma.model.GetImageResponse
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figstract.importer.getFileWithBranchName
 import com.anifichadia.figstract.model.tracking.ProcessingRecordRepository
 import com.anifichadia.figstract.util.createLogger
 import io.ktor.client.HttpClient
@@ -20,6 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapMerge
@@ -61,6 +63,26 @@ class FigmaAssetImporter(
     }
 
     private fun createProcessingFlowForHandler(handler: AssetFileHandler): Flow<Unit> {
+        return flow {
+            val resolvedHandler = assetFileHandlerForBranch(handler)
+            val flow = createResolvedProcessingFlow(resolvedHandler)
+            emitAll(flow)
+        }
+    }
+
+    private suspend fun assetFileHandlerForBranch(handler: AssetFileHandler): AssetFileHandler {
+        val figmaFileBranchName = handler.figmaFileBranchName ?: return handler
+
+        val branchKey = figmaApi.getFileWithBranchName(
+            key = handler.figmaFile,
+            branchName = figmaFileBranchName,
+            logger = logger,
+        )
+
+        return handler.withResolvedBranchKey(branchKey)
+    }
+
+    private fun createResolvedProcessingFlow(handler: AssetFileHandler): Flow<Unit> {
         val figmaFile = handler.figmaFile
         var lastUpdated: OffsetDateTime? = null
 
@@ -104,6 +126,7 @@ class FigmaAssetImporter(
                 logger.debug { "Fetching ${handler.figmaFile}: Start" }
                 val getFileApiResponse = figmaApi.getFile(
                     key = handler.figmaFile,
+                    version = handler.figmaFileVersion,
                 )
                 logger.info { "Fetching ${handler.figmaFile}: Finish ${getFileApiResponse.isSuccess()}" }
                 getFileApiResponse.logError { "Fetching ${handler.figmaFile}" }
