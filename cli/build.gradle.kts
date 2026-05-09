@@ -1,6 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import com.vanniktech.maven.publish.JavadocJar
 import com.vanniktech.maven.publish.KotlinJvm
+import com.vanniktech.maven.publish.SourcesJar
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -35,8 +36,8 @@ tasks.withType<ShadowJar> {
 mavenPublishing {
     configure(
         KotlinJvm(
-            javadocJar = JavadocJar.Dokka(tasks.dokkaGenerateModuleJavadoc.name),
-            sourcesJar = true,
+            javadocJar = JavadocJar.Dokka(tasks.dokkaGenerateModuleJavadoc),
+            sourcesJar = SourcesJar.Sources(),
         )
     )
 }
