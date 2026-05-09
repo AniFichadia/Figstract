@@ -58,6 +58,37 @@ java -jar /path/to/cli.jar --help
 
 The CLI can be configured with CLI args, or by supplying a `[subcommandName].properties` file with the same keys as the arguments in the working directory (e.g. `assets.properties`).
 
+### Custom CA Certificates (Corporate networks)
+
+Some corporates may use of custom CA certificates for internal monitoring, causing the JVM to fail certificate verification and prevent access to the Figma API or where assets are stored.
+You can create a custom truststore that includes your organisation's CA certificates:
+
+1. Copy default JVM cacerts:
+    ```shell
+    cp $JAVA_HOME/lib/security/cacerts ~/.figstract-cacerts
+    ```
+2. Export your organisation's CA certs as a `.pem` or `.cer` file.
+   This really depends on how CA certs are managed within your organisation.
+   On MacOS, these may be located **Keychain access** under the **System** or **System Roots** keychains.
+   CA certs may also be provided for use for these purposes.
+3. Import each CA cert into the truststore using (include the appropriate `<ca-cert>` and
+   `/path/to/ca/cert.pem` values per cert):
+    ```shell
+    keytool -importcert \
+      -alias <cert-alias> \
+      -file /path/to/ca/cert.pem \
+      -keystore ~/.figstract-cacerts \
+      -storepass changeit \
+      -noprompt
+    ```
+4. Configure truststore when running Figstract by providing the java truststore flags (`javax.net.ssl.trustStore` and
+   `javax.net.ssl.trustStorePassword`):
+    ```shell
+    java -Djavax.net.ssl.trustStore=~/.figstract-cacerts \
+         -Djavax.net.ssl.trustStorePassword=changeit \
+         -jar /path/to/cli.jar [options]
+    ```
+
 ## Authentication
 
 Figstract supports the following authentication mechanisms to accessing Figma:
