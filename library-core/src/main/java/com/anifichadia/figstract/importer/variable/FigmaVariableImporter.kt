@@ -8,6 +8,7 @@ import com.anifichadia.figstract.figma.model.Color
 import com.anifichadia.figstract.figma.model.GetLocalVariablesResponse
 import com.anifichadia.figstract.figma.model.Mode
 import com.anifichadia.figstract.figma.model.Variable
+import com.anifichadia.figstract.importer.getFileWithBranchName
 import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
@@ -57,30 +58,13 @@ class FigmaVariableImporter(
     }
 
     private suspend fun variableFileHandlerForBranch(handler: VariableFileHandler): VariableFileHandler {
-        val figmaFileBranchName = handler.figmaFileBranchName
+        val figmaFileBranchName = handler.figmaFileBranchName ?: return handler
 
-        logger.debug { "Resolving branch '$figmaFileBranchName' for ${handler.figmaFile}" }
-
-        if (figmaFileBranchName == null) {
-            return handler
-        }
-
-        val response = figmaApi.getFile(
+        val branchKey = figmaApi.getFileWithBranchName(
             key = handler.figmaFile,
-            branchData = true,
+            branchName = figmaFileBranchName,
+            logger = logger,
         )
-
-        val branches = response
-            .successBodyOrThrow()
-            .branches
-
-        logger.debug { "Branches: $branches" }
-
-        val branchKey = branches
-            ?.firstOrNull { it.name == figmaFileBranchName }?.key
-            ?: error("Branch '$figmaFileBranchName' not found in ${handler.figmaFile}")
-
-        logger.debug { "Resolved branch '$figmaFileBranchName' to key: $branchKey" }
 
         return handler.withResolvedBranchKey(branchKey)
     }

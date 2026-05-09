@@ -9,6 +9,7 @@ import com.anifichadia.figstract.figma.model.GetImageResponse
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figstract.importer.getFileWithBranchName
 import com.anifichadia.figstract.model.tracking.ProcessingRecordRepository
 import com.anifichadia.figstract.util.createLogger
 import io.ktor.client.HttpClient
@@ -70,30 +71,13 @@ class FigmaAssetImporter(
     }
 
     private suspend fun assetFileHandlerForBranch(handler: AssetFileHandler): AssetFileHandler {
-        val figmaFileBranchName = handler.figmaFileBranchName
+        val figmaFileBranchName = handler.figmaFileBranchName ?: return handler
 
-        logger.debug { "Resolving branch '$figmaFileBranchName' for ${handler.figmaFile}" }
-
-        if (figmaFileBranchName == null) {
-            return handler
-        }
-
-        val response = figmaApi.getFile(
+        val branchKey = figmaApi.getFileWithBranchName(
             key = handler.figmaFile,
-            branchData = true,
+            branchName = figmaFileBranchName,
+            logger = logger,
         )
-
-        val branches = response
-            .successBodyOrThrow()
-            .branches
-
-        logger.debug { "Branches: $branches" }
-
-        val branchKey = branches
-            ?.firstOrNull { it.name == figmaFileBranchName }?.key
-            ?: error("Branch '$figmaFileBranchName' not found in ${handler.figmaFile}")
-
-        logger.debug { "Resolved branch '$figmaFileBranchName' to key: $branchKey" }
 
         return handler.withResolvedBranchKey(branchKey)
     }
