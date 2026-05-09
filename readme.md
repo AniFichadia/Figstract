@@ -29,6 +29,7 @@ Figstract uses the [Figma REST API](https://www.figma.com/developers/api) and ha
 - **Concurrent and Parallel**: Uses concurrency and multithreading to process Figma files at speed
 - **Multi-file**: Operations can handle multiple Figma files in parallel
 - **Flexible filters**: Manage included and excluded tokens
+- **Theme-aware**: Supports light/dark theme variant mapping for variables, generating separate light and dark values in a single pass
 
 Figstract operations use a processing pipeline:
 
@@ -46,7 +47,7 @@ To create a runnable fat JAR, just run the following Gradle command:
 ./gradlew :cli:shadowJar
 ```
 
-The compiled JAR will be located in `cli/build/libs/cli-0.0.1-alpha01-all.jar` (make sure you use the `.jar` with the name ending in `-all`).
+The compiled JAR will be located in `cli/build/libs/cli-<version>-all.jar` (make sure you use the `.jar` with the name ending in `-all`).
 
 ## Running
 
@@ -69,7 +70,7 @@ You can create a custom truststore that includes your organisation's CA certific
     ```
 2. Export your organisation's CA certs as a `.pem` or `.cer` file.
    This really depends on how CA certs are managed within your organisation.
-   On MacOS, these may be located **Keychain access** under the **System** or **System Roots** keychains.
+   On MacOS, these may be located in **Keychain access** under the **System** or **System Roots** keychains.
    CA certs may also be provided for use for these purposes.
 3. Import each CA cert into the truststore using (include the appropriate `<ca-cert>` and
    `/path/to/ca/cert.pem` values per cert):
@@ -113,8 +114,7 @@ Either one auth credential can be generated with all the scopes above, or specif
 ## Logging
 
 Figstract uses [kotlin-logging](https://github.com/oshai/kotlin-logging) and [Logback](https://logback.qos.ch/) for logging, and logs errors to the console by default.
-When using the CLI, the log level can be configured using the `--logLevel` option (e.g.
-`--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
+When using the CLI, the log level can be configured using the `--logLevel` option (e.g. `--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
 
 ## Assets
 
@@ -263,5 +263,7 @@ TODO
 ## In development
 
 - Shell wrapper
-- Github action support
+- GitHub action support
 - Better error handling
+- Android XML variable output
+- iOS variable output
