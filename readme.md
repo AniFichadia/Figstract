@@ -231,6 +231,31 @@ All variable types (booleans, numbers, strings and colors) are supported.
 
 All variable types will be outputted by default, but can be configured to be omitted completely.
 
+### Filtering
+
+Variables can be filtered by collection name, mode name, and type.
+Include and exclude filters are mutually exclusive for a given dimension and can be repeated to supply multiple patterns.
+
+- Collection filters: `--filterIncludedVariableCollection` / `--filterExcludedVariableCollection`
+- Mode filters: `--filterIncludedMode` / `--filterExcludedMode`
+- Type filters: `--includeTypeBoolean`, `--includeTypeNumber`, `--includeTypeString`, `--includeTypeColor` (all default `true`)
+
+### Theme variant mapping
+
+Figstract supports resolving variables to themes.
+
+#### Light / Dark
+
+When a Figma variable collection uses modes to represent light and dark themes, Figstract can map these to a `LightAndDark` resolved mapping with separate light and dark values.
+This is particularly useful for Android Compose, where `light` and `dark` companion object properties are generated on the output type, ready to be used with `isSystemInDarkTheme()`.
+
+When no light/dark mapping is detected, all modes are output individually as separate nested objects.
+
+#### Material theming
+
+> [!NOTE]
+> Coming soon
+
 ### Output formats
 
 All output formats use the variable collection's name as the file name.
@@ -328,6 +353,28 @@ public object MyVariableCollection {
             public val colorHexVar2: Color = Color(0xFFFFFFFF)
         }
     }
+}
+```
+
+When light/dark theme variant mapping is active (see [Theme variant mapping](#theme-variant-mapping)), the output uses a `data class` with `light` and `dark` companion properties instead of nested objects:
+
+```kotlin
+public object MyVariableCollection {
+   public data class Colors(
+      val primaryColor: Color,
+      val backgroundColor: Color,
+   ) {
+      public companion object {
+         public val light: Colors = Colors(
+            primaryColor = Color(0xFF0057FF),
+            backgroundColor = Color(0xFFFFFFFF),
+         )
+         public val dark: Colors = Colors(
+            primaryColor = Color(0xFF82AAFF),
+            backgroundColor = Color(0xFF121212),
+         )
+      }
+   }
 }
 ```
 
