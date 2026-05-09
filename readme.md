@@ -88,7 +88,7 @@ You can create a custom truststore that includes your organisation's CA certific
     java -Djavax.net.ssl.trustStore=~/.figstract-cacerts \
          -Djavax.net.ssl.trustStorePassword=changeit \
          -jar /path/to/cli.jar [options]
-    ```
+   ```
 
 ### Proxy
 
@@ -126,22 +126,103 @@ When using the CLI, the log level can be configured using the `--logLevel` optio
 
 ## Assets
 
-TODO:
+Figstract extracts two types of assets from Figma files: **artwork** (raster images) and **icons** (vector graphics).
+Both are configured independently and can target multiple platforms in a single run.
 
-- supported output formats
-    - Web
-    - Android
-        - WEBP images automatically scaled in density buckets
-        - Android Vector Drawables which have been magenta-fied for tinting
-    - iOS
-        - [Asset catalogs](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with scale support
-- Asset format within figma files
-- Composable pipeline for importing and converting assets
-- JsonPath support
-    - Supports Stefan Goessner's JsonPath implementation using https://github.com/json-path/JsonPath
-    - JsonPath expressions are relative to each Canvas and should locate the required node. Refer to the [Figma API Node reference](https://www.figma.com/developers/api#node-types)
-    - Canvas and node filters will be applied, but parent node filters aren't supported for now
-- Custom naming
+### Asset format in Figma files
+
+By default, Figstract locates assets by traversing the Figma node tree:
+
+- **Artwork** are parent nodes containing a child with an image fill.
+  Cropped and uncropped variants are produced by exporting either the parent node or the image fill child.
+- **Icons** are `Component` nodes containing `Vector` children, placed as direct children of a canvas (page)
+
+If your Figma file uses a non-standard layout, use [JsonPath](#jsonpath) to locate nodes instead.
+
+### Figma file targeting
+
+Each asset handler targets a single Figma file using its file key.
+The file can be targeted at a specific version or branch.
+Figma file branches have their own distinct file key, but can alternatively be accessed using the parent file's key combined with `--[artwork | icon]FigmaFileBranchName`.
+
+The following args provide file targeting options:
+- `--artworkFigmaFile` / `--iconsFigmaFile`: the Figma file key
+- `--artworkFigmaFileBranchName` / `--iconsFigmaFileBranchName`: file branch name
+- `--artworkFigmaFileVersion` / `--iconsFigmaFileVersion`: file version
+
+### Composable pipeline
+
+Asset importing uses a composable pipeline, allowing you to chain transformers and handlers together.
+This makes it possible to apply format conversion, renaming, and other processing steps in a flexible way.
+
+### Filtering
+
+Assets can be filtered by canvas (page), node, and parent node name using regex patterns.
+Include and exclude filters are mutually exclusive. 
+Filters can be repeated to supply multiple patterns.
+
+- Canvas filters: `--artworkFilterIncludedCanvas` / `--artworkFilterExcludedCanvas` (and `icons` equivalents)
+- Node filters: `--artworkFilterIncludedNode` / `--artworkFilterExcludedNode`
+- Parent node filters: `--artworkFilterIncludedParentNode` / `--artworkFilterExcludedParentNode`
+
+### JsonPath
+
+[JsonPath](https://github.com/json-path/JsonPath) expressions (Stefan Goessner's implementation) can be used to locate nodes.
+Expressions are relative to each canvas and should locate the required node (refer to the [Figma API Node reference](https://www.figma.com/developers/api#node-types) for node types).
+Canvas and node filters will be applied, but parent node filters aren't supported when using JsonPath.
+
+Use `--artworkJsonPath` or `--iconsJsonPath` to supply the expression.
+
+### Custom naming
+
+Output file names can be customised using a format string.
+The following tokens are supported, wrapped in `{}`:
+
+- `canvas.id` — the canvas (page) ID
+- `canvas.name` — the canvas (page) name
+- `node.id` — the node ID
+- `node.name` — the node name
+- `node.name.split "<sep>" first` — splits the node name on `<sep>` (a regex) and takes the first segment
+- `node.name.split "<sep>" last` — splits the node name on `<sep>` (a regex) and takes the last segment
+- `node.name.split "<sep>" <N>` — splits the node name on `<sep>` (a regex) and takes the segment at index `N`
+
+If the separator is not found in the node name, the full name is used.
+
+Names are automatically cased to match platform conventions (snake_case for Android and Web, UpperCamelCase for iOS). 
+Override the format using `--artworkAndroidFormat`, `--artworkIosFormat`, `--artworkWebFormat` (and `icons` equivalents).
+
+### Processing records
+
+Processing records prevent re-processing Figma files that haven't changed since the last run, based on the file's last-modified timestamp.
+The record is stored as `processing_record.json` in the output directory.
+
+- `--processingRecordEnabled` (default `true`): enable or disable processing records
+- `--processingRecordName`: a unique name suffix for the record file, useful when running multiple configurations against the same Figma file (e.g. `processing_record_icons.json`)
+
+### Output formats
+
+At least one platform must be enabled (`--platformAndroid`, `--platformIos`, `--platformWeb`).
+Output is written to `android/`, `ios/`, and `web/` subdirectories within the output directory.
+
+#### Web
+
+- **Artwork**: PNG
+- **Icons**: SVG
+
+#### Android
+
+- **Artwork**: PNG scaled into density buckets (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) from a `xxxhdpi` source
+- **Icons**: SVG converted to Android Vector Drawable (AVD), with colors replaced by a magenta placeholder for tinting
+
+Artwork supports two crop modes, configured per run:
+
+- `--artworkCreateUncropped` (default `true`): exports the full frame using the parent
+- `--artworkCreateCropped` (default `false`): exports the image fill only, appending a `_cropped` suffix
+
+#### iOS
+
+- **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source
+- **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
 
 ## Variables
 
