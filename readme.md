@@ -29,6 +29,7 @@ Figstract uses the [Figma REST API](https://www.figma.com/developers/api) and ha
 - **Concurrent and Parallel**: Uses concurrency and multithreading to process Figma files at speed
 - **Multi-file**: Operations can handle multiple Figma files in parallel
 - **Flexible filters**: Manage included and excluded tokens
+- **Theme-aware**: Supports light/dark theme variant mapping for variables, generating separate light and dark values in a single pass
 
 Figstract operations use a processing pipeline:
 
@@ -46,7 +47,7 @@ To create a runnable fat JAR, just run the following Gradle command:
 ./gradlew :cli:shadowJar
 ```
 
-The compiled JAR will be located in `cli/build/libs/cli-0.0.1-alpha01-all.jar` (make sure you use the `.jar` with the name ending in `-all`).
+The compiled JAR will be located in `cli/build/libs/cli-<version>-all.jar` (make sure you use the `.jar` with the name ending in `-all`).
 
 ## Running
 
@@ -69,7 +70,7 @@ You can create a custom truststore that includes your organisation's CA certific
     ```
 2. Export your organisation's CA certs as a `.pem` or `.cer` file.
    This really depends on how CA certs are managed within your organisation.
-   On MacOS, these may be located **Keychain access** under the **System** or **System Roots** keychains.
+   On MacOS, these may be located in **Keychain access** under the **System** or **System Roots** keychains.
    CA certs may also be provided for use for these purposes.
 3. Import each CA cert into the truststore using (include the appropriate `<ca-cert>` and
    `/path/to/ca/cert.pem` values per cert):
@@ -87,7 +88,15 @@ You can create a custom truststore that includes your organisation's CA certific
     java -Djavax.net.ssl.trustStore=~/.figstract-cacerts \
          -Djavax.net.ssl.trustStorePassword=changeit \
          -jar /path/to/cli.jar [options]
-    ```
+   ```
+
+### Proxy
+
+If your network requires a proxy to reach the Figma API or asset download URLs, configure it using:
+
+- `--proxyType`: `HTTP` or `SOCKS` (default: none)
+- `--proxyHost`: proxy hostname
+- `--proxyPort`: proxy port
 
 ## Authentication
 
@@ -113,27 +122,107 @@ Either one auth credential can be generated with all the scopes above, or specif
 ## Logging
 
 Figstract uses [kotlin-logging](https://github.com/oshai/kotlin-logging) and [Logback](https://logback.qos.ch/) for logging, and logs errors to the console by default.
-When using the CLI, the log level can be configured using the `--logLevel` option (e.g.
-`--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
+When using the CLI, the log level can be configured using the `--logLevel` option (e.g. `--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
 
 ## Assets
 
-TODO:
+Figstract extracts two types of assets from Figma files: **artwork** (raster images) and **icons** (vector graphics).
+Both are configured independently and can target multiple platforms in a single run.
 
-- supported output formats
-    - Web
-    - Android
-        - WEBP images automatically scaled in density buckets
-        - Android Vector Drawables which have been magenta-fied for tinting
-    - iOS
-        - [Asset catalogs](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with scale support
-- Asset format within figma files
-- Composable pipeline for importing and converting assets
-- JsonPath support
-    - Supports Stefan Goessner's JsonPath implementation using https://github.com/json-path/JsonPath
-    - JsonPath expressions are relative to each Canvas and should locate the required node. Refer to the [Figma API Node reference](https://www.figma.com/developers/api#node-types)
-    - Canvas and node filters will be applied, but parent node filters aren't supported for now
-- Custom naming
+### Asset format in Figma files
+
+By default, Figstract locates assets by traversing the Figma node tree:
+
+- **Artwork** are parent nodes containing a child with an image fill.
+  Cropped and uncropped variants are produced by exporting either the parent node or the image fill child.
+- **Icons** are `Component` nodes containing `Vector` children, placed as direct children of a canvas (page)
+
+If your Figma file uses a non-standard layout, use [JsonPath](#jsonpath) to locate nodes instead.
+
+### Figma file targeting
+
+Each asset handler targets a single Figma file using its file key.
+The file can be targeted at a specific version or branch.
+Figma file branches have their own distinct file key, but can alternatively be accessed using the parent file's key combined with `--[artwork | icon]FigmaFileBranchName`.
+
+The following args provide file targeting options:
+- `--artworkFigmaFile` / `--iconsFigmaFile`: the Figma file key
+- `--artworkFigmaFileBranchName` / `--iconsFigmaFileBranchName`: file branch name
+- `--artworkFigmaFileVersion` / `--iconsFigmaFileVersion`: file version
+
+### Composable pipeline
+
+Asset importing uses a composable pipeline, allowing you to chain transformers and handlers together.
+This makes it possible to apply format conversion, renaming, and other processing steps in a flexible way.
+
+### Filtering
+
+Assets can be filtered by canvas (page), node, and parent node name using regex patterns.
+Include and exclude filters are mutually exclusive. 
+Filters can be repeated to supply multiple patterns.
+
+- Canvas filters: `--artworkFilterIncludedCanvas` / `--artworkFilterExcludedCanvas` (and `icons` equivalents)
+- Node filters: `--artworkFilterIncludedNode` / `--artworkFilterExcludedNode`
+- Parent node filters: `--artworkFilterIncludedParentNode` / `--artworkFilterExcludedParentNode`
+
+### JsonPath
+
+[JsonPath](https://github.com/json-path/JsonPath) expressions (Stefan Goessner's implementation) can be used to locate nodes.
+Expressions are relative to each canvas and should locate the required node (refer to the [Figma API Node reference](https://www.figma.com/developers/api#node-types) for node types).
+Canvas and node filters will be applied, but parent node filters aren't supported when using JsonPath.
+
+Use `--artworkJsonPath` or `--iconsJsonPath` to supply the expression.
+
+### Custom naming
+
+Output file names can be customised using a format string.
+The following tokens are supported, wrapped in `{}`:
+
+- `canvas.id` — the canvas (page) ID
+- `canvas.name` — the canvas (page) name
+- `node.id` — the node ID
+- `node.name` — the node name
+- `node.name.split "<sep>" first` — splits the node name on `<sep>` (a regex) and takes the first segment
+- `node.name.split "<sep>" last` — splits the node name on `<sep>` (a regex) and takes the last segment
+- `node.name.split "<sep>" <N>` — splits the node name on `<sep>` (a regex) and takes the segment at index `N`
+
+If the separator is not found in the node name, the full name is used.
+
+Names are automatically cased to match platform conventions (snake_case for Android and Web, UpperCamelCase for iOS). 
+Override the format using `--artworkAndroidFormat`, `--artworkIosFormat`, `--artworkWebFormat` (and `icons` equivalents).
+
+### Processing records
+
+Processing records prevent re-processing Figma files that haven't changed since the last run, based on the file's last-modified timestamp.
+The record is stored as `processing_record.json` in the output directory.
+
+- `--processingRecordEnabled` (default `true`): enable or disable processing records
+- `--processingRecordName`: a unique name suffix for the record file, useful when running multiple configurations against the same Figma file (e.g. `processing_record_icons.json`)
+
+### Output formats
+
+At least one platform must be enabled (`--platformAndroid`, `--platformIos`, `--platformWeb`).
+Output is written to `android/`, `ios/`, and `web/` subdirectories within the output directory.
+
+#### Web
+
+- **Artwork**: PNG
+- **Icons**: SVG
+
+#### Android
+
+- **Artwork**: PNG scaled into density buckets (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) from a `xxxhdpi` source
+- **Icons**: SVG converted to Android Vector Drawable (AVD), with colors replaced by a magenta placeholder for tinting
+
+Artwork supports two crop modes, configured per run:
+
+- `--artworkCreateUncropped` (default `true`): exports the full frame using the parent
+- `--artworkCreateCropped` (default `false`): exports the image fill only, appending a `_cropped` suffix
+
+#### iOS
+
+- **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source
+- **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
 
 ## Variables
 
@@ -141,6 +230,31 @@ Figstract can extract [local variables](https://www.figma.com/developers/api#get
 All variable types (booleans, numbers, strings and colors) are supported.
 
 All variable types will be outputted by default, but can be configured to be omitted completely.
+
+### Filtering
+
+Variables can be filtered by collection name, mode name, and type.
+Include and exclude filters are mutually exclusive for a given dimension and can be repeated to supply multiple patterns.
+
+- Collection filters: `--filterIncludedVariableCollection` / `--filterExcludedVariableCollection`
+- Mode filters: `--filterIncludedMode` / `--filterExcludedMode`
+- Type filters: `--includeTypeBoolean`, `--includeTypeNumber`, `--includeTypeString`, `--includeTypeColor` (all default `true`)
+
+### Theme variant mapping
+
+Figstract supports resolving variables to themes.
+
+#### Light / Dark
+
+When a Figma variable collection uses modes to represent light and dark themes, Figstract can map these to a `LightAndDark` resolved mapping with separate light and dark values.
+This is particularly useful for Android Compose, where `light` and `dark` companion object properties are generated on the output type, ready to be used with `isSystemInDarkTheme()`.
+
+When no light/dark mapping is detected, all modes are output individually as separate nested objects.
+
+#### Material theming
+
+> [!NOTE]
+> Coming soon
 
 ### Output formats
 
@@ -242,6 +356,28 @@ public object MyVariableCollection {
 }
 ```
 
+When light/dark theme variant mapping is active (see [Theme variant mapping](#theme-variant-mapping)), the output uses a `data class` with `light` and `dark` companion properties instead of nested objects:
+
+```kotlin
+public object MyVariableCollection {
+   public data class Colors(
+      val primaryColor: Color,
+      val backgroundColor: Color,
+   ) {
+      public companion object {
+         public val light: Colors = Colors(
+            primaryColor = Color(0xFF0057FF),
+            backgroundColor = Color(0xFFFFFFFF),
+         )
+         public val dark: Colors = Colors(
+            primaryColor = Color(0xFF82AAFF),
+            backgroundColor = Color(0xFF121212),
+         )
+      }
+   }
+}
+```
+
 The package must be specified when configuring this output.
 
 Refer to [AndroidComposeVariableDataWriter](library-android/src/main/java/com/anifichadia/figstract/android/importer/variable/model/AndroidComposeVariableDataWriter.kt) for the implementation.
@@ -258,10 +394,53 @@ Refer to [AndroidComposeVariableDataWriter](library-android/src/main/java/com/an
 
 ## Module structure
 
-TODO
+Figstract is structured as a multi-module Gradle project.
+The modules are layered so that platform-specific modules depend on core, and the CLI depends on all of them.
+
+| Module            | Artifact                                    | Description                                                                                              |
+|-------------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `library-core`    | `com.anifichadia.figstract:library-core`    | Core pipeline abstractions, Figma REST API client, JSON variable writer, JsonPath-based asset extraction |
+| `library-android` | `com.anifichadia.figstract:library-android` | Android-specific importers: WEBP, AVD conversion, density scaling, etc.                                  |
+| `library-ios`     | `com.anifichadia.figstract:library-ios`     | iOS-specific importers: iOS asset scaling, asset catalog management                                      |
+| `cli-core`        | `com.anifichadia.figstract:cli-core`        | Reusable CLI building blocks (option groups, base commands) for composing custom CLIs on top of Figstract |
+| `cli`             | `com.anifichadia.figstract:cli`             | Out-of-the-box CLI built on Clikt, bundles all modules into a fat JAR via Shadow                         |
+
+If you want to build your own tooling on top of Figstract rather than using the CLI out of the box, depend on only the library modules you need and use the `cli-core` and `cli` modules as a template.
+
+### Adding as a dependency
+
+```kotlin
+// Core only (custom tooling, web/JSON output)
+implementation("com.anifichadia.figstract:library-core:<version>")
+
+// Android-specific output
+implementation("com.anifichadia.figstract:library-android:<version>")
+
+// iOS-specific output
+implementation("com.anifichadia.figstract:library-ios:<version>")
+
+// CLI core
+implementation("com.anifichadia.figstract:cli-core:<version>")
+```
+
+Snapshots are available from Maven Central's snapshot repository:
+
+```kotlin
+// settings.gradle.kts
+repositories {
+    maven {
+        name = "Central Portal Snapshots"
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+        mavenContent { snapshotsOnly() }
+    }
+    mavenCentral()
+}
+```
 
 ## In development
 
 - Shell wrapper
-- Github action support
+- GitHub action support
 - Better error handling
+- Android XML variable output
+- iOS variable output
