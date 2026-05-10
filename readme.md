@@ -90,6 +90,14 @@ You can create a custom truststore that includes your organisation's CA certific
          -jar /path/to/cli.jar [options]
     ```
 
+### Proxy
+
+If your network requires a proxy to reach the Figma API or asset download URLs, configure it using:
+
+- `--proxyType`: `HTTP` or `SOCKS` (default: none)
+- `--proxyHost`: proxy hostname
+- `--proxyPort`: proxy port
+
 ## Authentication
 
 Figstract supports the following authentication mechanisms to accessing Figma:
