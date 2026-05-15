@@ -40,7 +40,7 @@ fun scaleToHeight(height: Int) = transform("scaleToHeight(height: $height)") { i
 /**
  * Note: this only currently supports JPEG and PNGs
  */
-private fun transform(
+fun transform(
     description: String,
     transform: (original: ImmutableImage) -> ImmutableImage,
 ) = ImportPipeline.Step(description) { instruction, input ->
