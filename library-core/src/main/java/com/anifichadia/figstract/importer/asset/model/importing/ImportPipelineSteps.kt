@@ -169,7 +169,7 @@ fun convertToWebPLossy(qualityPercent: Int = 75): ImportPipeline.Step {
 private fun convertToWebP(description: String, writer: WebpWriter) =
     convertToFormat(description, "webp", writer)
 
-private fun convertToFormat(description: String, format: String?, writer: ImageWriter) =
+private fun convertToFormat(description: String, targetFormat: String?, writer: ImageWriter) =
     ImportPipeline.Step(description) { _, input ->
         val image = ImmutableImage.loader().fromBytes(input.data)
         val convertedImageBytes = image.bytes(writer)
@@ -178,7 +178,7 @@ private fun convertToFormat(description: String, format: String?, writer: ImageW
             .copy(
                 data = convertedImageBytes,
                 target = input.target.copy(
-                    format = format ?: input.target.format,
+                    format = targetFormat ?: input.target.format,
                 ),
             )
             .single()
