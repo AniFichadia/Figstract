@@ -9,6 +9,7 @@ import com.anifichadia.figstract.cli.core.getProxy
 import com.anifichadia.figstract.cli.core.outDirectory
 import com.anifichadia.figstract.importer.asset.FigmaAssetImporter
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.importer.asset.reporting.JsonFileImportReportRepository
 import com.anifichadia.figstract.model.tracking.JsonFileProcessingRecordRepository
 import com.anifichadia.figstract.model.tracking.NoOpProcessingRecordRepository
 import com.anifichadia.figstract.type.fold
@@ -62,10 +63,15 @@ abstract class AssetsCommand : SuspendingCliktCommand(
             NoOpProcessingRecordRepository
         }
 
+        val importReportRepository = JsonFileImportReportRepository(
+            outputDir = outDirectory,
+        )
+
         val importer = FigmaAssetImporter(
             figmaApi = figmaApi,
             downloaderHttpClient = downloaderHttpClient,
             processingRecordRepository = processingRecordRepository,
+            importReportRepository = importReportRepository,
         )
         coroutineScope {
             importer.importFromFigma(
