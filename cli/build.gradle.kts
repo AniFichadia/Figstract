@@ -25,6 +25,7 @@ application {
 
 tasks.withType<ShadowJar> {
     mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
     minimize {
         exclude(dependency("com.github.ajalt.mordant:.*:.*"))
         exclude(dependency("io.ktor:.*:.*"))
