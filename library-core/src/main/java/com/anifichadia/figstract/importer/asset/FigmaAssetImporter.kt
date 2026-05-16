@@ -2,9 +2,7 @@ package com.anifichadia.figstract.importer.asset
 
 import com.anifichadia.figstract.apiclient.ApiResponse
 import com.anifichadia.figstract.figma.api.FigmaApi
-import com.anifichadia.figstract.figma.api.KnownErrors.errorMatches
 import com.anifichadia.figstract.figma.model.GetFilesResponse
-import com.anifichadia.figstract.figma.model.GetImageResponse
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.ImportResult
 import com.anifichadia.figstract.importer.asset.model.Instruction
@@ -27,7 +25,6 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapMerge
-import kotlinx.coroutines.flow.flattenConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -231,10 +228,9 @@ class FigmaAssetImporter(
                 val exportConfig = chunk.exportConfig
                 val chunkIndex = chunk.chunkIndex
                 val instructions = chunk.instructions
-                val isRetry = chunk.isRetry
 
-                val firstAttemptFlow = flow {
-                    logger.debug { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, isRetry: ${isRetry}, $exportConfig: Started" }
+                flow {
+                    logger.debug { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig: Started" }
 
                     val getImagesApiResponse = figmaApi.getImages(
                         key = handler.figmaFile,
@@ -243,95 +239,46 @@ class FigmaAssetImporter(
                         scale = exportConfig.scale,
                         contentsOnly = exportConfig.contentsOnly,
                     )
-                    getImagesApiResponse.logError { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, isRetry: ${isRetry}, $exportConfig" }
+                    getImagesApiResponse.logError { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig" }
+                    logger.info { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig: Finish ${getImagesApiResponse.isSuccess()}" }
 
-                    emit(
-                        GetImagesResult(
-                            originalChunk = chunk,
-                            expectedInstructions = instructions,
-                            getImageResponse = getImagesApiResponse,
-                        )
-                    )
-
-                    logger.info { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, isRetry: ${isRetry}, $exportConfig: Finish ${getImagesApiResponse.isSuccess()}" }
-                }
-                    .flowOn(networkContext)
-
-                val retryFlow = firstAttemptFlow
-                    .filter { it.getImageResponse.errorMatches(GetImageResponse.tooManyImages) && it.expectedInstructions.size > 1 }
-                    .flatMapMerge { it.expectedInstructions.asFlow() }
-                    .map { instruction ->
-                        val instructions = listOf(instruction)
-
-                        logger.debug { "Getting images as retry ${handler.figmaFile}, chunkIndex: $chunkIndex, isRetry: true, $exportConfig: Started" }
-                        val getImagesApiResponse = figmaApi.getImages(
-                            key = handler.figmaFile,
-                            ids = instructions.map { it.export.nodeId },
-                            format = exportConfig.format,
-                            scale = exportConfig.scale,
-                            contentsOnly = exportConfig.contentsOnly,
-                        )
-                        getImagesApiResponse.logError { "Getting images as retry ${handler.figmaFile}, chunkIndex: $chunkIndex, isRetry: true, $exportConfig" }
-                        logger.info { "Getting images as retry ${handler.figmaFile}, chunkIndex: $chunkIndex, isRetry: true, $exportConfig: Finish ${getImagesApiResponse.isSuccess()}" }
-
-                        GetImagesResult(
-                            originalChunk = chunk.copy(
-                                instructions = instructions,
-                                isRetry = true,
-                            ),
-                            expectedInstructions = instructions,
-                            getImageResponse = getImagesApiResponse,
-                        )
-                    }
-                    .flowOn(networkContext)
-
-                merge(
-                    firstAttemptFlow.filter { it.getImageResponse.isSuccess() },
-                    retryFlow,
-                )
                     // TODO: error handling
-                    .filter { result -> result.getImageResponse.isSuccess() }
-                    .map { result ->
-                        val body = result.getImageResponse.successBodyOrThrow()
-                        val instructions = result.expectedInstructions
+                    if (!getImagesApiResponse.isSuccess()) return@flow
 
-                        if (body.images.keys != instructions.map { it.export.nodeId }.toSet()) {
-                            error("Not all images retrieved")
-                        }
+                    val body = getImagesApiResponse.successBodyOrThrow()
+                    body.images.entries.asFlow()
+                        .mapNotNull { (nodeId, imageUrl) ->
+                            val instructionsForNode = instructions.filter { it.export.nodeId == nodeId }
 
-                        body.images.entries.asFlow()
-                            .mapNotNull { (nodeId, imageUrl) ->
-                                val instructionsForNode = instructions.filter { it.export.nodeId == nodeId }
-
-                                if (imageUrl == null) {
-                                    logger.error { "Fetching image for $nodeId failed due to null image URL" }
-                                    instructionsForNode.forEach { _ ->
-                                        report.record(
-                                            ImportResult.Failure.NoImageUrl(
-                                                figmaFile = handler.figmaFile,
-                                                nodeId = nodeId,
-                                            )
+                            if (imageUrl == null) {
+                                logger.error { "Fetching image for $nodeId failed due to null image URL" }
+                                instructionsForNode.forEach { _ ->
+                                    report.record(
+                                        ImportResult.Failure.NoImageUrl(
+                                            figmaFile = handler.figmaFile,
+                                            nodeId = nodeId,
                                         )
-                                    }
-                                    return@mapNotNull null
+                                    )
                                 }
+                                return@mapNotNull null
+                            }
 
-                                try {
+                            try {
                                     val imageResponse = downloaderHttpClient.get(
                                         urlString = imageUrl,
                                     )
                                     val bodyBytes = imageResponse.bodyAsChannel().toByteArray()
 
-                                    instructionsForNode.map { instruction ->
-                                        ExportOutput(
-                                            handler = handler,
-                                            instruction = instruction,
-                                            data = bodyBytes,
-                                            imageUrl = imageUrl,
-                                        )
-                                    }
-                                } catch (e: Throwable) {
-                                    logger.error(e) { "Failed fetching image for $nodeId at $imageUrl" }
+                                instructionsForNode.map { instruction ->
+                                    ExportOutput(
+                                        handler = handler,
+                                        instruction = instruction,
+                                        data = bodyBytes,
+                                        imageUrl = imageUrl,
+                                    )
+                                }
+                            } catch (e: Throwable) {
+                                logger.error(e) { "Failed fetching image for $nodeId at $imageUrl" }
                                     instructionsForNode.forEach { instruction ->
                                         report.record(
                                             ImportResult.Failure.DownloadFailed(
@@ -342,14 +289,13 @@ class FigmaAssetImporter(
                                             )
                                         )
                                     }
-                                    null
-                                }
+                                null
                             }
-                            .flatMapConcat { it.asFlow() }
-                            .flowOn(networkContext)
-                    }
-                    .flattenConcat()
-                    .flowOn(defaultContext)
+                        }
+                        .flatMapConcat { it.asFlow() }
+                        .collect { emit(it) }
+                }
+                    .flowOn(networkContext)
             }
 
         return exportFlow
@@ -394,13 +340,6 @@ class FigmaAssetImporter(
         val exportConfig: ExportConfig,
         val chunkIndex: Int,
         val instructions: List<Instruction>,
-        val isRetry: Boolean = false,
-    )
-
-    private data class GetImagesResult(
-        val originalChunk: Chunk,
-        val expectedInstructions: List<Instruction>,
-        val getImageResponse: ApiResponse<GetImageResponse>,
     )
 
     private data class ExportOutput(

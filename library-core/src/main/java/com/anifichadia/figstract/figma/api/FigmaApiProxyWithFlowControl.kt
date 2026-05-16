@@ -52,14 +52,47 @@ class FigmaApiProxyWithFlowControl(
         scale: Float?,
         contentsOnly: Boolean?,
         useAbsoluteBounds: Boolean?,
-    ): ApiResponse<GetImageResponse> = wrapRequest {
-        getImages(
-            key = key,
-            ids = ids,
-            format = format,
-            scale = scale,
-            contentsOnly = contentsOnly,
-            useAbsoluteBounds = useAbsoluteBounds,
+    ): ApiResponse<GetImageResponse> {
+        val response = wrapRequest {
+            getImages(
+                key = key,
+                ids = ids,
+                format = format,
+                scale = scale,
+                contentsOnly = contentsOnly,
+                useAbsoluteBounds = useAbsoluteBounds,
+            )
+        }
+
+        if (!response.errorMatches(GetImageResponse.tooManyImages) || ids.size <= 1) return response
+
+        // Batch too large and rejected by figma, retry each image individually and merge the results
+        val mergedImages = mutableMapOf<String, String?>()
+        var lastSuccess: ApiResponse.Success<GetImageResponse>? = null
+        for (id in ids) {
+            val singleResponse = wrapRequest {
+                getImages(
+                    key = key,
+                    ids = listOf(id),
+                    format = format,
+                    scale = scale,
+                    contentsOnly = contentsOnly,
+                    useAbsoluteBounds = useAbsoluteBounds,
+                )
+            }
+
+            if (singleResponse.isSuccess()) {
+                lastSuccess = singleResponse as ApiResponse.Success<GetImageResponse>
+                mergedImages.putAll(singleResponse.body.images)
+            } else {
+                return singleResponse
+            }
+        }
+
+        return lastSuccess?.copy(
+            body = GetImageResponse(images = mergedImages),
+        ) ?: ApiResponse.Failure.RequestError(
+            exception = IllegalStateException("No successful responses when retrying images individually for key: $key"),
         )
     }
 
