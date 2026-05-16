@@ -45,6 +45,7 @@ internal fun createArtworkFigmaFileHandler(
     androidExportConfig: ExportConfig = androidImageXxxHdpi,
     iosExportConfig: ExportConfig = ios3xImage,
     webExportConfig: ExportConfig = pngUnscaled,
+    instructionLimit: Int? = null,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = File(androidOutDirectory, artworkDirectoryName)
@@ -102,68 +103,77 @@ internal fun createArtworkFigmaFileHandler(
                 .filterIsInstance<Node.Canvas>()
                 .filter { canvas -> assetFilter.nodeNameFilter.accept(canvas) }
 
-            canvases.map { canvas ->
-                Instruction.buildInstructions {
-                    canvas.traverseBreadthFirst { node, parent ->
-                        if (node !is Node.Parent) return@traverseBreadthFirst
-                        val child = node.children.filterIsInstance<Node.Fillable>().firstOrNull()
-                            ?: return@traverseBreadthFirst
-                        if (!child.fills.any { it is Paint.Image }) return@traverseBreadthFirst
+            canvases
+                .map { canvas ->
+                    Instruction.buildInstructions {
+                        canvas.traverseBreadthFirst { node, parent ->
+                            if (node !is Node.Parent) return@traverseBreadthFirst
+                            val child = node.children.filterIsInstance<Node.Fillable>().firstOrNull()
+                                ?: return@traverseBreadthFirst
+                            if (!child.fills.any { it is Paint.Image }) return@traverseBreadthFirst
 
-                        if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                        if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
+                            if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
+                            if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+                            val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
 
-                        fun addInstructions(
-                            exportConfig: ExportConfig,
-                            nameGenerator: NodeTokenStringGenerator,
-                            importPipeline: ImportPipeline,
-                        ) {
-                            if (createUncropped) {
-                                addInstruction(
-                                    exportNode = node,
-                                    exportConfig = exportConfig,
-                                    importOutputName = nameGenerator.generate(namingContext),
-                                    importPipeline = importPipeline,
+                            fun addInstructions(
+                                exportConfig: ExportConfig,
+                                nameGenerator: NodeTokenStringGenerator,
+                                importPipeline: ImportPipeline,
+                            ) {
+                                if (createUncropped) {
+                                    addInstruction(
+                                        exportNode = node,
+                                        exportConfig = exportConfig,
+                                        importOutputName = nameGenerator.generate(namingContext),
+                                        importPipeline = importPipeline,
+                                    )
+                                }
+                                if (createCropped) {
+                                    addInstruction(
+                                        exportNode = child,
+                                        exportConfig = exportConfig,
+                                        importOutputName = nameGenerator.generate(namingContext, suffix = "cropped"),
+                                        importPipeline = importPipeline,
+                                    )
+                                }
+                            }
+
+                            if (androidImportPipeline != null) {
+                                addInstructions(
+                                    exportConfig = androidExportConfig,
+                                    nameGenerator = androidNameGenerator,
+                                    importPipeline = androidImportPipeline,
                                 )
                             }
-                            if (createCropped) {
-                                addInstruction(
-                                    exportNode = child,
-                                    exportConfig = exportConfig,
-                                    importOutputName = nameGenerator.generate(namingContext, suffix = "cropped"),
-                                    importPipeline = importPipeline,
+
+                            if (iosImportPipeline != null) {
+                                addInstructions(
+                                    exportConfig = iosExportConfig,
+                                    nameGenerator = iosNameGenerator,
+                                    importPipeline = iosImportPipeline,
                                 )
                             }
-                        }
 
-                        if (androidImportPipeline != null) {
-                            addInstructions(
-                                exportConfig = androidExportConfig,
-                                nameGenerator = androidNameGenerator,
-                                importPipeline = androidImportPipeline,
-                            )
-                        }
-
-                        if (iosImportPipeline != null) {
-                            addInstructions(
-                                exportConfig = iosExportConfig,
-                                nameGenerator = iosNameGenerator,
-                                importPipeline = iosImportPipeline,
-                            )
-                        }
-
-                        if (webImportPipeline != null) {
-                            addInstructions(
-                                exportConfig = webExportConfig,
-                                nameGenerator = webNameGenerator,
-                                importPipeline = webImportPipeline,
-                            )
+                            if (webImportPipeline != null) {
+                                addInstructions(
+                                    exportConfig = webExportConfig,
+                                    nameGenerator = webNameGenerator,
+                                    importPipeline = webImportPipeline,
+                                )
+                            }
                         }
                     }
                 }
-            }.flatten()
+                .flatten()
+                .run {
+                    if (instructionLimit != null) {
+                        this.take(instructionLimit)
+                    } else {
+                        this
+                    }
+                }
         }
     } else {
         JsonPathAssetFileHandler(
@@ -174,6 +184,7 @@ internal fun createArtworkFigmaFileHandler(
             lifecycle = lifecycle,
             canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
+            instructionLimit = instructionLimit,
         ) { node, canvas ->
             Instruction.buildInstructions {
                 val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)

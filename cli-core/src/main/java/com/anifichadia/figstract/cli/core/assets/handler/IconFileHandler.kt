@@ -38,8 +38,8 @@ internal fun createIconFigmaFileHandler(
     iosNameGenerator: NodeTokenStringGenerator,
     webNameGenerator: NodeTokenStringGenerator,
     jsonPath: String?,
+    instructionLimit: Int? = null,
 ): AssetFileHandler {
-
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold(iconsDirectoryName, "drawable")
         ImportPipeline(
@@ -132,24 +132,32 @@ internal fun createIconFigmaFileHandler(
                 .filterIsInstance<Node.Canvas>()
                 .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
 
-            canvases.map { canvas ->
-                Instruction.buildInstructions {
-                    canvas.traverseBreadthFirst { node, parent ->
-                        if (node !is Node.Parent) return@traverseBreadthFirst
-                        // Look for first descendants of the canvas
-                        if (parent !== canvas) return@traverseBreadthFirst
+            canvases
+                .flatMap { canvas ->
+                    Instruction.buildInstructions {
+                        canvas.traverseBreadthFirst { node, parent ->
+                            if (node !is Node.Parent) return@traverseBreadthFirst
+                            // Look for first descendants of the canvas
+                            if (parent !== canvas) return@traverseBreadthFirst
 
-                        node.children.filterIsInstance<Node.Vector>().firstOrNull() ?: return@traverseBreadthFirst
+                            node.children.filterIsInstance<Node.Vector>().firstOrNull() ?: return@traverseBreadthFirst
 
-                        if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                        if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
+                            if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
+                            if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                        val nodeToExport = node as? Node.Component ?: return@traverseBreadthFirst
+                            val nodeToExport = node as? Node.Component ?: return@traverseBreadthFirst
 
-                        generateInstructions(canvas, nodeToExport)
+                            generateInstructions(canvas, nodeToExport)
+                        }
                     }
                 }
-            }.flatten()
+                .run {
+                    if (instructionLimit != null) {
+                        this.take(instructionLimit)
+                    } else {
+                        this
+                    }
+                }
         }
     } else {
         JsonPathAssetFileHandler(
@@ -161,6 +169,7 @@ internal fun createIconFigmaFileHandler(
             lifecycle = lifecycle,
             canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
+            instructionLimit = instructionLimit,
         ) { node, canvas ->
             Instruction.buildInstructions {
                 generateInstructions(canvas, node)

@@ -22,6 +22,7 @@ fun JsonPathAssetFileHandler(
     lifecycle: Lifecycle = Lifecycle.NoOp,
     canvasFilter: (Node.Canvas) -> Boolean = { true },
     nodeFilter: (Node) -> Boolean = { true },
+    instructionLimit: Int? = null,
     createInstructions: (node: Node, canvas: Node.Canvas) -> List<Instruction>,
 ): AssetFileHandler {
     val json = Json {
@@ -40,7 +41,7 @@ fun JsonPathAssetFileHandler(
             .filter(canvasFilter)
 
         canvases
-            .map { canvas ->
+            .flatMap { canvas ->
                 val canvasJson = json.encodeToString(canvas)
 
                 val filteredJson = JsonPath
@@ -53,12 +54,17 @@ fun JsonPathAssetFileHandler(
                     .filter(nodeFilter)
 
                 val instructions = nodes
-                    .map { createInstructions(it, canvas) }
-                    .flatten()
+                    .flatMap { createInstructions(it, canvas) }
 
                 instructions
             }
-            .flatten()
+            .run {
+                if (instructionLimit != null) {
+                    this.take(instructionLimit)
+                } else {
+                    this
+                }
+            }
     }
 }
 

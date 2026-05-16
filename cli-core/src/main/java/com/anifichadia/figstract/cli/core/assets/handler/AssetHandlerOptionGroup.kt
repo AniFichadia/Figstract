@@ -12,6 +12,7 @@ import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
+import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 
 abstract class AssetHandlerOptionGroup(protected val prefix: String) : DelegatableOptionGroup() {
@@ -23,6 +24,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
     private val figmaFileVersion by option("--${prefix}FigmaFileVersion")
     private val filters by AssetFilterOptionGroup(prefix)
     private val jsonPath by option("--${prefix}JsonPath")
+    private val instructionLimit by option("--${prefix}InstructionLimit").int()
     protected abstract val nameGenerators: AssetTokenStringGeneratorOptionGroup
 
     fun createHandler(
@@ -42,6 +44,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
                     webOutDirectory = webOutDirectory,
                     filters = filters,
                     jsonPath = jsonPath,
+                    instructionLimit = instructionLimit,
                 )
             } else {
                 throw BadParameterValue("$prefix are enabled but figma file is not specified")
@@ -59,6 +62,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
+        instructionLimit: Int?,
     ): AssetFileHandler
 }
 
@@ -85,6 +89,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
+        instructionLimit: Int?,
     ): AssetFileHandler {
         if (!(artworkCreateUncropped || artworkCreateCropped)) throw BadParameterValue("Atleast createUncropped or createCropped must be set to true")
 
@@ -105,6 +110,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             androidExportConfig = androidImageXxxHdpi,
             iosExportConfig = ios3xImage,
             webExportConfig = pngUnscaled,
+            instructionLimit = instructionLimit,
         )
     }
 }
@@ -126,6 +132,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
+        instructionLimit: Int?,
     ): AssetFileHandler {
         return createIconFigmaFileHandler(
             figmaFile = figmaFile,
@@ -139,6 +146,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
             iosNameGenerator = nameGenerators.ios,
             webNameGenerator = nameGenerators.web,
             jsonPath = jsonPath,
+            instructionLimit = instructionLimit,
         )
     }
 }
