@@ -6,10 +6,15 @@ import java.util.concurrent.ConcurrentLinkedQueue
 /**
  * Thread-safe accumulator for [ImportResult]s associated with a single Figma file.
  */
-class FigmaImportReport(val figmaFile: String) {
+class FigmaImportReport(
+    val figmaFile: String,
+    private val ignoreNoImageUrlFailures: Boolean = true,
+) {
     private val results = ConcurrentLinkedQueue<ImportResult>()
 
     fun record(result: ImportResult) {
+        if (ignoreNoImageUrlFailures && result is ImportResult.Failure.NodeFailure.NoImageUrl) return
+
         results.add(result)
     }
 
