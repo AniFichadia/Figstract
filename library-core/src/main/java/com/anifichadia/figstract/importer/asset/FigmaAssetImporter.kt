@@ -2,7 +2,6 @@ package com.anifichadia.figstract.importer.asset
 
 import com.anifichadia.figstract.apiclient.ApiResponse
 import com.anifichadia.figstract.figma.api.FigmaApi
-import com.anifichadia.figstract.figma.api.FigmaApiProxyWithFlowControl
 import com.anifichadia.figstract.figma.api.KnownErrors.errorMatches
 import com.anifichadia.figstract.figma.model.GetFilesResponse
 import com.anifichadia.figstract.figma.model.GetImageResponse
@@ -42,16 +41,13 @@ import kotlin.math.ceil
 import kotlin.math.min
 
 class FigmaAssetImporter(
-    figmaApi: FigmaApi,
+    private val figmaApi: FigmaApi,
     private val downloaderHttpClient: HttpClient,
     private val processingRecordRepository: ProcessingRecordRepository,
-    figmaApiConcurrencyLimit: Int = FigmaApiProxyWithFlowControl.DEFAULT_CONCURRENCY_LIMIT,
     private val defaultContext: CoroutineContext = Dispatchers.Default,
     private val networkContext: CoroutineContext = Dispatchers.IO,
     private val importPipelineContext: CoroutineContext = Dispatchers.IO,
 ) {
-    private val figmaApi = FigmaApiProxyWithFlowControl(figmaApi, figmaApiConcurrencyLimit)
-
     suspend fun importFromFigma(handlers: List<AssetFileHandler>) {
         val importFlow = handlers
             .map { handler -> createProcessingFlowForHandler(handler) }

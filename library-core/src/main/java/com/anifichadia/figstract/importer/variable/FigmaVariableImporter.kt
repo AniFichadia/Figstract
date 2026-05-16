@@ -3,7 +3,6 @@ package com.anifichadia.figstract.importer.variable
 import com.anifichadia.figstract.apiclient.ApiResponse
 import com.anifichadia.figstract.figma.Number
 import com.anifichadia.figstract.figma.api.FigmaApi
-import com.anifichadia.figstract.figma.api.FigmaApiProxyWithFlowControl
 import com.anifichadia.figstract.figma.model.Color
 import com.anifichadia.figstract.figma.model.GetLocalVariablesResponse
 import com.anifichadia.figstract.figma.model.Mode
@@ -32,14 +31,11 @@ import kotlinx.coroutines.flow.merge
 import kotlin.coroutines.CoroutineContext
 
 class FigmaVariableImporter(
-    figmaApi: FigmaApi,
-    figmaApiConcurrencyLimit: Int = FigmaApiProxyWithFlowControl.DEFAULT_CONCURRENCY_LIMIT,
+    private val figmaApi: FigmaApi,
     private val defaultContext: CoroutineContext = Dispatchers.Default,
     private val networkContext: CoroutineContext = Dispatchers.IO,
     private val writerContext: CoroutineContext = Dispatchers.IO,
 ) {
-    private val figmaApi = FigmaApiProxyWithFlowControl(figmaApi, figmaApiConcurrencyLimit)
-
     suspend fun importFromFigma(handlers: List<VariableFileHandler>) {
         val importFlow = handlers
             .map { handler -> createProcessingFlow(handler) }

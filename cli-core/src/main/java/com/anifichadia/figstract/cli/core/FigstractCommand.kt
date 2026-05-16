@@ -4,6 +4,7 @@ import com.anifichadia.figstract.HttpClientFactory
 import com.anifichadia.figstract.cli.core.assets.AssetsCommand
 import com.anifichadia.figstract.cli.core.variables.VariablesCommand
 import com.anifichadia.figstract.figma.api.FigmaApiImpl
+import com.anifichadia.figstract.figma.api.FigmaApiProxyWithFlowControl
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.subcommands
@@ -36,9 +37,11 @@ class FigstractCommand private constructor() : SuspendingCliktCommand(
             proxy = proxyConfig,
         )
         setFigmaApi(
-            FigmaApiImpl(
-                httpClient = figmaHttpClient,
-                authProvider = authProvider,
+            FigmaApiProxyWithFlowControl(
+                FigmaApiImpl(
+                    httpClient = figmaHttpClient,
+                    authProvider = authProvider,
+                ),
             )
         )
     }
