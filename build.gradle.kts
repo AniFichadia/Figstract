@@ -1,9 +1,19 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
 // Make sure these are always in sync
 val javaVersion = JavaVersion.VERSION_21
 val javaLanguageVersion: JavaLanguageVersion = JavaLanguageVersion.of(21)
+
+val kotlinJvmTarget = JvmTarget.JVM_21
+val kotlinOptIns = listOf(
+    "kotlin.RequiresOptIn",
+    "kotlin.ExperimentalStdlibApi",
+    "kotlin.contracts.ExperimentalContracts",
+    "kotlinx.serialization.ExperimentalSerializationApi",
+)
 
 val githubAuthor = "AniFichadia"
 val githubRepo = "Figstract"
@@ -19,9 +29,13 @@ plugins {
     signing
 }
 
+fun JavaToolchainSpec.configure() {
+    languageVersion.set(javaLanguageVersion)
+}
+
 java {
     toolchain {
-        languageVersion.set(javaLanguageVersion)
+        configure()
     }
 }
 
@@ -38,6 +52,31 @@ subprojects {
 
     tasks.withType(Test::class.java) {
         useJUnitPlatform()
+    }
+
+    tasks.withType<KotlinCompile> {
+        compilerOptions {
+            jvmTarget.set(kotlinJvmTarget)
+            optIn.addAll(kotlinOptIns)
+            freeCompilerArgs.add("-Xexplicit-backing-fields")
+        }
+    }
+
+    if (!hasProperty("skip-configure-toolchain")) {
+        tasks.withType<JavaCompile> {
+            javaCompiler.set(
+                javaToolchains.compilerFor {
+                    configure()
+                }
+            )
+        }
+        tasks.withType<JavaExec> {
+            javaLauncher.set(
+                javaToolchains.launcherFor {
+                    configure()
+                }
+            )
+        }
     }
 
     tasks.register("allDeps", DependencyReportTask::class)
