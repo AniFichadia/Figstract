@@ -12,6 +12,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
+import kotlin.math.pow
+import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -28,7 +30,8 @@ class FigmaApiProxyWithFlowControl(
     private val wrapped: FigmaApi,
     concurrencyLimit: Int = DEFAULT_CONCURRENCY_LIMIT,
     private val retryLimit: Int = DEFAULT_RETRY_LIMIT,
-    private val throttleDelayDurations: List<Duration> = DEFAULT_THROTTLE_DELAY_DURATIONS,
+    private val baseDelay: Duration = DEFAULT_BASE_DELAY,
+    private val maxDelay: Duration = DEFAULT_MAX_DELAY,
 ) : FigmaApi {
     private val concurrencySemaphore = Semaphore(concurrencyLimit)
     private val floodMitigationMutex = Mutex()
@@ -52,14 +55,47 @@ class FigmaApiProxyWithFlowControl(
         scale: Float?,
         contentsOnly: Boolean?,
         useAbsoluteBounds: Boolean?,
-    ): ApiResponse<GetImageResponse> = wrapRequest {
-        getImages(
-            key = key,
-            ids = ids,
-            format = format,
-            scale = scale,
-            contentsOnly = contentsOnly,
-            useAbsoluteBounds = useAbsoluteBounds,
+    ): ApiResponse<GetImageResponse> {
+        val response = wrapRequest {
+            getImages(
+                key = key,
+                ids = ids,
+                format = format,
+                scale = scale,
+                contentsOnly = contentsOnly,
+                useAbsoluteBounds = useAbsoluteBounds,
+            )
+        }
+
+        if (!response.errorMatches(GetImageResponse.tooManyImages) || ids.size <= 1) return response
+
+        // Batch too large and rejected by figma, retry each image individually and merge the results
+        val mergedImages = mutableMapOf<String, String?>()
+        var lastSuccess: ApiResponse.Success<GetImageResponse>? = null
+        for (id in ids) {
+            val singleResponse = wrapRequest {
+                getImages(
+                    key = key,
+                    ids = listOf(id),
+                    format = format,
+                    scale = scale,
+                    contentsOnly = contentsOnly,
+                    useAbsoluteBounds = useAbsoluteBounds,
+                )
+            }
+
+            if (singleResponse.isSuccess()) {
+                lastSuccess = singleResponse as ApiResponse.Success<GetImageResponse>
+                mergedImages.putAll(singleResponse.body.images)
+            } else {
+                return singleResponse
+            }
+        }
+
+        return lastSuccess?.copy(
+            body = GetImageResponse(images = mergedImages),
+        ) ?: ApiResponse.Failure.RequestError(
+            exception = IllegalStateException("No successful responses when retrying images individually for key: $key"),
         )
     }
 
@@ -89,7 +125,7 @@ class FigmaApiProxyWithFlowControl(
                     return lastApiResponse
                 } else if (!floodMitigationMutex.isLocked) {
                     floodMitigationMutex.withLock {
-                        delay(throttleDelayDurations[(attempt - 1).coerceIn(throttleDelayDurations.indices)])
+                        delay(throttleDelay(attempt))
                     }
                 }
 
@@ -100,16 +136,15 @@ class FigmaApiProxyWithFlowControl(
         }
     }
 
+    private fun throttleDelay(attempt: Int): Duration {
+        val exponential = minOf(maxDelay, baseDelay * 2.0.pow(attempt))
+        return exponential * Random.nextDouble(0.5, 1.0)
+    }
+
     companion object {
         const val DEFAULT_CONCURRENCY_LIMIT = 5
-        const val DEFAULT_RETRY_LIMIT = 5
-
-        val DEFAULT_THROTTLE_DELAY_DURATIONS: List<Duration> = listOf(
-            1.seconds,
-            5.seconds,
-            15.seconds,
-            30.seconds,
-            1.minutes,
-        )
+        const val DEFAULT_RETRY_LIMIT = 10
+        val DEFAULT_BASE_DELAY = 1.seconds
+        val DEFAULT_MAX_DELAY = 1.minutes
     }
 }
