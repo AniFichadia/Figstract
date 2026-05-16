@@ -242,8 +242,19 @@ class FigmaAssetImporter(
                     getImagesApiResponse.logError { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig" }
                     logger.info { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig: Finish ${getImagesApiResponse.isSuccess()}" }
 
-                    // TODO: error handling
-                    if (!getImagesApiResponse.isSuccess()) return@flow
+                    if (!getImagesApiResponse.isSuccess()) {
+                        val cause = (getImagesApiResponse as ApiResponse.Failure).asException()
+                        instructions.forEach { instruction ->
+                            report.record(
+                                ImportResult.Failure.GetImagesFailed(
+                                    figmaFile = handler.figmaFile,
+                                    nodeId = instruction.export.nodeId,
+                                    cause = cause,
+                                )
+                            )
+                        }
+                        return@flow
+                    }
 
                     val body = getImagesApiResponse.successBodyOrThrow()
                     body.images.entries.asFlow()

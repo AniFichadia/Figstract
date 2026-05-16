@@ -34,6 +34,14 @@ data class ImportReportDocument(
         abstract val cause: String?
 
         @Serializable
+        @SerialName("get_images_failed")
+        data class GetImagesFailed(
+            override val nodeId: String,
+            override val reason: String,
+            override val cause: String?,
+        ) : FailureEntry()
+
+        @Serializable
         @SerialName("no_image_url")
         data class NoImageUrl(
             override val nodeId: String,
@@ -86,6 +94,12 @@ data class ImportReportDocument(
                     .sortedBy { it.nodeId }
                     .map { f ->
                         when (f) {
+                            is ImportResult.Failure.GetImagesFailed -> FailureEntry.GetImagesFailed(
+                                nodeId = f.nodeId,
+                                reason = f.reason,
+                                cause = f.cause.message,
+                            )
+
                             is ImportResult.Failure.NoImageUrl -> FailureEntry.NoImageUrl(
                                 nodeId = f.nodeId,
                                 reason = f.reason,

@@ -22,6 +22,14 @@ sealed interface ImportResult {
         val reason: String
         val cause: Throwable?
 
+        data class GetImagesFailed(
+            override val figmaFile: FileKey,
+            override val nodeId: NodeId,
+            override val cause: Throwable,
+        ) : Failure {
+            override val reason: String = "Failed to retrieve image URL: ${cause.message}"
+        }
+
         data class NoImageUrl(
             override val figmaFile: FileKey,
             override val nodeId: NodeId,
