@@ -62,13 +62,19 @@ class FigmaAssetImporter(
             importFlow.launchIn(this)
         }
 
+        val failedFiles = mutableListOf<String>()
         for (report in reports.values) {
             importReportRepository.save(report)
             logger.info { report.summary() }
 
             if (report.hasFailures()) {
+                failedFiles += report.figmaFile
                 logger.error { "Import failures for ${report.figmaFile}: ${report.failures().size} failure(s)" }
             }
+        }
+
+        if (failedFiles.isNotEmpty()) {
+            throw ImportFailureException(failedFiles)
         }
     }
 

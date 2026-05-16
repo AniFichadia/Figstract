@@ -15,6 +15,7 @@ import com.anifichadia.figstract.model.tracking.NoOpProcessingRecordRepository
 import com.anifichadia.figstract.type.fold
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import kotlinx.coroutines.coroutineScope
@@ -74,9 +75,14 @@ abstract class AssetsCommand : SuspendingCliktCommand(
             importReportRepository = importReportRepository,
         )
         coroutineScope {
-            importer.importFromFigma(
-                handlers = createHandlers(outDirectory),
-            )
+            try {
+                importer.importFromFigma(
+                    handlers = createHandlers(outDirectory),
+                )
+            } catch (e: Throwable) {
+                echo(e.message, err = true)
+                throw ProgramResult(1)
+            }
         }
     }
 }
