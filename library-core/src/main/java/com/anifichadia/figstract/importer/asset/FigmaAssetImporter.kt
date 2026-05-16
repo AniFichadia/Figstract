@@ -104,7 +104,7 @@ class FigmaAssetImporter(
 
         val handlersFlow = flowOf(handler)
 
-        val fileFlow = createFigmaFileFlow(handlersFlow)
+        val fileFlow = createFigmaFileFlow(handlersFlow, report)
             .onStart {
                 handler.lifecycle.onStarted()
                 handler.lifecycle.onFileRetrievalStarted()
@@ -135,7 +135,10 @@ class FigmaAssetImporter(
         return importFlow
     }
 
-    private fun createFigmaFileFlow(handlers: Flow<AssetFileHandler>): Flow<Pair<AssetFileHandler, ApiResponse<GetFilesResponse>>> {
+    private fun createFigmaFileFlow(
+        handlers: Flow<AssetFileHandler>,
+        report: FigmaImportReport,
+    ): Flow<Pair<AssetFileHandler, ApiResponse<GetFilesResponse>>> {
         return handlers
             .flowOn(defaultContext)
             .map { handler ->
@@ -147,10 +150,18 @@ class FigmaAssetImporter(
                 logger.info { "Fetching ${handler.figmaFile}: Finish ${getFileApiResponse.isSuccess()}" }
                 getFileApiResponse.logError { "Fetching ${handler.figmaFile}" }
 
+                if (!getFileApiResponse.isSuccess()) {
+                    report.record(
+                        ImportResult.Failure.GetFileFailed(
+                            figmaFile = handler.figmaFile,
+                            cause = (getFileApiResponse as ApiResponse.Failure).asException(),
+                        )
+                    )
+                }
+
                 handler to getFileApiResponse
             }
             .flowOn(networkContext)
-            // TODO: error handling
             .filter { (_, apiResponse) -> apiResponse.isSuccess() }
             .flowOn(defaultContext)
     }
@@ -246,7 +257,7 @@ class FigmaAssetImporter(
                         val cause = (getImagesApiResponse as ApiResponse.Failure).asException()
                         instructions.forEach { instruction ->
                             report.record(
-                                ImportResult.Failure.GetImagesFailed(
+                                ImportResult.Failure.NodeFailure.GetImagesFailed(
                                     figmaFile = handler.figmaFile,
                                     nodeId = instruction.export.nodeId,
                                     cause = cause,
@@ -265,7 +276,7 @@ class FigmaAssetImporter(
                                 logger.error { "Fetching image for $nodeId failed due to null image URL" }
                                 instructionsForNode.forEach { _ ->
                                     report.record(
-                                        ImportResult.Failure.NoImageUrl(
+                                        ImportResult.Failure.NodeFailure.NoImageUrl(
                                             figmaFile = handler.figmaFile,
                                             nodeId = nodeId,
                                         )
@@ -275,10 +286,10 @@ class FigmaAssetImporter(
                             }
 
                             try {
-                                    val imageResponse = downloaderHttpClient.get(
-                                        urlString = imageUrl,
-                                    )
-                                    val bodyBytes = imageResponse.bodyAsChannel().toByteArray()
+                                val imageResponse = downloaderHttpClient.get(
+                                    urlString = imageUrl,
+                                )
+                                val bodyBytes = imageResponse.bodyAsChannel().toByteArray()
 
                                 instructionsForNode.map { instruction ->
                                     ExportOutput(
@@ -290,16 +301,16 @@ class FigmaAssetImporter(
                                 }
                             } catch (e: Throwable) {
                                 logger.error(e) { "Failed fetching image for $nodeId at $imageUrl" }
-                                    instructionsForNode.forEach { instruction ->
-                                        report.record(
-                                            ImportResult.Failure.DownloadFailed(
-                                                figmaFile = handler.figmaFile,
-                                                nodeId = nodeId,
-                                                imageUrl = imageUrl,
-                                                cause = e,
-                                            )
+                                instructionsForNode.forEach { _ ->
+                                    report.record(
+                                        ImportResult.Failure.NodeFailure.DownloadFailed(
+                                            figmaFile = handler.figmaFile,
+                                            nodeId = nodeId,
+                                            imageUrl = imageUrl,
+                                            cause = e,
                                         )
-                                    }
+                                    )
+                                }
                                 null
                             }
                         }
@@ -334,7 +345,7 @@ class FigmaAssetImporter(
                 } catch (e: Throwable) {
                     logger.error(e) { "Importing ${handler.figmaFile} $instruction: Finished false" }
                     report.record(
-                        ImportResult.Failure.ImportPipelineFailed(
+                        ImportResult.Failure.NodeFailure.ImportPipelineFailed(
                             figmaFile = handler.figmaFile,
                             nodeId = instruction.export.nodeId,
                             instruction = instruction,

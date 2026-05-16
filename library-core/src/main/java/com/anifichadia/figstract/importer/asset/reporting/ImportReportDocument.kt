@@ -29,14 +29,20 @@ data class ImportReportDocument(
 
     @Serializable
     sealed class FailureEntry {
-        abstract val nodeId: String
         abstract val reason: String
         abstract val cause: String?
 
         @Serializable
+        @SerialName("get_file_failed")
+        data class GetFileFailed(
+            override val reason: String,
+            override val cause: String?,
+        ) : FailureEntry()
+
+        @Serializable
         @SerialName("get_images_failed")
         data class GetImagesFailed(
-            override val nodeId: String,
+            val nodeId: String,
             override val reason: String,
             override val cause: String?,
         ) : FailureEntry()
@@ -44,7 +50,7 @@ data class ImportReportDocument(
         @Serializable
         @SerialName("no_image_url")
         data class NoImageUrl(
-            override val nodeId: String,
+            val nodeId: String,
             override val reason: String,
             override val cause: String? = null,
         ) : FailureEntry()
@@ -52,7 +58,7 @@ data class ImportReportDocument(
         @Serializable
         @SerialName("download_failed")
         data class DownloadFailed(
-            override val nodeId: String,
+            val nodeId: String,
             override val reason: String,
             override val cause: String?,
             val imageUrl: String,
@@ -61,7 +67,7 @@ data class ImportReportDocument(
         @Serializable
         @SerialName("import_pipeline_failed")
         data class ImportPipelineFailed(
-            override val nodeId: String,
+            val nodeId: String,
             override val reason: String,
             override val cause: String?,
             val instruction: String,
@@ -91,28 +97,39 @@ data class ImportReportDocument(
                         )
                     },
                 failures = failures
-                    .sortedBy { it.nodeId }
+                    .sortedWith(
+                        compareBy(
+                            // File-level failures first, then node-level sorted by nodeId
+                            { it !is ImportResult.Failure.GetFileFailed },
+                            { (it as? ImportResult.Failure.NodeFailure)?.nodeId ?: "" },
+                        )
+                    )
                     .map { f ->
                         when (f) {
-                            is ImportResult.Failure.GetImagesFailed -> FailureEntry.GetImagesFailed(
+                            is ImportResult.Failure.GetFileFailed -> FailureEntry.GetFileFailed(
+                                reason = f.reason,
+                                cause = f.cause.message,
+                            )
+
+                            is ImportResult.Failure.NodeFailure.GetImagesFailed -> FailureEntry.GetImagesFailed(
                                 nodeId = f.nodeId,
                                 reason = f.reason,
                                 cause = f.cause.message,
                             )
 
-                            is ImportResult.Failure.NoImageUrl -> FailureEntry.NoImageUrl(
+                            is ImportResult.Failure.NodeFailure.NoImageUrl -> FailureEntry.NoImageUrl(
                                 nodeId = f.nodeId,
                                 reason = f.reason,
                             )
 
-                            is ImportResult.Failure.DownloadFailed -> FailureEntry.DownloadFailed(
+                            is ImportResult.Failure.NodeFailure.DownloadFailed -> FailureEntry.DownloadFailed(
                                 nodeId = f.nodeId,
                                 reason = f.reason,
                                 cause = f.cause.message,
                                 imageUrl = f.imageUrl,
                             )
 
-                            is ImportResult.Failure.ImportPipelineFailed -> FailureEntry.ImportPipelineFailed(
+                            is ImportResult.Failure.NodeFailure.ImportPipelineFailed -> FailureEntry.ImportPipelineFailed(
                                 nodeId = f.nodeId,
                                 reason = f.reason,
                                 cause = f.cause.message,

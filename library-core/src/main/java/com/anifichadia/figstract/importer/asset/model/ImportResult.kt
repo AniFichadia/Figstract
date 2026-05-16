@@ -9,11 +9,10 @@ import com.anifichadia.figstract.figma.NodeId
  */
 sealed interface ImportResult {
     val figmaFile: FileKey
-    val nodeId: NodeId
 
     data class Success(
         override val figmaFile: FileKey,
-        override val nodeId: NodeId,
+        val nodeId: NodeId,
         val imageUrl: String,
         val instruction: Instruction,
     ) : ImportResult
@@ -22,38 +21,49 @@ sealed interface ImportResult {
         val reason: String
         val cause: Throwable?
 
-        data class GetImagesFailed(
+        data class GetFileFailed(
             override val figmaFile: FileKey,
-            override val nodeId: NodeId,
             override val cause: Throwable,
         ) : Failure {
-            override val reason: String = "Failed to retrieve image URL: ${cause.message}"
+            override val reason: String = "Failed to retrieve file: ${cause.message}"
         }
 
-        data class NoImageUrl(
-            override val figmaFile: FileKey,
-            override val nodeId: NodeId,
-        ) : Failure {
-            override val reason: String = "No image URL"
-            override val cause: Throwable? = null
-        }
+        sealed interface NodeFailure : Failure {
+            val nodeId: NodeId
 
-        data class DownloadFailed(
-            override val figmaFile: FileKey,
-            override val nodeId: NodeId,
-            val imageUrl: String,
-            override val cause: Throwable,
-        ) : Failure {
-            override val reason: String = "Failed to download image: ${cause.message}"
-        }
+            data class GetImagesFailed(
+                override val figmaFile: FileKey,
+                override val nodeId: NodeId,
+                override val cause: Throwable,
+            ) : NodeFailure {
+                override val reason: String = "Failed to retrieve image URL: ${cause.message}"
+            }
 
-        data class ImportPipelineFailed(
-            override val figmaFile: FileKey,
-            override val nodeId: NodeId,
-            val instruction: Instruction,
-            override val cause: Throwable,
-        ) : Failure {
-            override val reason: String = "Import pipeline failed: ${cause.message}"
+            data class NoImageUrl(
+                override val figmaFile: FileKey,
+                override val nodeId: NodeId,
+            ) : NodeFailure {
+                override val reason: String = "No image URL"
+                override val cause: Throwable? = null
+            }
+
+            data class DownloadFailed(
+                override val figmaFile: FileKey,
+                override val nodeId: NodeId,
+                val imageUrl: String,
+                override val cause: Throwable,
+            ) : NodeFailure {
+                override val reason: String = "Failed to download image: ${cause.message}"
+            }
+
+            data class ImportPipelineFailed(
+                override val figmaFile: FileKey,
+                override val nodeId: NodeId,
+                val instruction: Instruction,
+                override val cause: Throwable,
+            ) : NodeFailure {
+                override val reason: String = "Import pipeline failed: ${cause.message}"
+            }
         }
     }
 }
