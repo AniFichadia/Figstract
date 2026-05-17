@@ -13,7 +13,10 @@ import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
+import com.anifichadia.figstract.importer.variable.model.VariableImportResult
 import com.anifichadia.figstract.importer.variable.model.resolve
+import com.anifichadia.figstract.importer.variable.reporting.VariableImportReport
+import com.anifichadia.figstract.importer.variable.reporting.VariableImportReportRepository
 import com.anifichadia.figstract.util.createLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,24 +35,41 @@ import kotlin.coroutines.CoroutineContext
 
 class FigmaVariableImporter(
     private val figmaApi: FigmaApi,
+    private val importReportRepository: VariableImportReportRepository,
     private val defaultContext: CoroutineContext = Dispatchers.Default,
     private val networkContext: CoroutineContext = Dispatchers.IO,
     private val writerContext: CoroutineContext = Dispatchers.IO,
 ) {
     suspend fun importFromFigma(handlers: List<VariableFileHandler>) {
+        val reports = handlers.associate { handler ->
+            handler.figmaFile to VariableImportReport(handler.figmaFile)
+        }
+
         val importFlow = handlers
-            .map { handler -> createProcessingFlow(handler) }
+            .map { handler -> createProcessingFlow(handler, reports.getValue(handler.figmaFile)) }
             .merge()
 
         coroutineScope {
             importFlow.launchIn(this)
         }
+
+        for (report in reports.values) {
+            importReportRepository.save(report)
+            logger.info { report.summary() }
+
+            if (report.hasFailures()) {
+                logger.error { "Variable import failures for ${report.figmaFile}: ${report.failures().size} failure(s)" }
+            }
+        }
     }
 
-    private fun createProcessingFlow(handler: VariableFileHandler): Flow<Unit> {
+    private fun createProcessingFlow(
+        handler: VariableFileHandler,
+        report: VariableImportReport,
+    ): Flow<Unit> {
         return flow {
             val resolvedHandler = variableFileHandlerForBranch(handler)
-            emitAll(createResolvedProcessingFlow(resolvedHandler))
+            emitAll(createResolvedProcessingFlow(resolvedHandler, report))
         }
     }
 
@@ -65,19 +85,25 @@ class FigmaVariableImporter(
         return handler.withResolvedBranchKey(branchKey)
     }
 
-    private fun createResolvedProcessingFlow(handler: VariableFileHandler): Flow<Unit> {
+    private fun createResolvedProcessingFlow(
+        handler: VariableFileHandler,
+        report: VariableImportReport,
+    ): Flow<Unit> {
         val handlersFlow = flowOf(handler)
 
-        val fileFlow = createFigmaFileFlow(handlersFlow)
+        val fileFlow = createFigmaFileFlow(handlersFlow, report)
 
-        val exportFlow = createExportFlow(fileFlow)
+        val exportFlow = createExportFlow(fileFlow, report)
 
-        val importFlow = createImportFlow(exportFlow)
+        val importFlow = createImportFlow(exportFlow, report)
 
         return importFlow
     }
 
-    private fun createFigmaFileFlow(handlers: Flow<VariableFileHandler>): Flow<Pair<VariableFileHandler, ApiResponse<GetLocalVariablesResponse>>> {
+    private fun createFigmaFileFlow(
+        handlers: Flow<VariableFileHandler>,
+        report: VariableImportReport,
+    ): Flow<Pair<VariableFileHandler, ApiResponse<GetLocalVariablesResponse>>> {
         return handlers
             .flowOn(defaultContext)
             .map { handler ->
@@ -89,25 +115,46 @@ class FigmaVariableImporter(
                 logger.info { "Fetching ${handler.figmaFile}: Finish ${getLocalVariablesResponse.isSuccess()}" }
                 getLocalVariablesResponse.logError { "Fetching ${handler.figmaFile}" }
 
+                if (!getLocalVariablesResponse.isSuccess()) {
+                    report.record(
+                        VariableImportResult.Failure.GetVariablesFailed(
+                            figmaFile = handler.figmaFile,
+                            cause = (getLocalVariablesResponse as ApiResponse.Failure).asException(),
+                        )
+                    )
+                }
+
                 handler to getLocalVariablesResponse
             }
             .flowOn(networkContext)
-            // TODO: error handling
             .filter { (_, apiResponse) -> apiResponse.isSuccess() }
             .flowOn(defaultContext)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createExportFlow(fileFlow: Flow<Pair<VariableFileHandler, ApiResponse<GetLocalVariablesResponse>>>): Flow<ExportOutput> {
-        // TODO: log processing
+    private fun createExportFlow(
+        fileFlow: Flow<Pair<VariableFileHandler, ApiResponse<GetLocalVariablesResponse>>>,
+        report: VariableImportReport,
+    ): Flow<ExportOutput> {
         return fileFlow
             .map { (handler, getLocalVariablesResponse) ->
+                logger.debug { "Processing variables ${handler.figmaFile}: Start" }
                 val response = getLocalVariablesResponse.successBodyOrThrow()
 
-                // TODO: error
-                val meta = response.meta ?: error("no data????")
+                val meta = response.meta
+                if (meta == null) {
+                    logger.error { "Processing variables ${handler.figmaFile}: No metadata in response" }
+                    report.record(
+                        VariableImportResult.Failure.NoMetadata(
+                            figmaFile = handler.figmaFile,
+                        )
+                    )
+                    return@map emptyList()
+                }
+
                 val variables = meta.variables
                 val variableCollections = meta.variableCollections.values
+                logger.info { "Processing variables ${handler.figmaFile}: Finish, ${variableCollections.size} collection(s)" }
 
                 val filter = handler.filter
                 variableCollections
@@ -155,11 +202,11 @@ class FigmaVariableImporter(
             }
             .flatMapConcat {
                 flow {
-                    it.forEach {
+                    it.forEach { (handler, variableData) ->
                         emit(
                             ExportOutput(
-                                handler = it.first,
-                                variableData = it.second,
+                                handler = handler,
+                                variableData = variableData,
                             ),
                         )
                     }
@@ -168,7 +215,10 @@ class FigmaVariableImporter(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private fun createImportFlow(exportFlow: Flow<ExportOutput>): Flow<Unit> {
+    private fun createImportFlow(
+        exportFlow: Flow<ExportOutput>,
+        report: VariableImportReport,
+    ): Flow<Unit> {
         data class WriterInput(
             val handler: VariableFileHandler,
             val variableData: VariableData,
@@ -193,14 +243,29 @@ class FigmaVariableImporter(
                 }
             }
             .map { (handler, variableData, resolvedMapping, writer) ->
-                // TODO: better log message, should include info about variableData
-                logger.debug { "Importing ${handler.figmaFile}: Started" }
+                val collectionName = variableData.variableCollection.name
+                val writerName = writer::class.simpleName ?: writer.toString()
+                logger.debug { "Importing ${handler.figmaFile} [$collectionName] via $writerName: Started" }
                 try {
                     writer.write(variableData, resolvedMapping)
-                    logger.info { "Importing ${handler.figmaFile}: Finished true" }
+                    report.record(
+                        VariableImportResult.Success(
+                            figmaFile = handler.figmaFile,
+                            variableCollectionName = collectionName,
+                            writerName = writerName,
+                        ),
+                    )
+                    logger.info { "Importing ${handler.figmaFile} [$collectionName] via $writerName: Finished true" }
                 } catch (e: Throwable) {
-                    logger.error(e) { "Importing ${handler.figmaFile}: Finished false" }
-                    // TODO: error handling
+                    logger.error(e) { "Importing ${handler.figmaFile} [$collectionName] via $writerName: Finished false" }
+                    report.record(
+                        VariableImportResult.Failure.WriteFailed(
+                            figmaFile = handler.figmaFile,
+                            variableCollectionName = collectionName,
+                            writerName = writerName,
+                            cause = e,
+                        ),
+                    )
                 }
             }
             .flowOn(writerContext)
