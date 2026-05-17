@@ -16,11 +16,11 @@ on:
 jobs:
   check_version_and_release:
     if: >
-      ${{ github.event_name == 'workflow_dispatch' || 
-        (github.event_name == 'workflow_run' && 
-          github.event.workflow_run.head_branch == 'main' && 
-          github.event.workflow_run.conclusion == 'success')
-      }}
+      (github.event_name == 'workflow_dispatch' &&
+        github.actor == 'AniFichadia') || 
+      (github.event_name == 'workflow_run' && 
+        github.event.workflow_run.head_branch == 'main' && 
+        github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     permissions:
       contents: write
