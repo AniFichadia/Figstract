@@ -9,6 +9,7 @@ import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
 import com.anifichadia.figstract.importer.variable.reporting.JsonFileVariableImportReportRepository
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.context
 import kotlinx.coroutines.coroutineScope
 import java.io.File
@@ -50,9 +51,14 @@ abstract class VariablesCommand : SuspendingCliktCommand(
         )
 
         coroutineScope {
-            importer.importFromFigma(
-                handlers = createHandlers(outDirectory),
-            )
+            try {
+                importer.importFromFigma(
+                    handlers = createHandlers(outDirectory),
+                )
+            } catch (e: Throwable) {
+                echo(e.message, err = true)
+                throw ProgramResult(1)
+            }
         }
     }
 }
