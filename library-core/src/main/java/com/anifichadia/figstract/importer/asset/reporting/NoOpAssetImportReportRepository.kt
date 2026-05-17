@@ -1,5 +1,5 @@
 package com.anifichadia.figstract.importer.asset.reporting
 
-class NoOpImportReportRepository : ImportReportRepository {
+class NoOpAssetImportReportRepository : AssetImportReportRepository {
     override suspend fun save(report: FigmaImportReport) = Unit
 }

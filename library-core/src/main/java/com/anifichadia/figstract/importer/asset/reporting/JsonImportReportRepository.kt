@@ -5,10 +5,10 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import kotlin.time.Clock
 
-class JsonFileImportReportRepository(
+class JsonFileAssetImportReportRepository(
     private val outputDir: File,
     private val json: Json = DefaultJson,
-) : ImportReportRepository {
+) : AssetImportReportRepository {
 
     init {
         outputDir.mkdirs()

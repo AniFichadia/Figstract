@@ -1,5 +1,5 @@
 package com.anifichadia.figstract.importer.asset.reporting
 
-interface ImportReportRepository {
+interface AssetImportReportRepository {
     suspend fun save(report: FigmaImportReport)
 }

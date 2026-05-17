@@ -7,8 +7,8 @@ import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.ImportResult
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
+import com.anifichadia.figstract.importer.asset.reporting.AssetImportReportRepository
 import com.anifichadia.figstract.importer.asset.reporting.FigmaImportReport
-import com.anifichadia.figstract.importer.asset.reporting.ImportReportRepository
 import com.anifichadia.figstract.importer.getFileWithBranchName
 import com.anifichadia.figstract.model.tracking.ProcessingRecordRepository
 import com.anifichadia.figstract.util.createLogger
@@ -44,7 +44,7 @@ class FigmaAssetImporter(
     private val figmaApi: FigmaApi,
     private val downloaderHttpClient: HttpClient,
     private val processingRecordRepository: ProcessingRecordRepository,
-    private val importReportRepository: ImportReportRepository,
+    private val importReportRepository: AssetImportReportRepository,
     private val defaultContext: CoroutineContext = Dispatchers.Default,
     private val networkContext: CoroutineContext = Dispatchers.IO,
     private val importPipelineContext: CoroutineContext = Dispatchers.IO,
@@ -74,7 +74,7 @@ class FigmaAssetImporter(
         }
 
         if (failedFiles.isNotEmpty()) {
-            throw ImportFailureException(failedFiles)
+            throw AssetImportFailureException(failedFiles)
         }
     }
 
