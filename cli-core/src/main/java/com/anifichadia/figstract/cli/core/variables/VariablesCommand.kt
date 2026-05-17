@@ -6,8 +6,10 @@ import com.anifichadia.figstract.cli.core.getFigmaApi
 import com.anifichadia.figstract.cli.core.outDirectory
 import com.anifichadia.figstract.importer.variable.FigmaVariableImporter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
+import com.anifichadia.figstract.importer.variable.reporting.JsonFileVariableImportReportRepository
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.core.context
 import kotlinx.coroutines.coroutineScope
 import java.io.File
@@ -39,14 +41,24 @@ abstract class VariablesCommand : SuspendingCliktCommand(
     abstract fun createHandlers(outDirectory: File): List<VariableFileHandler>
 
     override suspend fun run() {
+        val importReportRepository = JsonFileVariableImportReportRepository(
+            outputDir = outDirectory,
+        )
+
         val importer = FigmaVariableImporter(
             figmaApi = figmaApi,
+            importReportRepository = importReportRepository,
         )
 
         coroutineScope {
-            importer.importFromFigma(
-                handlers = createHandlers(outDirectory),
-            )
+            try {
+                importer.importFromFigma(
+                    handlers = createHandlers(outDirectory),
+                )
+            } catch (e: Throwable) {
+                echo(e.message, err = true)
+                throw ProgramResult(1)
+            }
         }
     }
 }
