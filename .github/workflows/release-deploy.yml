@@ -1,4 +1,4 @@
-name: Release
+name: Release deploy
 on:
   push:
     tags:
