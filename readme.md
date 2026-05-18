@@ -1,7 +1,7 @@
 # Figstract
 
 [![Maven Central Version](https://img.shields.io/maven-central/v/com.anifichadia.figstract/cli)](https://central.sonatype.com/namespace/com.anifichadia.figstract)
-[![Release](https://github.com/AniFichadia/Figstract/actions/workflows/release.yml/badge.svg)](https://github.com/AniFichadia/Figstract/actions/workflows/release.yml)
+[![Release](https://github.com/AniFichadia/Figstract/actions/workflows/release-deploy.yml/badge.svg)](https://github.com/AniFichadia/Figstract/actions/workflows/release.yml)
 [![Build](https://github.com/AniFichadia/Figstract/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/AniFichadia/Figstract/actions/workflows/build.yml?query=branch%3Amain)
 
 Figstract bridges the process for maintaining design systems (in Figma) between frontend engineers and designers and helps automate mundane upkeep tasks.
@@ -204,6 +204,11 @@ The record is stored as `processing_record.json` in the output directory.
 At least one platform must be enabled (`--platformAndroid`, `--platformIos`, `--platformWeb`).
 Output is written to `android/`, `ios/`, and `web/` subdirectories within the output directory.
 
+Artwork supports two crop modes, configured per run:
+
+- `--artworkCreateUncropped` (default `true`): exports the full frame using the parent
+- `--artworkCreateCropped` (default `false`): exports the image fill only, appending a `_cropped` suffix
+
 #### Web
 
 - **Artwork**: PNG
@@ -213,11 +218,6 @@ Output is written to `android/`, `ios/`, and `web/` subdirectories within the ou
 
 - **Artwork**: PNG scaled into density buckets (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) from a `xxxhdpi` source
 - **Icons**: SVG converted to Android Vector Drawable (AVD), with colors replaced by a magenta placeholder for tinting
-
-Artwork supports two crop modes, configured per run:
-
-- `--artworkCreateUncropped` (default `true`): exports the full frame using the parent
-- `--artworkCreateCropped` (default `false`): exports the image fill only, appending a `_cropped` suffix
 
 #### iOS
 
