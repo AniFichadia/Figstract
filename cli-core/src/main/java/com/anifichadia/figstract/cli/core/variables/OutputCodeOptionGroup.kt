@@ -8,16 +8,30 @@ import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.boolean
 
-class OutputCodeOptionGroup private constructor(
+open class OutputCodeOptionGroup protected constructor(
     name: String,
-    logicalGroupingName: String,
 ) : OptionGroup() {
-    private val name = name.ToUpperCamelCase()
-    private val logicalGroupingName = logicalGroupingName.ToUpperCamelCase()
+    protected val name = name.ToUpperCamelCase()
 
     val enabled by option("--output${this.name}")
         .boolean()
         .default(false)
+
+    companion object {
+        operator fun invoke(
+            name: String,
+        ) = OutputCodeOptionGroup(name)
+    }
+}
+
+open class OutputCodeWithGroupingOptionGroup private constructor(
+    name: String,
+    logicalGroupingName: String,
+) : OutputCodeOptionGroup(
+    name = name,
+) {
+    private val logicalGroupingName = logicalGroupingName.ToUpperCamelCase()
+
     val logicalGrouping by option("--output${this.name}${this.logicalGroupingName}")
         .required()
 
@@ -25,6 +39,6 @@ class OutputCodeOptionGroup private constructor(
         operator fun invoke(
             name: String,
             logicalGroupingName: String,
-        ) = OutputCodeOptionGroup(name, logicalGroupingName).cooccurring()
+        ) = OutputCodeWithGroupingOptionGroup(name, logicalGroupingName).cooccurring()
     }
 }

@@ -32,9 +32,9 @@ class RealVariablesCommand : VariablesCommand() {
     private val outputJson by option("--outputJson")
         .boolean()
         .default(false)
-    private val outputAndroidCompose by OutputCodeOptionGroup("AndroidCompose", "PackageName")
-    private val outputIosSwiftUi by OutputCodeOptionGroup("IosSwiftUi", "Module")
-    private val outputIosAssetCatalog by OutputCodeOptionGroup("IosAssetCatalog", "Namespace")
+    private val outputAndroidCompose by OutputCodeWithGroupingOptionGroup("AndroidCompose", "PackageName")
+    private val outputIosSwiftUi by OutputCodeWithGroupingOptionGroup("IosSwiftUi", "Module")
+    private val outputIosAssetCatalog by OutputCodeWithGroupingOptionGroup("IosAssetCatalog", "Namespace")
     private val outputColorAsHex by option("--outputColorAsHex")
         .boolean()
         .default(true)
@@ -114,9 +114,9 @@ class RealVariablesCommand : VariablesCommand() {
         }
     }
 
-    private fun MutableList<VariableDataWriter>.addIfEnabled(
-        option: OutputCodeOptionGroup?,
-        create: (OutputCodeOptionGroup) -> VariableDataWriter,
+    private fun <T : OutputCodeOptionGroup> MutableList<VariableDataWriter>.addIfEnabled(
+        option: T?,
+        create: (T) -> VariableDataWriter,
     ) {
         if (option == null || !option.enabled) return
 
