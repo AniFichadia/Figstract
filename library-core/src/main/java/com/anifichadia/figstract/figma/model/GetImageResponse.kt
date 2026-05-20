@@ -12,5 +12,6 @@ data class GetImageResponse(
 ) {
     companion object KnownErrors {
         val tooManyImages = Error(400, "Document images too large or too many images")
+        val tooManyImages2 = Error(400, "Render timeout, try requesting fewer or smaller images")
     }
 }

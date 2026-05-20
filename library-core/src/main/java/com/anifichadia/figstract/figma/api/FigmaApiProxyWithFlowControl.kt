@@ -67,7 +67,8 @@ class FigmaApiProxyWithFlowControl(
             )
         }
 
-        if (!response.errorMatches(GetImageResponse.tooManyImages) || ids.size <= 1) return response
+        if (!response.errorMatches(GetImageResponse.tooManyImages, GetImageResponse.tooManyImages2) || ids.size <= 1)
+            return response
 
         // Batch too large and rejected by figma, retry each image individually and merge the results
         val mergedImages = mutableMapOf<String, String?>()
