@@ -2,6 +2,7 @@ package com.anifichadia.figstract.cli.core.variables
 
 import com.anifichadia.figstract.ExperimentalFigstractApi
 import com.anifichadia.figstract.android.importer.variable.model.AndroidComposeVariableDataWriter
+import com.anifichadia.figstract.android.importer.variable.model.AndroidXmlVariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.JsonVariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
@@ -33,6 +34,7 @@ class RealVariablesCommand : VariablesCommand() {
         .boolean()
         .default(false)
     private val outputAndroidCompose by OutputCodeWithGroupingOptionGroup("AndroidCompose", "PackageName")
+    private val outputAndroidXml by AndroidXmlOptionGroup()
     private val outputIosSwiftUi by OutputCodeWithGroupingOptionGroup("IosSwiftUi", "Module")
     private val outputIosAssetCatalog by OutputCodeWithGroupingOptionGroup("IosAssetCatalog", "Namespace")
     private val outputColorAsHex by option("--outputColorAsHex")
@@ -88,6 +90,15 @@ class RealVariablesCommand : VariablesCommand() {
                 outDirectory = outDirectory.fold("android", "compose"),
                 packageName = it.logicalGrouping,
                 colorAsHex = outputColorAsHex,
+            )
+        }
+        addIfEnabled(outputAndroidXml) {
+            println("Warning: Android XML variable output is experimental and is subject to change")
+
+            AndroidXmlVariableDataWriter(
+                outDirectory = outDirectory.fold("android", "xml"),
+                splitByType = it.splitByType,
+                numberOutput = it.numberOutput,
             )
         }
         addIfEnabled(outputIosSwiftUi) {
