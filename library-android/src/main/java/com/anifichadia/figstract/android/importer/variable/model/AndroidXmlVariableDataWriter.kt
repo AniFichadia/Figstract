@@ -6,6 +6,7 @@ import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.type.fold
 import com.anifichadia.figstract.type.noOp
+import com.anifichadia.figstract.util.ToUpperCamelCase
 import com.anifichadia.figstract.util.sanitise
 import com.anifichadia.figstract.util.sanitiseFileName
 import com.anifichadia.figstract.util.to_snake_case
@@ -39,7 +40,7 @@ class AndroidXmlVariableDataWriter(
         variableData: VariableData,
         resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
     ) {
-        val collectionName = variableData.variableCollection.name.sanitiseFileName()
+        val collectionName = variableData.variableCollection.name.sanitiseFileName().to_snake_case()
 
         when (resolvedThemeVariantMapping) {
             is ResolvedThemeVariantMapping.LightAndDark -> {
@@ -88,7 +89,7 @@ class AndroidXmlVariableDataWriter(
         modeData: VariableData.VariablesByMode,
     ) {
         val dir = outDirectory.fold("res", "values")
-        val modeSuffix = modeData.mode.name.sanitise().to_snake_case()
+        val modeSuffix = modeData.mode.name.sanitiseFileName().to_snake_case()
 
         writeResourceFiles(
             dir = dir,
@@ -115,31 +116,31 @@ class AndroidXmlVariableDataWriter(
     ) {
         if (splitByType) {
             if (booleans.isNotEmpty()) {
-                writeXmlFile(dir, "bools_$fileBaseName") { appendBooleans(booleans) }
+                writeXmlFile(dir, "${fileBaseName}_booleans") { appendBooleans(booleans) }
             }
             if (numbers.isNotEmpty()) {
                 when (numberOutput) {
                     NumberOutput.NONE -> noOp()
-                    NumberOutput.INTEGER -> writeXmlFile(dir, "integers_$fileBaseName") {
+                    NumberOutput.INTEGER -> writeXmlFile(dir, "${fileBaseName}_integers") {
                         appendIntegers(numbers)
                     }
 
-                    NumberOutput.DIMEN -> writeXmlFile(dir, "dimens_$fileBaseName") {
+                    NumberOutput.DIMEN -> writeXmlFile(dir, "${fileBaseName}_dimens") {
                         appendDimens(numbers)
                     }
 
-                    NumberOutput.FLOAT -> writeXmlFile(dir, "floats_$fileBaseName") {
+                    NumberOutput.FLOAT -> writeXmlFile(dir, "${fileBaseName}_floats") {
                         appendFloats(numbers)
                     }
                 }
             }
             if (strings.isNotEmpty()) {
-                writeXmlFile(dir, "strings_$fileBaseName") {
+                writeXmlFile(dir, "${fileBaseName}_strings") {
                     appendStrings(strings)
                 }
             }
             if (colors.isNotEmpty()) {
-                writeXmlFile(dir, "colors_$fileBaseName") {
+                writeXmlFile(dir, "${fileBaseName}_colors") {
                     appendColors(colors)
                 }
             }
@@ -248,8 +249,8 @@ class AndroidXmlVariableDataWriter(
     private fun String.toResourceName(): String {
         return this
             .sanitise()
-            .replace("/", "__")
-            .to_snake_case()
+            .replace("/", "_")
+            .ToUpperCamelCase()
     }
 
     private fun String.escapeXml(): String {
