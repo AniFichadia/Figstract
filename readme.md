@@ -221,8 +221,26 @@ Artwork supports two crop modes, configured per run:
 
 #### iOS
 
-- **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source
+- **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source.
+  Optionally, HEIC format can be used instead of PNG via `--artworkIosOutputHeic` (see [HEIC output](#heic-output-ios) for setup requirements).
 - **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
+
+### HEIC output (iOS)
+
+HEIC can be enabled for iOS artwork via `--artworkIosOutputHeic`. This requires [`ImageMagick`](https://imagemagick.org/).
+
+**macOS**
+```shell
+brew install imagemagick
+```
+
+**Linux**
+```shell
+apt-get install -y imagemagick
+```
+
+**Windows:** Not supported as ImageMagick does not support writing HEIC on Windows due to licensing restrictions.
+Consider running this on macOS or Linux (including WSL2).
 
 ## Variables
 
