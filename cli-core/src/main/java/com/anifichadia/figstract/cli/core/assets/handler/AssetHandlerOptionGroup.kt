@@ -84,7 +84,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         .unique()
     private val artworkIosOutputScales by option("--${prefix}IosOutputScales")
         .enum<Scale>()
-        .multiple(default = Scale.entries)
+        .multiple(default = Scale.defaults)
         .unique()
     private val artworkIosConvertToHeic by option("--${prefix}IosConvertToHeic")
         .boolean()

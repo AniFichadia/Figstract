@@ -47,7 +47,7 @@ internal fun createArtworkFigmaFileHandler(
     iosExportConfig: ExportConfig = ios3xImage,
     webExportConfig: ExportConfig = pngUnscaled,
     androidOutputDensityBuckets: List<DensityBucket> = DensityBucket.defaults,
-    iosOutputScales: List<Scale> = Scale.entries,
+    iosOutputScales: List<Scale> = Scale.defaults,
     iosConvertToHeic: Boolean = false,
     instructionLimit: Int? = null,
 ): AssetFileHandler {

@@ -9,6 +9,10 @@ enum class Scale(val scale: Float) {
     fun scaleRelativeTo(other: Scale): Float {
         return other.scale / this.scale
     }
+
+    companion object {
+        val defaults = Scale.entries
+    }
 }
 
 fun Scale.asFileSuffix(): String {
