@@ -7,11 +7,15 @@ import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOption
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.exporting.pngUnscaled
+import com.anifichadia.figstract.ios.assetcatalog.Scale
 import com.anifichadia.figstract.ios.figma.model.ios3xImage
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.multiple
 import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.unique
 import com.github.ajalt.clikt.parameters.types.boolean
+import com.github.ajalt.clikt.parameters.types.enum
 import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 
@@ -73,6 +77,10 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     private val artworkCreateCropped by option("--${prefix}CreateCropped")
         .boolean()
         .default(false)
+    private val artworkIosOutputScales by option("--${prefix}IosOutputScales")
+        .enum<Scale>()
+        .multiple(default = Scale.entries)
+        .unique()
     private val artworkIosConvertToHeic by option("--${prefix}IosConvertToHeic")
         .boolean()
         .default(false)
@@ -113,6 +121,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             androidExportConfig = androidImageXxxHdpi,
             iosExportConfig = ios3xImage,
             webExportConfig = pngUnscaled,
+            iosOutputScales = artworkIosOutputScales.toList(),
             iosConvertToHeic = artworkIosConvertToHeic,
             instructionLimit = instructionLimit,
         )
