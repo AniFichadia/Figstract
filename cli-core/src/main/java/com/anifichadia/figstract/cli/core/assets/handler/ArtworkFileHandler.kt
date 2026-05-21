@@ -46,6 +46,7 @@ internal fun createArtworkFigmaFileHandler(
     androidExportConfig: ExportConfig = androidImageXxxHdpi,
     iosExportConfig: ExportConfig = ios3xImage,
     webExportConfig: ExportConfig = pngUnscaled,
+    iosOutputScales: List<Scale> = Scale.entries,
     iosConvertToHeic: Boolean = false,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
@@ -71,6 +72,7 @@ internal fun createArtworkFigmaFileHandler(
                 assetCatalog = assetCatalog,
                 assetType = AssetType.Image.ImageSet,
                 sourceScale = Scale.`3x`,
+                scales = iosOutputScales,
                 convertToHeic = iosConvertToHeic,
             ),
         )
