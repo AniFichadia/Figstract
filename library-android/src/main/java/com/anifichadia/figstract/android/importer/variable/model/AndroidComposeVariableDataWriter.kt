@@ -31,7 +31,9 @@ class AndroidComposeVariableDataWriter(
     private val colorAsHex: Boolean = true,
 ) : VariableDataWriter {
     init {
-        require(!outDirectory.exists() || outDirectory.isDirectory)
+        require(!outDirectory.exists() || outDirectory.isDirectory) {
+            "outDirectory must be a directory: $outDirectory"
+        }
     }
 
     override suspend fun write(
