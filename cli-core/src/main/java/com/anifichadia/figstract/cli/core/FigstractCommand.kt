@@ -9,6 +9,9 @@ import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
+import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.types.int
 
 class FigstractCommand private constructor() : SuspendingCliktCommand(
     name = "figstract",
@@ -17,6 +20,12 @@ class FigstractCommand private constructor() : SuspendingCliktCommand(
 
     private val auth by AuthOptionGroup()
     private val proxy by ProxyOptionGroup()
+    private val figmaApiConcurrencyLimit by option("--figmaApiConcurrencyLimit")
+        .int()
+        .default(value = FigmaApiProxyWithFlowControl.DEFAULT_CONCURRENCY_LIMIT)
+    private val figmaApiRetryLimit by option("--figmaApiRetryLimit")
+        .int()
+        .default(value = FigmaApiProxyWithFlowControl.DEFAULT_RETRY_LIMIT)
 
     private val logLevel by logLevel()
 
@@ -38,10 +47,12 @@ class FigstractCommand private constructor() : SuspendingCliktCommand(
         )
         setFigmaApi(
             FigmaApiProxyWithFlowControl(
-                FigmaApiImpl(
+                wrapped = FigmaApiImpl(
                     httpClient = figmaHttpClient,
                     authProvider = authProvider,
                 ),
+                concurrencyLimit = figmaApiConcurrencyLimit,
+                retryLimit = figmaApiRetryLimit,
             )
         )
     }
