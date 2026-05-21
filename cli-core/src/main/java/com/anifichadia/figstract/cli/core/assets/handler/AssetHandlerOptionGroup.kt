@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.android.figma.model.androidImageXxxHdpi
+import com.anifichadia.figstract.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
@@ -77,9 +78,13 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     private val artworkCreateCropped by option("--${prefix}CreateCropped")
         .boolean()
         .default(false)
+    private val artworkAndroidOutputDensityBuckets by option("--${prefix}AndroidOutputDensityBuckets")
+        .enum<DensityBucket>()
+        .multiple(default = DensityBucket.defaults)
+        .unique()
     private val artworkIosOutputScales by option("--${prefix}IosOutputScales")
         .enum<Scale>()
-        .multiple(default = Scale.entries)
+        .multiple(default = Scale.defaults)
         .unique()
     private val artworkIosConvertToHeic by option("--${prefix}IosConvertToHeic")
         .boolean()
@@ -121,6 +126,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             androidExportConfig = androidImageXxxHdpi,
             iosExportConfig = ios3xImage,
             webExportConfig = pngUnscaled,
+            androidOutputDensityBuckets = artworkAndroidOutputDensityBuckets.toList(),
             iosOutputScales = artworkIosOutputScales.toList(),
             iosConvertToHeic = artworkIosConvertToHeic,
             instructionLimit = instructionLimit,

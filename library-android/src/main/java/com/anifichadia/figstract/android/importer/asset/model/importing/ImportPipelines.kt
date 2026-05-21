@@ -16,13 +16,12 @@ import java.io.File
  *
  * Note: Make sure the destination is set to [Destination.None]
  *
- * @param densityBuckets Allows configuring the output [DensityBucket]s. By default, this uses all [DensityBucket]s
- * except [DensityBucket.LDPI] since LDPI images are rarely used now.
+ * @param densityBuckets Refer to [DensityBucket.defaults]
  */
 fun androidImageScaleAndStoreInDensityBuckets(
     imageDirectory: File,
     sourceDensity: DensityBucket,
-    densityBuckets: List<DensityBucket> = DensityBucket.entries.filter { it != DensityBucket.LDPI },
+    densityBuckets: List<DensityBucket> = DensityBucket.defaults,
 ): ImportPipeline.Step {
     return densityBuckets
         .map { targetDensity -> androidImageScaleAndStoreInDensityBucket(imageDirectory, sourceDensity, targetDensity) }

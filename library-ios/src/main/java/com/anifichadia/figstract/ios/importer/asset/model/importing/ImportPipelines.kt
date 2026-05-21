@@ -20,7 +20,7 @@ fun iosScaleAndStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
     assetType: AssetType.Image,
     sourceScale: Scale,
-    scales: List<Scale> = Scale.entries,
+    scales: List<Scale> = Scale.defaults,
     convertToHeic: Boolean = false,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,

@@ -46,14 +46,19 @@ internal fun createArtworkFigmaFileHandler(
     androidExportConfig: ExportConfig = androidImageXxxHdpi,
     iosExportConfig: ExportConfig = ios3xImage,
     webExportConfig: ExportConfig = pngUnscaled,
-    iosOutputScales: List<Scale> = Scale.entries,
+    androidOutputDensityBuckets: List<DensityBucket> = DensityBucket.defaults,
+    iosOutputScales: List<Scale> = Scale.defaults,
     iosConvertToHeic: Boolean = false,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = File(androidOutDirectory, artworkDirectoryName)
         ImportPipeline(
-            steps = androidImageScaleAndStoreInDensityBuckets(androidOutputDirectory, DensityBucket.XXXHDPI),
+            steps = androidImageScaleAndStoreInDensityBuckets(
+                imageDirectory = androidOutputDirectory,
+                sourceDensity = DensityBucket.XXXHDPI,
+                densityBuckets = androidOutputDensityBuckets,
+            ),
         )
     } else {
         null

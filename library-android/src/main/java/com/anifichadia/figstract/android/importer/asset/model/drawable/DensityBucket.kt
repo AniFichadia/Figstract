@@ -16,4 +16,9 @@ enum class DensityBucket(
     fun scaleRelativeTo(other: DensityBucket): Float {
         return other.scale / this.scale
     }
+
+    companion object {
+        /** By default, this uses all [DensityBucket]s except [DensityBucket.LDPI] since LDPI images are rarely used now.*/
+        val defaults = DensityBucket.entries.filter { it != LDPI }
+    }
 }
