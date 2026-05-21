@@ -24,6 +24,7 @@ import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.AssetType
 import com.anifichadia.figstract.ios.assetcatalog.Scale
 import com.anifichadia.figstract.ios.figma.model.ios3xImage
+import com.anifichadia.figstract.ios.importer.asset.model.importing.HeicSupport
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosScaleAndStoreInAssetCatalog
 import java.io.File
 
@@ -45,6 +46,7 @@ internal fun createArtworkFigmaFileHandler(
     androidExportConfig: ExportConfig = androidImageXxxHdpi,
     iosExportConfig: ExportConfig = ios3xImage,
     webExportConfig: ExportConfig = pngUnscaled,
+    iosConvertToHeic: Boolean = false,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -60,11 +62,16 @@ internal fun createArtworkFigmaFileHandler(
         val iosDirectory = File(iosOutDirectory, artworkDirectoryName)
         val assetCatalog = AssetCatalog(iosDirectory)
 
+        if (iosConvertToHeic) {
+            HeicSupport.requireAvailable()
+        }
+
         ImportPipeline(
             steps = iosScaleAndStoreInAssetCatalog(
                 assetCatalog = assetCatalog,
                 assetType = AssetType.Image.ImageSet,
                 sourceScale = Scale.`3x`,
+                convertToHeic = iosConvertToHeic,
             ),
         )
     } else {

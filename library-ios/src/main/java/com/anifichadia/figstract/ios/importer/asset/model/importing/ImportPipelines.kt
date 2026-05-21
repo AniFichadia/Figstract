@@ -4,6 +4,7 @@ import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.and
+import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.passThrough
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveExtension
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
@@ -20,12 +21,14 @@ fun iosScaleAndStoreInAssetCatalog(
     assetType: AssetType.Image,
     sourceScale: Scale,
     scales: List<Scale> = Scale.entries,
+    convertToHeic: Boolean = false,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,
 ): ImportPipeline.Step {
     return scales
         .map { targetScale ->
             scale(sourceScale.scaleRelativeTo(targetScale)) then
+                (if (convertToHeic) convertToHeic() else passThrough()) then
                 iosStoreInAssetCatalog(
                     assetCatalog = assetCatalog,
                     assetType = assetType,

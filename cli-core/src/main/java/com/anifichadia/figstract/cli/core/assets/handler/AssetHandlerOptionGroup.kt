@@ -73,6 +73,9 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     private val artworkCreateCropped by option("--${prefix}CreateCropped")
         .boolean()
         .default(false)
+    private val artworkIosConvertToHeic by option("--${prefix}IosConvertToHeic")
+        .boolean()
+        .default(false)
     override val nameGenerators by AssetTokenStringGeneratorOptionGroup(
         prefix = prefix,
         androidFormat = "artwork_{canvas.name}_{node.name}",
@@ -110,6 +113,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             androidExportConfig = androidImageXxxHdpi,
             iosExportConfig = ios3xImage,
             webExportConfig = pngUnscaled,
+            iosConvertToHeic = artworkIosConvertToHeic,
             instructionLimit = instructionLimit,
         )
     }
