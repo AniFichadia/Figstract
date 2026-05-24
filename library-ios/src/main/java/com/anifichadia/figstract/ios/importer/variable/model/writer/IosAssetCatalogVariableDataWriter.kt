@@ -1,13 +1,20 @@
 package com.anifichadia.figstract.ios.importer.variable.model.writer
 
 import com.anifichadia.figstract.ExperimentalFigstractApi
-import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
+import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
+import com.anifichadia.figstract.importer.variable.model.variableorganization.VariableOrganizationStrategy
+import com.anifichadia.figstract.importer.variable.model.variabletree.LightDarkEntry
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableEntry
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableGroup
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableTypeBucket
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableValue
 import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.COLOR_APPEARANCE_DARK_MODE
 import com.anifichadia.figstract.util.FileLockRegistry
 import com.anifichadia.figstract.util.ToUpperCamelCase
+import com.anifichadia.figstract.util.sanitise
 import com.anifichadia.figstract.util.sanitiseFileName
 import java.io.File
 
@@ -17,65 +24,90 @@ class IosAssetCatalogVariableDataWriter(
 ) : VariableDataWriter {
     override suspend fun write(
         variableData: VariableData,
-        resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+        themeVariantMapping: ThemeVariantMapping,
+        organizationStrategy: VariableOrganizationStrategy,
+        collectionName: String,
+        root: VariableGroup,
     ) {
-        val assetCatalog = AssetCatalog(outDirectory, variableData.variableCollection.name)
+        val assetCatalog = AssetCatalog(outDirectory, collectionName)
         val fileLockRegistry = FileLockRegistry()
 
-        when (resolvedThemeVariantMapping) {
-            is ResolvedThemeVariantMapping.LightAndDark -> {
-                assetCatalog.contentBuilder(
-                    groups = listOf(AssetCatalog.GroupName.Colors.directoryName),
-                    fileLockRegistry = fileLockRegistry,
-                ) {
-                    resolvedThemeVariantMapping.colors.forEach { (name, colors) ->
-                        val colorsAndAppearances = when (colors) {
-                            is ResolvedThemeVariantMapping.LightAndDark.Value.LightOnly -> listOf(
-                                colors.light to null,
-                            )
+        writeGroup(
+            group = root,
+            assetCatalog = assetCatalog,
+            fileLockRegistry = fileLockRegistry,
+            parentGroups = listOf(AssetCatalog.GroupName.Colors.directoryName),
+        )
+    }
 
-                            is ResolvedThemeVariantMapping.LightAndDark.Value.DarkOnly -> listOf(
-                                colors.dark to COLOR_APPEARANCE_DARK_MODE,
-                            )
+    private suspend fun writeGroup(
+        group: VariableGroup,
+        assetCatalog: AssetCatalog,
+        fileLockRegistry: FileLockRegistry,
+        parentGroups: List<String>,
+    ) {
+        val colorBuckets = group.buckets.filter {
+            it is VariableTypeBucket.Single.Colors || it is VariableTypeBucket.LightAndDark.Colors
+        }
 
-                            is ResolvedThemeVariantMapping.LightAndDark.Value.Both -> listOf(
-                                colors.light to null,
-                                colors.dark to COLOR_APPEARANCE_DARK_MODE,
-                            )
-                        }
-                        colorsAndAppearances.forEach { (color, appearances) ->
-                            addColor(
-                                name = name.sanitiseFileName().ToUpperCamelCase(),
-                                red = color.r.toFloat(),
-                                green = color.g.toFloat(),
-                                blue = color.b.toFloat(),
-                                alpha = color.a.toFloat(),
-                                appearances = appearances,
-                            )
-                        }
-                    }
-                }
-            }
+        if (colorBuckets.isNotEmpty()) {
+            assetCatalog.contentBuilder(groups = parentGroups, fileLockRegistry = fileLockRegistry) {
+                colorBuckets.forEach { bucket ->
+                    when (bucket) {
+                        is VariableTypeBucket.Single.Colors ->
+                            bucket.entries.forEach { addSingleColor(it) }
 
-            is ResolvedThemeVariantMapping.None -> {
-                variableData.variablesByMode.forEach { variablesByMode ->
-                    assetCatalog.contentBuilder(
-                        groups = listOf(AssetCatalog.GroupName.Colors.directoryName, variablesByMode.mode.name),
-                        fileLockRegistry = fileLockRegistry,
-                    ) {
-                        variablesByMode.colorVariables?.forEach { (name, color) ->
-                            addColor(
-                                name = name.sanitiseFileName().ToUpperCamelCase(),
-                                red = color.r.toFloat(),
-                                green = color.g.toFloat(),
-                                blue = color.b.toFloat(),
-                                alpha = color.a.toFloat(),
-                                appearances = null,
-                            )
-                        }
+                        is VariableTypeBucket.LightAndDark.Colors ->
+                            bucket.entries.forEach { addLightDarkColor(it) }
+
+                        else -> Unit
                     }
                 }
             }
         }
+
+        group.children.forEach { child ->
+            writeGroup(
+                group = child,
+                assetCatalog = assetCatalog,
+                fileLockRegistry = fileLockRegistry,
+                parentGroups = parentGroups + child.name.sanitise(),
+            )
+        }
+    }
+
+    private suspend fun AssetCatalog.ContentBuilder.addSingleColor(entry: VariableEntry<VariableValue.ColorValue>) {
+        val name = entry.name.sanitiseFileName().ToUpperCamelCase()
+        val color = entry.value.value
+        addColor(
+            name = name,
+            red = color.r.toFloat(),
+            green = color.g.toFloat(),
+            blue = color.b.toFloat(),
+            alpha = color.a.toFloat(),
+            appearances = null,
+        )
+    }
+
+    private suspend fun AssetCatalog.ContentBuilder.addLightDarkColor(entry: LightDarkEntry<VariableValue.ColorValue>) {
+        val name = entry.name.sanitiseFileName().ToUpperCamelCase()
+        val light = entry.light.value.value
+        val dark = entry.dark.value.value
+        addColor(
+            name = name,
+            red = light.r.toFloat(),
+            green = light.g.toFloat(),
+            blue = light.b.toFloat(),
+            alpha = light.a.toFloat(),
+            appearances = null,
+        )
+        addColor(
+            name = name,
+            red = dark.r.toFloat(),
+            green = dark.g.toFloat(),
+            blue = dark.b.toFloat(),
+            alpha = dark.a.toFloat(),
+            appearances = COLOR_APPEARANCE_DARK_MODE,
+        )
     }
 }
