@@ -8,12 +8,13 @@ import com.anifichadia.figstract.figma.model.GetLocalVariablesResponse
 import com.anifichadia.figstract.figma.model.Mode
 import com.anifichadia.figstract.figma.model.Variable
 import com.anifichadia.figstract.importer.getFileWithBranchName
-import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
 import com.anifichadia.figstract.importer.variable.model.VariableImportResult
-import com.anifichadia.figstract.importer.variable.model.resolve
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableGroup
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableTreeBuilder
+import com.anifichadia.figstract.importer.variable.model.variabletree.toDebugString
 import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.reporting.VariableImportReport
 import com.anifichadia.figstract.importer.variable.reporting.VariableImportReportRepository
@@ -227,33 +228,63 @@ class FigmaVariableImporter(
     ): Flow<Unit> {
         data class WriterInput(
             val handler: VariableFileHandler,
-            val variableData: VariableData,
-            val resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+            val collectionName: String,
             val writer: VariableDataWriter,
+            val variableData: VariableData,
+            val themeVariantMapping: ThemeVariantMapping,
+            val root: VariableGroup,
         )
 
         return exportFlow
-            .flatMapConcat { exportOutput ->
-                val handler = exportOutput.handler
-                val variableData = exportOutput.variableData
-
-                val mapping = handler.themeVariantMappings.getOrElse(variableData.variableCollection.name) {
+            .flatMapConcat { (handler, variableData) ->
+                val collectionName = variableData.variableCollection.name
+                val themeVariantMapping = handler.themeVariantMappings.getOrElse(collectionName) {
                     ThemeVariantMapping.None
                 }
-                val resolvedMapping = mapping.resolve(variableData)
+                val organizationStrategy = handler.variableOrganizationStrategy
+
+                val root = VariableTreeBuilder.build(
+                    variableData = variableData,
+                    themeVariantMapping = themeVariantMapping,
+                    organizationStrategy = organizationStrategy,
+                )
+                logger.debug { "Built variable tree for ${handler.figmaFile} [$collectionName] using $organizationStrategy:\n${root.toDebugString()}" }
 
                 flow {
                     handler.writers.forEach { writer ->
-                        emit(WriterInput(handler, variableData, resolvedMapping, writer))
+                        emit(
+                            WriterInput(
+                                handler = handler,
+                                collectionName = collectionName,
+                                writer = writer,
+                                variableData = variableData,
+                                themeVariantMapping = themeVariantMapping,
+                                root = root,
+                            ),
+                        )
                     }
                 }
             }
-            .map { (handler, variableData, resolvedMapping, writer) ->
-                val collectionName = variableData.variableCollection.name
+            .map { writerInput ->
+                val handler = writerInput.handler
+                val collectionName = writerInput.collectionName
+                val writer = writerInput.writer
+                val variableData = writerInput.variableData
+                val themeVariantMapping = writerInput.themeVariantMapping
+                val root = writerInput.root
+
                 val writerName = writer::class.simpleName ?: writer.toString()
+                val organizationStrategy = handler.variableOrganizationStrategy
                 logger.debug { "Importing ${handler.figmaFile} [$collectionName] via $writerName: Started" }
                 try {
-                    writer.write(variableData, resolvedMapping)
+                    writer.write(
+                        variableData = variableData,
+                        themeVariantMapping = themeVariantMapping,
+                        organizationStrategy = organizationStrategy,
+                        collectionName = collectionName,
+                        root = root,
+                    )
+
                     report.record(
                         VariableImportResult.Success(
                             figmaFile = handler.figmaFile,
