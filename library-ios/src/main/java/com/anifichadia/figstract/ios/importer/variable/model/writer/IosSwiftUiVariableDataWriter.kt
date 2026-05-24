@@ -1,9 +1,9 @@
-package com.anifichadia.figstract.ios.importer.variable.model
+package com.anifichadia.figstract.ios.importer.variable.model.writer
 
 import com.anifichadia.figstract.ExperimentalFigstractApi
 import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
-import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
+import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.type.fold
 import com.anifichadia.figstract.util.ToUpperCamelCase
 import com.anifichadia.figstract.util.ifNotNull

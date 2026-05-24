@@ -1,7 +1,9 @@
-package com.anifichadia.figstract.importer.variable.model
+package com.anifichadia.figstract.importer.variable.model.writer
 
 import com.anifichadia.figstract.figma.Number
 import com.anifichadia.figstract.figma.model.Color
+import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
+import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.type.fold
 import com.anifichadia.figstract.util.sanitiseFileName
 import kotlinx.serialization.KSerializer

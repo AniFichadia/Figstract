@@ -11,10 +11,10 @@ import com.anifichadia.figstract.importer.getFileWithBranchName
 import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
-import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
 import com.anifichadia.figstract.importer.variable.model.VariableImportResult
 import com.anifichadia.figstract.importer.variable.model.resolve
+import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.reporting.VariableImportReport
 import com.anifichadia.figstract.importer.variable.reporting.VariableImportReportRepository
 import com.anifichadia.figstract.util.createLogger

@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.importer.variable.model
 
 import com.anifichadia.figstract.figma.FileKey
+import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 
 data class VariableFileHandler(
     val figmaFile: FileKey,

@@ -1,15 +1,15 @@
 package com.anifichadia.figstract.cli.core.variables
 
 import com.anifichadia.figstract.ExperimentalFigstractApi
-import com.anifichadia.figstract.android.importer.variable.model.AndroidComposeVariableDataWriter
-import com.anifichadia.figstract.android.importer.variable.model.AndroidXmlVariableDataWriter
-import com.anifichadia.figstract.importer.variable.model.JsonVariableDataWriter
+import com.anifichadia.figstract.android.importer.variable.model.writer.AndroidComposeVariableDataWriter
+import com.anifichadia.figstract.android.importer.variable.model.writer.AndroidXmlVariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
-import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.VariableFileFilter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
-import com.anifichadia.figstract.ios.importer.variable.model.IosAssetCatalogVariableDataWriter
-import com.anifichadia.figstract.ios.importer.variable.model.IosSwiftUiVariableDataWriter
+import com.anifichadia.figstract.importer.variable.model.writer.JsonVariableDataWriter
+import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
+import com.anifichadia.figstract.ios.importer.variable.model.writer.IosAssetCatalogVariableDataWriter
+import com.anifichadia.figstract.ios.importer.variable.model.writer.IosSwiftUiVariableDataWriter
 import com.anifichadia.figstract.type.fold
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.groups.provideDelegate

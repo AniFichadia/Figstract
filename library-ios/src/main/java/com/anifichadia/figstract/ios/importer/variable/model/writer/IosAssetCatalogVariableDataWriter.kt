@@ -1,9 +1,9 @@
-package com.anifichadia.figstract.ios.importer.variable.model
+package com.anifichadia.figstract.ios.importer.variable.model.writer
 
 import com.anifichadia.figstract.ExperimentalFigstractApi
 import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
-import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
+import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.COLOR_APPEARANCE_DARK_MODE
 import com.anifichadia.figstract.util.FileLockRegistry
