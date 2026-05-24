@@ -1,6 +1,6 @@
 package com.anifichadia.figstract.cli.core.variables
 
-import com.anifichadia.figstract.android.importer.variable.model.AndroidXmlVariableDataWriter
+import com.anifichadia.figstract.android.importer.variable.model.writer.AndroidXmlVariableDataWriter
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean

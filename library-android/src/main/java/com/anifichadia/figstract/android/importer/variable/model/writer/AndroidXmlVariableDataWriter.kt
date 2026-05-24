@@ -1,9 +1,9 @@
-package com.anifichadia.figstract.android.importer.variable.model
+package com.anifichadia.figstract.android.importer.variable.model.writer
 
 import com.anifichadia.figstract.figma.model.Color
 import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
-import com.anifichadia.figstract.importer.variable.model.VariableDataWriter
+import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.type.fold
 import com.anifichadia.figstract.type.noOp
 import com.anifichadia.figstract.util.ToUpperCamelCase
