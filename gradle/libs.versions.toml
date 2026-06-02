@@ -10,7 +10,7 @@ kotlinx-serialization = "1.11.0"
 clikt = "5.1.0"
 
 # https://github.com/oshai/kotlin-logging
-kotlinLogging = "8.0.03"
+kotlinLogging = "8.0.4"
 # http://logback.qos.ch/download.html
 logback = "1.5.32"
 
