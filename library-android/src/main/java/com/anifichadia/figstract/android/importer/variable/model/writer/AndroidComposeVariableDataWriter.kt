@@ -1,12 +1,17 @@
 package com.anifichadia.figstract.android.importer.variable.model.writer
 
 import com.anifichadia.figstract.figma.model.Color
-import com.anifichadia.figstract.importer.variable.model.ResolvedThemeVariantMapping
+import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
+import com.anifichadia.figstract.importer.variable.model.variableorganization.VariableOrganizationStrategy
+import com.anifichadia.figstract.importer.variable.model.variabletree.LightDarkEntry
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableEntry
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableGroup
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableTypeBucket
+import com.anifichadia.figstract.importer.variable.model.variabletree.VariableValue
 import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.util.ToUpperCamelCase
 import com.anifichadia.figstract.util.ifC
-import com.anifichadia.figstract.util.ifNotNull
 import com.anifichadia.figstract.util.sanitise
 import com.anifichadia.figstract.util.sanitiseFileName
 import com.anifichadia.figstract.util.toLowerCamelCase
@@ -38,177 +43,146 @@ class AndroidComposeVariableDataWriter(
 
     override suspend fun write(
         variableData: VariableData,
-        resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
+        themeVariantMapping: ThemeVariantMapping,
+        organizationStrategy: VariableOrganizationStrategy,
+        collectionName: String,
+        root: VariableGroup,
     ) {
         val fileSpec = FileSpec.builder(
             packageName = packageName,
-            fileName = variableData.variableCollection.name.sanitiseFileName().ToUpperCamelCase(),
+            fileName = collectionName.sanitiseFileName().ToUpperCamelCase(),
         )
-            .addType(createVariableCollectionType(variableData, resolvedThemeVariantMapping))
+            .addType(createGroupType(root, isRoot = true))
             .build()
 
         outDirectory.mkdirs()
         fileSpec.writeTo(outDirectory)
     }
 
-    private fun createVariableCollectionType(
-        variableData: VariableData,
-        resolvedThemeVariantMapping: ResolvedThemeVariantMapping,
-    ): TypeSpec {
-        return TypeSpec.objectBuilder(variableData.variableCollection.name.sanitiseFileName().ToUpperCamelCase())
-            .addKdoc("%L", variableData.variableCollection.name)
-            .apply {
-                when (resolvedThemeVariantMapping) {
-                    is ResolvedThemeVariantMapping.LightAndDark -> {
-                        if (variableData.booleansProvided) {
-                            addType(
-                                generateType(
-                                    mappings = resolvedThemeVariantMapping.booleans,
-                                    generatedTypeClassName = ClassName("", booleansClassName),
-                                    propertyType = BOOLEAN,
-                                )
-                            )
-                        }
-                        if (variableData.numbersProvided) {
-                            addType(
-                                generateType(
-                                    mappings = resolvedThemeVariantMapping.numbers,
-                                    generatedTypeClassName = ClassName("", numbersClassName),
-                                    propertyType = DOUBLE,
-                                )
-                            )
-                        }
-                        if (variableData.stringsProvided) {
-                            addType(
-                                generateType(
-                                    mappings = resolvedThemeVariantMapping.strings,
-                                    generatedTypeClassName = ClassName("", stringsClassName),
-                                    propertyType = STRING,
-                                )
-                            )
-                        }
-                        if (variableData.colorsProvided) {
-                            addType(
-                                generateType(
-                                    mappings = resolvedThemeVariantMapping.colors,
-                                    generatedTypeClassName = ClassName("", colorsClassName),
-                                    propertyType = composeColorClassName,
-                                    initializer = ::colorInitializer,
-                                )
-                            )
-                        }
-                    }
+    private fun createGroupType(group: VariableGroup, isRoot: Boolean = false): TypeSpec {
+        val typeName = if (isRoot) {
+            group.name.sanitiseFileName().ToUpperCamelCase()
+        } else {
+            group.name.sanitise().ToUpperCamelCase()
+        }
 
-                    is ResolvedThemeVariantMapping.None -> {
-                        addTypes(
-                            variableData.variablesByMode.map {
-                                createModeType(it)
-                            }
-                        )
-                    }
-                }
+        return TypeSpec.objectBuilder(typeName)
+            .addKdoc("%L", group.name)
+            .apply {
+                group.children.forEach { child -> addType(createGroupType(child)) }
+                group.buckets.forEach { bucket -> addType(createBucketType(bucket)) }
             }
             .build()
     }
 
-    private fun <T> generateType(
-        mappings: Map<String, ResolvedThemeVariantMapping.LightAndDark.Value<T>>,
-        generatedTypeClassName: ClassName,
-        propertyType: TypeName,
-        initializer: (value: T) -> CodeBlock = { CodeBlock.of("%L", it) },
-    ): TypeSpec {
-        val names = mappings.keys.associateWith { it.sanitise().toLowerCamelCase() }
-        val properties = names
-            .map { (_, safeColorName) ->
-                PropertySpec.builder(safeColorName, propertyType)
-                    .initializer(safeColorName)
-                    .build()
-            }
+    private fun createBucketType(bucket: VariableTypeBucket): TypeSpec {
+        return when (bucket) {
+            is VariableTypeBucket.Single.Booleans ->
+                createSingleType(bucket.name, bucket.entries, BOOLEAN)
 
-        return TypeSpec.classBuilder(generatedTypeClassName)
-            .ifC(mappings.isNotEmpty()) {
-                addModifiers(KModifier.DATA)
-            }
+            is VariableTypeBucket.Single.Numbers ->
+                createSingleType(bucket.name, bucket.entries, DOUBLE)
+
+            is VariableTypeBucket.Single.Strings ->
+                createSingleType(bucket.name, bucket.entries, STRING)
+
+            is VariableTypeBucket.Single.Colors ->
+                createSingleType(bucket.name, bucket.entries, composeColorClassName)
+
+            is VariableTypeBucket.LightAndDark.Booleans ->
+                createLightDarkType(bucket.name, bucket.entries, BOOLEAN)
+
+            is VariableTypeBucket.LightAndDark.Numbers ->
+                createLightDarkType(bucket.name, bucket.entries, DOUBLE)
+
+            is VariableTypeBucket.LightAndDark.Strings ->
+                createLightDarkType(bucket.name, bucket.entries, STRING)
+
+            is VariableTypeBucket.LightAndDark.Colors ->
+                createLightDarkType(bucket.name, bucket.entries, composeColorClassName)
+        }
+    }
+
+    private fun <V : VariableValue> createSingleType(
+        name: String,
+        entries: List<VariableEntry<V>>,
+        typeName: TypeName,
+    ): TypeSpec {
+        return TypeSpec.objectBuilder(name)
+            .addKdoc("%L", name)
+            .addProperties(
+                entries.map { entry ->
+                    PropertySpec.builder(entry.name.sanitise().toLowerCamelCase(), typeName)
+                        .addKdoc("%L", entry.figmaPath)
+                        .initializer(entry.value.initializer())
+                        .build()
+                }
+            )
+            .build()
+    }
+
+    private fun <V : VariableValue> createLightDarkType(
+        name: String,
+        entries: List<LightDarkEntry<V>>,
+        typeName: TypeName,
+    ): TypeSpec {
+        val className = ClassName("", name)
+        val safeNames = entries.associateWith { it.name.sanitise().toLowerCamelCase() }
+        val properties = safeNames.values.mapIndexed { i, safeName ->
+            PropertySpec.builder(safeName, typeName)
+                .addKdoc("%L\n", entries[i].figmaPath)
+                .initializer(safeName)
+                .build()
+        }
+
+        return TypeSpec.classBuilder(className)
+            .addKdoc("%L", name)
+            .ifC(entries.isNotEmpty()) { addModifiers(KModifier.DATA) }
             .primaryConstructor(
                 FunSpec.constructorBuilder()
-                    .addParameters(
-                        properties.map { property ->
-                            ParameterSpec.builder(property.name, property.type).build()
-                        }
-                    )
+                    .addParameters(properties.map { ParameterSpec.builder(it.name, it.type).build() })
                     .build()
             )
             .addProperties(properties)
             .addType(
                 TypeSpec.companionObjectBuilder()
                     .addProperty(
-                        generateVariantProperty(
-                            isLight = true,
-                            typeName = generatedTypeClassName,
-                            valueNames = names,
-                            mappings = mappings,
-                            initializer = initializer,
-                        )
+                        buildVariantProperty(
+                            variantName = "light",
+                            className = className,
+                            safeNames = safeNames,
+                            entries = entries
+                        ) { it.light.value },
                     )
                     .addProperty(
-                        generateVariantProperty(
-                            isLight = false,
-                            typeName = generatedTypeClassName,
-                            valueNames = names,
-                            mappings = mappings,
-                            initializer = initializer,
-                        )
+                        buildVariantProperty(
+                            variantName = "dark",
+                            className = className,
+                            safeNames = safeNames,
+                            entries = entries
+                        ) { it.dark.value },
                     )
                     .build()
             )
             .build()
     }
 
-    private fun createModeType(
-        variablesByMode: VariableData.VariablesByMode,
-    ): TypeSpec {
-        return TypeSpec.objectBuilder(variablesByMode.mode.name.sanitiseFileName().ToUpperCamelCase())
-            .addKdoc("%L", variablesByMode.mode.name)
-            .ifNotNull(variablesByMode.booleanVariables) {
-                addType(createVariablesType(booleansClassName, it, BOOLEAN))
-            }
-            .ifNotNull(variablesByMode.numberVariables) {
-                addType(createVariablesType(numbersClassName, it, DOUBLE))
-            }
-            .ifNotNull(variablesByMode.stringVariables) {
-                addType(createVariablesType(stringsClassName, it, STRING))
-            }
-            .ifNotNull(variablesByMode.colorVariables) {
-                addType(createVariablesType(colorsClassName, it, composeColorClassName, ::colorInitializer))
-            }
-            .build()
-    }
-
-    private fun <T> generateVariantProperty(
-        isLight: Boolean,
-        typeName: TypeName,
-        valueNames: Map<String, String>,
-        mappings: Map<String, ResolvedThemeVariantMapping.LightAndDark.Value<T>>,
-        initializer: (value: T) -> CodeBlock = { CodeBlock.of("%L", it) },
+    private fun <V : VariableValue> buildVariantProperty(
+        variantName: String,
+        className: ClassName,
+        safeNames: Map<LightDarkEntry<V>, String>,
+        entries: List<LightDarkEntry<V>>,
+        valueSelector: (LightDarkEntry<V>) -> V,
     ): PropertySpec {
-        return PropertySpec.builder(
-            name = if (isLight) {
-                "light"
-            } else {
-                "dark"
-            },
-            type = typeName,
-        )
+        return PropertySpec.builder(variantName, className)
             .initializer(
                 CodeBlock.builder()
-                    .add("%T(", typeName)
+                    .add("%T(", className)
                     .withIndent {
                         addStatement("")
-                        valueNames.forEach { (valueName, safeValueName) ->
-                            add("%L = ", safeValueName)
-                            val value = mappings[valueName]!!.resolve(isLight = isLight)
-                            val initializerCode = initializer(value)
-                            add(initializerCode)
+                        entries.forEach { entry ->
+                            add("%L = ", safeNames[entry]!!)
+                            add(valueSelector(entry).initializer())
                             addStatement(",")
                         }
                     }
@@ -218,49 +192,32 @@ class AndroidComposeVariableDataWriter(
             .build()
     }
 
-    private fun colorInitializer(color: Color) = if (colorAsHex) {
-        CodeBlock.of("%T(%L)", composeColorClassName, color.toHexString())
-    } else {
-        CodeBlock.builder()
-            .add("%T(", composeColorClassName)
-            .withIndent {
-                addStatement("")
-                addStatement("red = %L,", color.r.toFloat())
-                addStatement("green = %L,", color.g.toFloat())
-                addStatement("blue = %L,", color.b.toFloat())
-                addStatement("alpha = %L,", color.a.toFloat())
-            }
-            .add(")")
-            .build()
+    private fun VariableValue.initializer(): CodeBlock = when (this) {
+        is VariableValue.BooleanValue -> CodeBlock.of("%L", value)
+        is VariableValue.NumberValue -> CodeBlock.of("%L", value)
+        is VariableValue.StringValue -> CodeBlock.of("%S", value)
+        is VariableValue.ColorValue -> colorInitializer(value)
     }
 
-    private fun <T> createVariablesType(
-        name: String,
-        variables: Map<String, T>,
-        typeName: TypeName,
-        initializer: (value: T) -> CodeBlock = { CodeBlock.of("%L", it) },
-    ): TypeSpec {
-        return TypeSpec.objectBuilder(name)
-            .addKdoc("%L", name)
-            .addProperties(
-                variables.entries.map { (variableName, value) ->
-                    PropertySpec.builder(
-                        name = variableName.sanitise().toLowerCamelCase(),
-                        type = typeName,
-                    )
-                        .addKdoc("%L", variableName)
-                        .initializer(initializer(value))
-                        .build()
+    private fun colorInitializer(color: Color): CodeBlock {
+        return if (colorAsHex) {
+            CodeBlock.of("%T(%L)", composeColorClassName, color.toHexString())
+        } else {
+            CodeBlock.builder()
+                .add("%T(", composeColorClassName)
+                .withIndent {
+                    addStatement("")
+                    addStatement("red = %L,", color.r.toFloat())
+                    addStatement("green = %L,", color.g.toFloat())
+                    addStatement("blue = %L,", color.b.toFloat())
+                    addStatement("alpha = %L,", color.a.toFloat())
                 }
-            )
-            .build()
+                .add(")")
+                .build()
+        }
     }
 
     private companion object {
         private val composeColorClassName = ClassName("androidx.compose.ui.graphics", "Color")
-        private val booleansClassName = "Booleans"
-        private val numbersClassName = "Numbers"
-        private val stringsClassName = "Strings"
-        private val colorsClassName = "Colors"
     }
 }

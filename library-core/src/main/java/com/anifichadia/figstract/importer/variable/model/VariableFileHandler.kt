@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.importer.variable.model
 
 import com.anifichadia.figstract.figma.FileKey
+import com.anifichadia.figstract.importer.variable.model.variableorganization.VariableOrganizationStrategy
 import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 
 data class VariableFileHandler(
@@ -9,6 +10,7 @@ data class VariableFileHandler(
     val figmaFileVersion: String?,
     val filter: VariableFileFilter,
     val themeVariantMappings: Map<String, ThemeVariantMapping>,
+    val variableOrganizationStrategy: VariableOrganizationStrategy,
     val writers: List<VariableDataWriter>,
 ) {
     fun withResolvedBranchKey(branchKey: FileKey) = copy(

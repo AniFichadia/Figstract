@@ -29,6 +29,7 @@ class RealVariablesCommand : VariablesCommand() {
     private val figmaFileVersion by option("--figmaFileVersion")
 
     private val filters by VariableFilterOptionGroup()
+    private val variableOrganizationStrategy by VariableOrganizationStrategyOptionGroup()
 
     private val outputJson by option("--outputJson")
         .boolean()
@@ -70,6 +71,7 @@ class RealVariablesCommand : VariablesCommand() {
                 figmaFileVersion = figmaFileVersion,
                 filter = filters,
                 themeVariantMappings = themeVariantMappings,
+                variableOrganizationStrategy = variableOrganizationStrategy.toVariableOrganizationStrategy(),
                 writers = writers,
             )
         }
