@@ -158,7 +158,7 @@ This makes it possible to apply format conversion, renaming, and other processin
 ### Filtering
 
 Assets can be filtered by canvas (page), node, and parent node name using regex patterns.
-Include and exclude filters are mutually exclusive. 
+Include and exclude filters are mutually exclusive.
 Filters can be repeated to supply multiple patterns.
 
 - Canvas filters: `--artworkFilterIncludedCanvas` / `--artworkFilterExcludedCanvas` (and `icons` equivalents)
@@ -188,7 +188,7 @@ The following tokens are supported, wrapped in `{}`:
 
 If the separator is not found in the node name, the full name is used.
 
-Names are automatically cased to match platform conventions (snake_case for Android and Web, UpperCamelCase for iOS). 
+Names are automatically cased to match platform conventions (snake_case for Android and Web, UpperCamelCase for iOS).
 Override the format using `--artworkAndroidFormat`, `--artworkIosFormat`, `--artworkWebFormat` (and `icons` equivalents).
 
 ### Processing records
@@ -224,6 +224,25 @@ Artwork supports two crop modes, configured per run:
 - **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source.
   Optionally, HEIC format can be used instead of PNG via `--artworkIosOutputHeic` (see [HEIC output](#heic-output-ios) for setup requirements).
 - **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
+
+##### Grouping by canvas
+
+Assets can be grouped into named folders within the Asset Catalog by canvas (page) using `--artworkIosGroupByCanvas` and `--iconsIosGroupByCanvas`.
+
+When enabled, each canvas name becomes a namespace folder in the asset catalog:
+
+```
+Assets.xcassets/
+  MyCanvas/
+    Images/
+      hero_image.imageset/
+  AnotherCanvas/
+    Images/
+      banner.imageset/
+```
+
+> [!TIP]
+> When grouping by canvas, consider setting `--artworkIosFormat` or `--iconsIosFormat` to `{node.name}` to avoid redundant info between the namespace and asset.
 
 ### HEIC output (iOS)
 
