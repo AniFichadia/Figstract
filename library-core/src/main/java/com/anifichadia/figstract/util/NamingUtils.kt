@@ -19,7 +19,9 @@ fun String.sanitiseFileName() = this
 private val spaceRegex = """\s""".toRegex()
 
 @Suppress("FunctionName")
-fun String.to_snake_case() = this.lowercase().replace(spaceRegex, "_")
+fun String.to_snake_case(lowercase: Boolean = true) = this
+    .ifC(lowercase) { lowercase() }
+    .replace(spaceRegex, "_")
 
 @Suppress("FunctionName")
 fun String.TO_SCREAMING_SNAKE_CASE() = this.to_snake_case().uppercase()
