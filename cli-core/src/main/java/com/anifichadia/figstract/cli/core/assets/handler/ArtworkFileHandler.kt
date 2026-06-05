@@ -49,6 +49,7 @@ internal fun createArtworkFigmaFileHandler(
     androidOutputDensityBuckets: List<DensityBucket> = DensityBucket.defaults,
     iosOutputScales: List<Scale> = Scale.defaults,
     iosConvertToHeic: Boolean = false,
+    iosGroupByCanvas: Boolean = false,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -79,6 +80,7 @@ internal fun createArtworkFigmaFileHandler(
                 sourceScale = Scale.`3x`,
                 scales = iosOutputScales,
                 convertToHeic = iosConvertToHeic,
+                groupByCanvas = iosGroupByCanvas,
             ),
         )
     } else {
@@ -130,17 +132,22 @@ internal fun createArtworkFigmaFileHandler(
                             if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
                             val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+                            val iosPathElements = if (iosGroupByCanvas) listOf(canvas.name) else emptyList()
 
                             fun addInstructions(
                                 exportConfig: ExportConfig,
                                 nameGenerator: NodeTokenStringGenerator,
                                 importPipeline: ImportPipeline,
+                                pathElements: List<String> = emptyList(),
                             ) {
                                 if (createUncropped) {
                                     addInstruction(
                                         exportNode = node,
                                         exportConfig = exportConfig,
-                                        importOutputName = nameGenerator.generate(namingContext),
+                                        importTarget = Instruction.ImportTarget.Initial(
+                                            outputName = nameGenerator.generate(namingContext),
+                                            pathElements = pathElements,
+                                        ),
                                         importPipeline = importPipeline,
                                     )
                                 }
@@ -148,7 +155,10 @@ internal fun createArtworkFigmaFileHandler(
                                     addInstruction(
                                         exportNode = child,
                                         exportConfig = exportConfig,
-                                        importOutputName = nameGenerator.generate(namingContext, suffix = "cropped"),
+                                        importTarget = Instruction.ImportTarget.Initial(
+                                            outputName = nameGenerator.generate(namingContext, suffix = "cropped"),
+                                            pathElements = pathElements,
+                                        ),
                                         importPipeline = importPipeline,
                                     )
                                 }
@@ -167,6 +177,7 @@ internal fun createArtworkFigmaFileHandler(
                                     exportConfig = iosExportConfig,
                                     nameGenerator = iosNameGenerator,
                                     importPipeline = iosImportPipeline,
+                                    pathElements = iosPathElements,
                                 )
                             }
 
@@ -202,6 +213,7 @@ internal fun createArtworkFigmaFileHandler(
         ) { node, canvas ->
             Instruction.buildInstructions {
                 val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+                val iosPathElements = if (iosGroupByCanvas) listOf(canvas.name) else emptyList()
 
                 if (androidImportPipeline != null) {
                     addInstruction(
@@ -216,7 +228,10 @@ internal fun createArtworkFigmaFileHandler(
                     addInstruction(
                         exportNode = node,
                         exportConfig = ios3xImage,
-                        importOutputName = iosNameGenerator.generate(namingContext),
+                        importTarget = Instruction.ImportTarget.Initial(
+                            outputName = iosNameGenerator.generate(namingContext),
+                            pathElements = iosPathElements,
+                        ),
                         importPipeline = iosImportPipeline,
                     )
                 }

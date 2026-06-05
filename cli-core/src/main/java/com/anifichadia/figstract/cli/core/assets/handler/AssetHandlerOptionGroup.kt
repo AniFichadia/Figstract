@@ -29,6 +29,9 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
     private val figmaFileVersion by option("--${prefix}FigmaFileVersion")
     private val filters by AssetFilterOptionGroup(prefix)
     private val jsonPath by option("--${prefix}JsonPath")
+    private val iosGroupByCanvas by option("--${prefix}IosGroupByCanvas")
+        .boolean()
+        .default(false)
     private val instructionLimit by option("--${prefix}InstructionLimit").int()
     protected abstract val nameGenerators: AssetTokenStringGeneratorOptionGroup
 
@@ -49,6 +52,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
                     webOutDirectory = webOutDirectory,
                     filters = filters,
                     jsonPath = jsonPath,
+                    iosGroupByCanvas = iosGroupByCanvas,
                     instructionLimit = instructionLimit,
                 )
             } else {
@@ -67,6 +71,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
+        iosGroupByCanvas: Boolean,
         instructionLimit: Int?,
     ): AssetFileHandler
 }
@@ -105,6 +110,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
+        iosGroupByCanvas: Boolean,
         instructionLimit: Int?,
     ): AssetFileHandler {
         if (!(artworkCreateUncropped || artworkCreateCropped)) throw BadParameterValue("Atleast createUncropped or createCropped must be set to true")
@@ -129,6 +135,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             androidOutputDensityBuckets = artworkAndroidOutputDensityBuckets.toList(),
             iosOutputScales = artworkIosOutputScales.toList(),
             iosConvertToHeic = artworkIosConvertToHeic,
+            iosGroupByCanvas = iosGroupByCanvas,
             instructionLimit = instructionLimit,
         )
     }
@@ -151,6 +158,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
+        iosGroupByCanvas: Boolean,
         instructionLimit: Int?,
     ): AssetFileHandler {
         return createIconFigmaFileHandler(
@@ -165,6 +173,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
             iosNameGenerator = nameGenerators.ios,
             webNameGenerator = nameGenerators.web,
             jsonPath = jsonPath,
+            iosGroupByCanvas = iosGroupByCanvas,
             instructionLimit = instructionLimit,
         )
     }
