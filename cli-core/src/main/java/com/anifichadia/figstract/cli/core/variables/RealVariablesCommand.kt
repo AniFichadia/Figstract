@@ -100,6 +100,7 @@ class RealVariablesCommand : VariablesCommand() {
             AndroidXmlVariableDataWriter(
                 outDirectory = outDirectory.fold("android", "xml"),
                 splitByType = it.splitByType,
+                namespaceUsingCollectionName = it.namespaceUsingCollectionName,
                 numberOutput = it.numberOutput,
             )
         }
