@@ -144,8 +144,8 @@ class FigmaApiProxyWithFlowControl(
 
     companion object {
         const val DEFAULT_CONCURRENCY_LIMIT = 5
-        const val DEFAULT_RETRY_LIMIT = 10
+        const val DEFAULT_RETRY_LIMIT = 15
         val DEFAULT_BASE_DELAY = 1.seconds
-        val DEFAULT_MAX_DELAY = 1.minutes
+        val DEFAULT_MAX_DELAY = 2.minutes
     }
 }
