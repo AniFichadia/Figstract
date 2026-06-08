@@ -10,7 +10,6 @@ import com.anifichadia.figstract.importer.variable.model.variabletree.VariableTy
 import com.anifichadia.figstract.importer.variable.model.variabletree.VariableValue
 import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.type.fold
-import com.anifichadia.figstract.util.ToUpperCamelCase
 import com.anifichadia.figstract.util.sanitise
 import com.anifichadia.figstract.util.sanitiseFileName
 import com.anifichadia.figstract.util.to_snake_case
@@ -402,8 +401,8 @@ class AndroidXmlVariableDataWriter(
     private fun groupPrefix(
         group: VariableGroup,
         prefix: String?,
-    ): String {
-        val groupName = group.name.sanitise().ToUpperCamelCase().replaceFirstChar { it.lowercase() }
+    ): String? {
+        val groupName = group.name.sanitise().to_snake_case()
 
         return if (prefix != null) {
             "${prefix}_${groupName}"
@@ -416,7 +415,7 @@ class AndroidXmlVariableDataWriter(
         name: String,
         prefix: String?,
     ): String {
-        val leafName = name.sanitiseResourceName()
+        val leafName = name.sanitise().to_snake_case()
 
         return if (prefix != null) {
             "${prefix}_${leafName}"
@@ -472,11 +471,6 @@ class AndroidXmlVariableDataWriter(
             """$indent<$tagName $attributes>$value</$tagName>""",
         )
     }
-
-    private fun String.sanitiseResourceName() = this
-        .sanitise()
-        .to_snake_case(lowercase = false)
-        .replaceFirstChar { it.lowercase() }
 
     private fun String.escapeXml(): String = this
         .replace("&", "&amp;")
