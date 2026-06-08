@@ -14,6 +14,13 @@ class AndroidXmlOptionGroup private constructor() : OutputCodeOptionGroup("Andro
         .boolean()
         .default(true)
 
+    val namespaceUsingCollectionName by option(
+        "--output${name}NamespaceUsingCollectionName",
+        help = "Namespace / prefix XML entries using the Figma collection name.",
+    )
+        .boolean()
+        .default(true)
+
     val numberOutput by option(
         "--output${name}NumberOutput",
         help = "Controls how number variables are written. " +

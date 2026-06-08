@@ -24,11 +24,15 @@ import java.io.File
  *
  * When [splitByType] is true, each variable type is written to a separate file.
  * When false, all types are merged into a single file per qualifier directory.
+ *
+ * When [namespaceUsingCollectionName] is true, all resource names are prefixed with the
+ * sanitised collection name, e.g. `my_collection_group_leaf`. When false, the collection
+ * name is omitted and the root group name is the first segment, e.g. `group_leaf`.
  */
-// TODO: do not prefix entries based on collection name
 class AndroidXmlVariableDataWriter(
     private val outDirectory: File,
     private val splitByType: Boolean = true,
+    private val namespaceUsingCollectionName: Boolean = true,
     private val numberOutput: NumberOutput = NumberOutput.INTEGER,
 ) : VariableDataWriter {
     init {
@@ -402,6 +406,8 @@ class AndroidXmlVariableDataWriter(
         group: VariableGroup,
         prefix: String?,
     ): String? {
+        if (!namespaceUsingCollectionName) return null
+
         val groupName = group.name.sanitise().to_snake_case()
 
         return if (prefix != null) {
