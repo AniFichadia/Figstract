@@ -225,24 +225,28 @@ Artwork supports two crop modes, configured per run:
   Optionally, HEIC format can be used instead of PNG via `--artworkIosOutputHeic` (see [HEIC output](#heic-output-ios) for setup requirements).
 - **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
 
-##### Grouping by canvas
+##### Grouping within asset catalogs
 
-Assets can be grouped into named folders within the Asset Catalog by canvas (page) using `--artworkIosGroupByCanvas` and `--iconsIosGroupByCanvas`.
+Assets can be grouped into named folders within the Asset Catalog with the same [Custom naming tokens](#custom-naming) using `--artworkIosGroupByTokenFormat` and `--iconsIosGroupByTokenFormat`.
+Not supplying a value or using a blank string will disable the option.
 
-When enabled, each canvas name becomes a namespace folder in the asset catalog:
+Recommended formats are:
+ - `{canvas.name}`
+
+When enabled, each group a namespace folder in the asset catalog:
 
 ```
 Assets.xcassets/
-  MyCanvas/
+  MyGroup/
     Images/
       hero_image.imageset/
-  AnotherCanvas/
+  AnotherGroup/
     Images/
       banner.imageset/
 ```
 
 > [!TIP]
-> When grouping by canvas, consider setting `--artworkIosFormat` or `--iconsIosFormat` to `{node.name}` to avoid redundant info between the namespace and asset.
+> When enabled, consider setting `--artworkIosFormat` or `--iconsIosFormat` to avoid redundant info between the namespace and asset. E.g. `--artworkIosFormat` to `{node.name}` and `--iconsIosFormat` to `{node.name.split "/" first}`.
 
 ### HEIC output (iOS)
 

@@ -24,7 +24,7 @@ fun iosScaleAndStoreInAssetCatalog(
     convertToHeic: Boolean = false,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,
-    groupByCanvas: Boolean = false,
+    groupByPathElements: Boolean = false,
 ): ImportPipeline.Step {
     return scales
         .map { targetScale ->
@@ -36,7 +36,7 @@ fun iosScaleAndStoreInAssetCatalog(
                     scale = targetScale,
                     fileLockRegistry = fileLockRegistry,
                     idiom = idiom,
-                    groupByCanvas = groupByCanvas,
+                    groupByPathElements = groupByPathElements,
                 )
         }
         .and()
@@ -48,13 +48,13 @@ fun iosStoreInAssetCatalog(
     scale: Scale,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,
-    groupByCanvas: Boolean = false,
+    groupByPathElements: Boolean = false,
 ) = object : Destination() {
     override suspend fun write(instruction: Instruction, input: ImportPipeline.Output) {
         val outputName = resolveOutputName(instruction, input)
         val extension = resolveExtension(instruction, input)
         val groups = buildList {
-            if (groupByCanvas) addAll(instruction.import.importTarget.pathElements)
+            if (groupByPathElements) addAll(instruction.import.importTarget.pathElements)
             add(AssetCatalog.GroupName.Images.directoryName)
         }
         assetCatalog.contentBuilder(

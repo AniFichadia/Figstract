@@ -49,7 +49,7 @@ internal fun createArtworkFigmaFileHandler(
     androidOutputDensityBuckets: List<DensityBucket> = DensityBucket.defaults,
     iosOutputScales: List<Scale> = Scale.defaults,
     iosConvertToHeic: Boolean = false,
-    iosGroupByCanvas: Boolean = false,
+    iosGroupByToken: NodeTokenStringGenerator? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -80,7 +80,7 @@ internal fun createArtworkFigmaFileHandler(
                 sourceScale = Scale.`3x`,
                 scales = iosOutputScales,
                 convertToHeic = iosConvertToHeic,
-                groupByCanvas = iosGroupByCanvas,
+                groupByPathElements = iosGroupByToken != null,
             ),
         )
     } else {
@@ -132,7 +132,6 @@ internal fun createArtworkFigmaFileHandler(
                             if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
                             val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
-                            val iosPathElements = if (iosGroupByCanvas) listOf(canvas.name) else emptyList()
 
                             fun addInstructions(
                                 exportConfig: ExportConfig,
@@ -173,6 +172,12 @@ internal fun createArtworkFigmaFileHandler(
                             }
 
                             if (iosImportPipeline != null) {
+                                val iosPathElements = if (iosGroupByToken != null) {
+                                    listOf(iosGroupByToken.generate(namingContext))
+                                } else {
+                                    emptyList()
+                                }
+
                                 addInstructions(
                                     exportConfig = iosExportConfig,
                                     nameGenerator = iosNameGenerator,
@@ -213,7 +218,6 @@ internal fun createArtworkFigmaFileHandler(
         ) { node, canvas ->
             Instruction.buildInstructions {
                 val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
-                val iosPathElements = if (iosGroupByCanvas) listOf(canvas.name) else emptyList()
 
                 if (androidImportPipeline != null) {
                     addInstruction(
@@ -225,6 +229,12 @@ internal fun createArtworkFigmaFileHandler(
                 }
 
                 if (iosImportPipeline != null) {
+                    val iosPathElements = if (iosGroupByToken != null) {
+                        listOf(iosGroupByToken.generate(namingContext))
+                    } else {
+                        emptyList()
+                    }
+
                     addInstruction(
                         exportNode = node,
                         exportConfig = ios3xImage,

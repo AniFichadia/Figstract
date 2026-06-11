@@ -33,7 +33,7 @@ class AssetTokenStringGeneratorOptionGroup(
     )
 
     companion object {
-        private fun OptionGroup.createOption(
+        fun OptionGroup.createOption(
             prefix: String,
             defaultFormat: String,
             casing: Casing,

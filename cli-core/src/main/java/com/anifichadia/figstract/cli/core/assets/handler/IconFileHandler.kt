@@ -38,7 +38,7 @@ internal fun createIconFigmaFileHandler(
     iosNameGenerator: NodeTokenStringGenerator,
     webNameGenerator: NodeTokenStringGenerator,
     jsonPath: String?,
-    iosGroupByCanvas: Boolean = false,
+    iosGroupByToken: NodeTokenStringGenerator? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -61,7 +61,7 @@ internal fun createIconFigmaFileHandler(
                 assetCatalog = assetCatalog,
                 assetType = AssetType.Image.ImageSet,
                 scale = Scale.`1x`,
-                groupByCanvas = iosGroupByCanvas,
+                groupByPathElements = iosGroupByToken != null,
             ),
         )
     } else {
@@ -93,7 +93,6 @@ internal fun createIconFigmaFileHandler(
 
     fun MutableList<Instruction>.generateInstructions(canvas: Node.Canvas, node: Node) {
         val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
-        val iosPathElements = if (iosGroupByCanvas) listOf(canvas.name) else emptyList()
 
         if (androidImportPipeline != null) {
             addInstruction(
@@ -105,6 +104,12 @@ internal fun createIconFigmaFileHandler(
         }
 
         if (iosImportPipeline != null) {
+            val iosPathElements = if (iosGroupByToken != null) {
+                listOf(iosGroupByToken.generate(namingContext))
+            } else {
+                emptyList()
+            }
+
             addInstruction(
                 exportNode = node,
                 exportConfig = iosIcon,
