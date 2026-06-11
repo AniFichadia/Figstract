@@ -3,7 +3,7 @@ package com.anifichadia.figstract.cli.core.assets
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.model.TokenStringGenerator
 
-class NodeTokenStringGenerator(
+data class NodeTokenStringGenerator(
     override val format: String,
     override val casing: Casing,
 ) : TokenStringGenerator<NodeTokenStringGenerator.NodeContext>() {
