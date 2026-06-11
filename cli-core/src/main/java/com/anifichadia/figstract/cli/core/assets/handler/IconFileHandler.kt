@@ -93,7 +93,6 @@ internal fun createIconFigmaFileHandler(
 
     fun MutableList<Instruction>.generateInstructions(canvas: Node.Canvas, node: Node) {
         val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
-        val iosPathElements = if (iosGroupByCanvas) listOf(canvas.name) else emptyList()
 
         if (androidImportPipeline != null) {
             addInstruction(
@@ -105,6 +104,12 @@ internal fun createIconFigmaFileHandler(
         }
 
         if (iosImportPipeline != null) {
+            val iosPathElements = if (iosGroupByCanvas) {
+                listOf(canvas.name)
+            } else {
+                emptyList()
+            }
+
             addInstruction(
                 exportNode = node,
                 exportConfig = iosIcon,
