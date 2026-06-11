@@ -49,7 +49,7 @@ internal fun createArtworkFigmaFileHandler(
     androidOutputDensityBuckets: List<DensityBucket> = DensityBucket.defaults,
     iosOutputScales: List<Scale> = Scale.defaults,
     iosConvertToHeic: Boolean = false,
-    iosGroupByCanvas: Boolean = false,
+    iosGroupByToken: NodeTokenStringGenerator? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     val androidImportPipeline = if (androidOutDirectory != null) {
@@ -80,7 +80,7 @@ internal fun createArtworkFigmaFileHandler(
                 sourceScale = Scale.`3x`,
                 scales = iosOutputScales,
                 convertToHeic = iosConvertToHeic,
-                groupByCanvas = iosGroupByCanvas,
+                groupByPathElements = iosGroupByToken != null,
             ),
         )
     } else {
@@ -172,8 +172,8 @@ internal fun createArtworkFigmaFileHandler(
                             }
 
                             if (iosImportPipeline != null) {
-                                val iosPathElements = if (iosGroupByCanvas) {
-                                    listOf(canvas.name)
+                                val iosPathElements = if (iosGroupByToken != null) {
+                                    listOf(iosGroupByToken.generate(namingContext))
                                 } else {
                                     emptyList()
                                 }
@@ -229,8 +229,8 @@ internal fun createArtworkFigmaFileHandler(
                 }
 
                 if (iosImportPipeline != null) {
-                    val iosPathElements = if (iosGroupByCanvas) {
-                        listOf(canvas.name)
+                    val iosPathElements = if (iosGroupByToken != null) {
+                        listOf(iosGroupByToken.generate(namingContext))
                     } else {
                         emptyList()
                     }

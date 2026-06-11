@@ -2,6 +2,7 @@ package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
+import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import java.io.File
@@ -23,7 +24,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
-        iosGroupByCanvas: Boolean,
+        iosGroupByToken: NodeTokenStringGenerator?,
         instructionLimit: Int?,
     ): AssetFileHandler {
         return createIconFigmaFileHandler(
@@ -38,7 +39,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
             iosNameGenerator = nameGenerators.ios,
             webNameGenerator = nameGenerators.web,
             jsonPath = jsonPath,
-            iosGroupByCanvas = iosGroupByCanvas,
+            iosGroupByToken = iosGroupByToken,
             instructionLimit = instructionLimit,
         )
     }

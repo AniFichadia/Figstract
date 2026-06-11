@@ -3,8 +3,11 @@ package com.anifichadia.figstract.cli.core.assets.handler
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
+import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup.Companion.createOption
+import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.model.TokenStringGenerator.Casing
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
@@ -16,15 +19,24 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
     private val enabled by option("--${prefix}Enabled")
         .boolean()
         .default(false)
+
     private val figmaFile by option("--${prefix}FigmaFile")
     private val figmaFileBranchName by option("--${prefix}FigmaFileBranchName")
     private val figmaFileVersion by option("--${prefix}FigmaFileVersion")
+
     private val filters by AssetFilterOptionGroup(prefix)
+
     private val jsonPath by option("--${prefix}JsonPath")
-    private val iosGroupByCanvas by option("--${prefix}IosGroupByCanvas")
-        .boolean()
-        .default(false)
+
+    private val iosGroupByToken by createOption(
+        prefix = "${prefix}IosGroupByToken",
+        // Intentionally blank as a default value since it's tricky to create a nullable option
+        defaultFormat = "",
+        casing = Casing.UpperCamelCase,
+    )
+
     private val instructionLimit by option("--${prefix}InstructionLimit").int()
+
     protected abstract val nameGenerators: AssetTokenStringGeneratorOptionGroup
 
     fun createHandler(
@@ -44,7 +56,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
                     webOutDirectory = webOutDirectory,
                     filters = filters,
                     jsonPath = jsonPath,
-                    iosGroupByCanvas = iosGroupByCanvas,
+                    iosGroupByToken = iosGroupByToken.takeIf { it.format.isNotBlank() },
                     instructionLimit = instructionLimit,
                 )
             } else {
@@ -63,7 +75,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
-        iosGroupByCanvas: Boolean,
+        iosGroupByToken: NodeTokenStringGenerator?,
         instructionLimit: Int?,
     ): AssetFileHandler
 }

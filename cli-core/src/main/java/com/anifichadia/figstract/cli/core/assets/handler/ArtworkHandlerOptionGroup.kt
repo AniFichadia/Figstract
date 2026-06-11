@@ -4,6 +4,7 @@ import com.anifichadia.figstract.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figstract.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
+import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.exporting.pngUnscaled
@@ -52,7 +53,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
         jsonPath: String?,
-        iosGroupByCanvas: Boolean,
+        iosGroupByToken: NodeTokenStringGenerator?,
         instructionLimit: Int?,
     ): AssetFileHandler {
         if (!(artworkCreateUncropped || artworkCreateCropped)) throw BadParameterValue("Atleast createUncropped or createCropped must be set to true")
@@ -77,7 +78,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             androidOutputDensityBuckets = artworkAndroidOutputDensityBuckets.toList(),
             iosOutputScales = artworkIosOutputScales.toList(),
             iosConvertToHeic = artworkIosConvertToHeic,
-            iosGroupByCanvas = iosGroupByCanvas,
+            iosGroupByToken = iosGroupByToken,
             instructionLimit = instructionLimit,
         )
     }
