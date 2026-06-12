@@ -52,6 +52,7 @@ internal fun createArtworkFigmaFileHandler(
     iosGroupByToken: NodeTokenStringGenerator? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
+    //region Import pipelines
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = File(androidOutDirectory, artworkDirectoryName)
         ImportPipeline(
@@ -95,7 +96,9 @@ internal fun createArtworkFigmaFileHandler(
     } else {
         null
     }
+    //endregion
 
+    //region Lifecycles
     val timingLifecycle = Lifecycle.Timing()
     val timingLoggingLifecycle = object : Lifecycle {
         override suspend fun onFinished() {
@@ -107,6 +110,7 @@ internal fun createArtworkFigmaFileHandler(
         timingLifecycle,
         timingLoggingLifecycle,
     )
+    //endregion
 
     return if (jsonPath == null) {
         AssetFileHandler(
@@ -120,7 +124,7 @@ internal fun createArtworkFigmaFileHandler(
                 .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
 
             canvases
-                .map { canvas ->
+                .flatMap { canvas ->
                     Instruction.buildInstructions {
                         canvas.traverseBreadthFirst { node, parent ->
                             if (node !is Node.Parent) return@traverseBreadthFirst
@@ -196,7 +200,6 @@ internal fun createArtworkFigmaFileHandler(
                         }
                     }
                 }
-                .flatten()
                 .run {
                     if (instructionLimit != null) {
                         this.take(instructionLimit)

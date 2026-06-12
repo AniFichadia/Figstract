@@ -76,7 +76,9 @@ internal fun createIconFigmaFileHandler(
     } else {
         null
     }
+    //endregion
 
+    //region Lifecycles
     val timingLifecycle = Lifecycle.Timing()
     val timingLoggingLifecycle = object : Lifecycle {
         override suspend fun onFinished() {
@@ -88,8 +90,7 @@ internal fun createIconFigmaFileHandler(
         timingLifecycle,
         timingLoggingLifecycle,
     )
-    // Icons are smaller, so we can retrieve more at the same time
-    val assetsPerChunk = 50
+    //endregion
 
     fun MutableList<Instruction>.generateInstructions(canvas: Node.Canvas, node: Node) {
         val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
@@ -130,6 +131,9 @@ internal fun createIconFigmaFileHandler(
             )
         }
     }
+
+    // Icons are smaller, so we can retrieve more at the same time
+    val assetsPerChunk = 50
 
     return if (jsonPath == null) {
         AssetFileHandler(
