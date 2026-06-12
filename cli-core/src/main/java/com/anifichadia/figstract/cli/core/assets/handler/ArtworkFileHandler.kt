@@ -4,6 +4,7 @@ import com.anifichadia.figstract.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figstract.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidImageScaleAndStoreInDensityBuckets
 import com.anifichadia.figstract.cli.core.assets.AssetFilter
+import com.anifichadia.figstract.cli.core.assets.AssetRenamingMap
 import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FileKey
@@ -39,6 +40,7 @@ internal fun createArtworkFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
+    renamingMap: AssetRenamingMap,
     androidNameGenerator: NodeTokenStringGenerator,
     iosNameGenerator: NodeTokenStringGenerator,
     webNameGenerator: NodeTokenStringGenerator,

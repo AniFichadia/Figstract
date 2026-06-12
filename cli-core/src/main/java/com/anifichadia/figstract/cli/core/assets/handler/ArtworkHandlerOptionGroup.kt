@@ -3,6 +3,7 @@ package com.anifichadia.figstract.cli.core.assets.handler
 import com.anifichadia.figstract.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figstract.android.importer.asset.model.drawable.DensityBucket
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
+import com.anifichadia.figstract.cli.core.assets.AssetRenamingMap
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.provideDelegate
@@ -52,6 +53,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         iosOutDirectory: File?,
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
+        renamingMap: AssetRenamingMap,
         jsonPath: String?,
         iosGroupByToken: NodeTokenStringGenerator?,
         instructionLimit: Int?,
@@ -68,6 +70,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,
             assetFilter = filters.toAssetFilter(),
+            renamingMap = renamingMap,
             androidNameGenerator = nameGenerators.android,
             iosNameGenerator = nameGenerators.ios,
             webNameGenerator = nameGenerators.web,

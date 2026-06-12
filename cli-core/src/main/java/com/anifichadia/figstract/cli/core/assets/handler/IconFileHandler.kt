@@ -3,6 +3,7 @@ package com.anifichadia.figstract.cli.core.assets.handler
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidSvgToAvd
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidVectorColorToPlaceholder
 import com.anifichadia.figstract.cli.core.assets.AssetFilter
+import com.anifichadia.figstract.cli.core.assets.AssetRenamingMap
 import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FileKey
@@ -34,6 +35,7 @@ internal fun createIconFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
+    renamingMap: AssetRenamingMap,
     androidNameGenerator: NodeTokenStringGenerator,
     iosNameGenerator: NodeTokenStringGenerator,
     webNameGenerator: NodeTokenStringGenerator,
@@ -41,6 +43,7 @@ internal fun createIconFigmaFileHandler(
     iosGroupByToken: NodeTokenStringGenerator? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
+    //region Import pipelines
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold(iconsDirectoryName, "drawable")
         ImportPipeline(
