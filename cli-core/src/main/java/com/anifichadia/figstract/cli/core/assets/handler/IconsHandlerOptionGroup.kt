@@ -11,9 +11,9 @@ import java.io.File
 class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
     override val nameGenerators by AssetTokenStringGeneratorOptionGroup(
         prefix = "icons",
-        androidFormat = """ic_{node.name.split "/" last}""",
-        iosFormat = """{node.name.split "/" last}""",
-        webFormat = """ic_{node.name.split "/" last}""",
+        androidFormat = """ic_{node.name}""",
+        iosFormat = """{node.name}""",
+        webFormat = """{node.name}""",
     )
 
     override fun createHandlerInternal(
