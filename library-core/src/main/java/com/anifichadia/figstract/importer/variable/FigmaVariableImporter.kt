@@ -169,6 +169,7 @@ class FigmaVariableImporter(
                     .map { variableCollection ->
                         val variablesForCollection = variables
                             .filter { it.key in variableCollection.variableIds }
+                            .filter { filter.variableNameFilter.accept(it.value) }
 
                         val modes = variableCollection
                             .modes

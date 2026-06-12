@@ -1,12 +1,14 @@
 package com.anifichadia.figstract.importer.variable.model
 
 import com.anifichadia.figstract.figma.model.Mode
+import com.anifichadia.figstract.figma.model.Variable
 import com.anifichadia.figstract.figma.model.VariableCollection
 import com.anifichadia.figstract.model.IncludeOrExcludeFilter
 
 data class VariableFileFilter(
     val variableCollectionFilter: VariableCollectionNameFilter,
     val modeNameFilter: ModeNameFilter,
+    val variableNameFilter: VariableNameFilter,
     val variableTypeFilter: VariableTypeFilter,
 )
 
@@ -22,6 +24,13 @@ class ModeNameFilter(
     override val exclude: Set<Regex>,
 ) : IncludeOrExcludeFilter<Mode>() {
     override val getFilterableProperty: (Mode) -> String = { it.name }
+}
+
+class VariableNameFilter(
+    override val include: Set<Regex>,
+    override val exclude: Set<Regex>,
+) : IncludeOrExcludeFilter<Variable>() {
+    override val getFilterableProperty: (Variable) -> String = { it.name }
 }
 
 data class VariableTypeFilter(

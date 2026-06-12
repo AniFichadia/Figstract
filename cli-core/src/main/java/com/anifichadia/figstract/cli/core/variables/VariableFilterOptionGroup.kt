@@ -5,6 +5,7 @@ import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.variable.model.ModeNameFilter
 import com.anifichadia.figstract.importer.variable.model.VariableCollectionNameFilter
 import com.anifichadia.figstract.importer.variable.model.VariableFileFilter
+import com.anifichadia.figstract.importer.variable.model.VariableNameFilter
 import com.anifichadia.figstract.importer.variable.model.VariableTypeFilter
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.core.MultiUsageError
@@ -16,6 +17,7 @@ import com.github.ajalt.clikt.parameters.types.boolean
 class VariableFilterOptionGroup : OptionGroup() {
     private val variableCollection by IncludeOrExcludeFilterOptionGroup(null, "VariableCollection")
     private val mode by IncludeOrExcludeFilterOptionGroup(null, "Mode")
+    private val variableName by IncludeOrExcludeFilterOptionGroup(null, "VariableName")
 
     private val includeBooleans by option("--includeTypeBoolean")
         .boolean()
@@ -34,6 +36,7 @@ class VariableFilterOptionGroup : OptionGroup() {
         val errors = buildList {
             add(variableCollection.error())
             add(mode.error())
+            add(variableName.error())
             if (!includeBooleans && !includeNumbers && !includeStrings && !includeColors) {
                 add(BadParameterValue("No included types have been enabled"))
             }
@@ -48,6 +51,10 @@ class VariableFilterOptionGroup : OptionGroup() {
             modeNameFilter = ModeNameFilter(
                 include = mode.includes,
                 exclude = mode.excludes,
+            ),
+            variableNameFilter = VariableNameFilter(
+                include = variableName.includes,
+                exclude = variableName.excludes,
             ),
             variableTypeFilter = VariableTypeFilter(
                 includeBooleans = includeBooleans,
