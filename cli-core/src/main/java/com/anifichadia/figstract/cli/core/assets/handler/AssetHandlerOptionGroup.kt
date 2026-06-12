@@ -2,6 +2,7 @@ package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
+import com.anifichadia.figstract.cli.core.assets.AssetRenamingMap
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup.Companion.createOption
 import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
@@ -9,9 +10,12 @@ import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.model.TokenStringGenerator.Casing
 import com.github.ajalt.clikt.core.BadParameterValue
+import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.boolean
+import com.github.ajalt.clikt.parameters.types.file
 import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 
@@ -25,6 +29,32 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
     private val figmaFileVersion by option("--${prefix}FigmaFileVersion")
 
     private val filters by AssetFilterOptionGroup(prefix)
+
+    private val renamingMap by option("--${prefix}RenamingMapFile")
+        .help(
+            """Path to a JSON file mapping old canvas/node names to new names. Format: 
+            |{ 
+            |   "canvases": { 
+            |       "OldName": "NewName"
+            |   }, 
+            |   "nodes": { 
+            |       "OldName": "NewName" 
+            |   } 
+            |}""".trimMargin(),
+        )
+        .file(
+            mustExist = true,
+            canBeFile = true,
+            canBeDir = false,
+        )
+        .convert { file ->
+            try {
+                AssetRenamingMap.fromFile(file)
+            } catch (e: Exception) {
+                throw BadParameterValue("Failed to parse renaming map file '$file': ${e.message}")
+            }
+        }
+        .default(AssetRenamingMap.Empty)
 
     private val jsonPath by option("--${prefix}JsonPath")
 
@@ -55,6 +85,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
                     filters = filters,
+                    renamingMap = renamingMap,
                     jsonPath = jsonPath,
                     iosGroupByToken = iosGroupByToken.takeIf { it.format.isNotBlank() },
                     instructionLimit = instructionLimit,
@@ -74,6 +105,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
         iosOutDirectory: File?,
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
+        renamingMap: AssetRenamingMap,
         jsonPath: String?,
         iosGroupByToken: NodeTokenStringGenerator?,
         instructionLimit: Int?,

@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.cli.core.assets.AssetFilterOptionGroup
+import com.anifichadia.figstract.cli.core.assets.AssetRenamingMap
 import com.anifichadia.figstract.cli.core.assets.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.provideDelegate
@@ -23,6 +24,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
         iosOutDirectory: File?,
         webOutDirectory: File?,
         filters: AssetFilterOptionGroup,
+        renamingMap: AssetRenamingMap,
         jsonPath: String?,
         iosGroupByToken: NodeTokenStringGenerator?,
         instructionLimit: Int?,
@@ -35,6 +37,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,
             assetFilter = filters.toAssetFilter(),
+            renamingMap = renamingMap,
             androidNameGenerator = nameGenerators.android,
             iosNameGenerator = nameGenerators.ios,
             webNameGenerator = nameGenerators.web,

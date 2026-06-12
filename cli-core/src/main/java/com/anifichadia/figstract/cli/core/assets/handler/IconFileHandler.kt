@@ -3,6 +3,7 @@ package com.anifichadia.figstract.cli.core.assets.handler
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidSvgToAvd
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidVectorColorToPlaceholder
 import com.anifichadia.figstract.cli.core.assets.AssetFilter
+import com.anifichadia.figstract.cli.core.assets.AssetRenamingMap
 import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FileKey
@@ -34,6 +35,7 @@ internal fun createIconFigmaFileHandler(
     iosOutDirectory: File?,
     webOutDirectory: File?,
     assetFilter: AssetFilter,
+    renamingMap: AssetRenamingMap,
     androidNameGenerator: NodeTokenStringGenerator,
     iosNameGenerator: NodeTokenStringGenerator,
     webNameGenerator: NodeTokenStringGenerator,
@@ -41,6 +43,7 @@ internal fun createIconFigmaFileHandler(
     iosGroupByToken: NodeTokenStringGenerator? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
+    //region Import pipelines
     val androidImportPipeline = if (androidOutDirectory != null) {
         val androidOutputDirectory = androidOutDirectory.fold(iconsDirectoryName, "drawable")
         ImportPipeline(
@@ -76,7 +79,9 @@ internal fun createIconFigmaFileHandler(
     } else {
         null
     }
+    //endregion
 
+    //region Lifecycles
     val timingLifecycle = Lifecycle.Timing()
     val timingLoggingLifecycle = object : Lifecycle {
         override suspend fun onFinished() {
@@ -88,11 +93,10 @@ internal fun createIconFigmaFileHandler(
         timingLifecycle,
         timingLoggingLifecycle,
     )
-    // Icons are smaller, so we can retrieve more at the same time
-    val assetsPerChunk = 50
+    //endregion
 
     fun MutableList<Instruction>.generateInstructions(canvas: Node.Canvas, node: Node) {
-        val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+        val namingContext = renamingMap.toNamingContext(canvas, node)
 
         if (androidImportPipeline != null) {
             addInstruction(
@@ -131,6 +135,9 @@ internal fun createIconFigmaFileHandler(
         }
     }
 
+    // Icons are smaller, so we can retrieve more at the same time
+    val assetsPerChunk = 50
+
     return if (jsonPath == null) {
         AssetFileHandler(
             figmaFile = figmaFile,
@@ -143,8 +150,13 @@ internal fun createIconFigmaFileHandler(
                 .filterIsInstance<Node.Canvas>()
                 .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
 
+            val seenCanvasNames = mutableSetOf<String>()
+            val seenNodeNames = mutableSetOf<String>()
+
             canvases
                 .flatMap { canvas ->
+                    seenCanvasNames += canvas.name
+
                     Instruction.buildInstructions {
                         canvas.traverseBreadthFirst { node, parent ->
                             if (node !is Node.Parent) return@traverseBreadthFirst
@@ -158,11 +170,15 @@ internal fun createIconFigmaFileHandler(
 
                             val nodeToExport = node as? Node.Component ?: return@traverseBreadthFirst
 
+                            seenNodeNames += node.name
+
                             generateInstructions(canvas, nodeToExport)
                         }
                     }
                 }
                 .run {
+                    renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
+
                     if (instructionLimit != null) {
                         this.take(instructionLimit)
                     } else {
@@ -171,6 +187,9 @@ internal fun createIconFigmaFileHandler(
                 }
         }
     } else {
+        val seenCanvasNames = mutableSetOf<String>()
+        val seenNodeNames = mutableSetOf<String>()
+
         JsonPathAssetFileHandler(
             figmaFile = figmaFile,
             figmaFileBranchName = figmaFileBranchName,
@@ -181,8 +200,14 @@ internal fun createIconFigmaFileHandler(
             canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
             instructionLimit = instructionLimit,
+            onInstructionsCreated = {
+                renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
+            },
         ) { node, canvas ->
             Instruction.buildInstructions {
+                seenCanvasNames += canvas.name
+                seenNodeNames += node.name
+
                 generateInstructions(canvas, node)
             }
         }
