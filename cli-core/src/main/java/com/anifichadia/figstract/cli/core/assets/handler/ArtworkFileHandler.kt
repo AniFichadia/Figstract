@@ -117,7 +117,7 @@ internal fun createArtworkFigmaFileHandler(
         ) { response, _ ->
             val canvases = response.document.children
                 .filterIsInstance<Node.Canvas>()
-                .filter { canvas -> assetFilter.nodeNameFilter.accept(canvas) }
+                .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
 
             canvases
                 .map { canvas ->
