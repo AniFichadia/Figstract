@@ -13,6 +13,7 @@ import com.anifichadia.figstract.ios.importer.variable.model.writer.IosSwiftUiVa
 import com.anifichadia.figstract.type.fold
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
+import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.help
 import com.github.ajalt.clikt.parameters.options.multiple
@@ -41,7 +42,7 @@ class RealVariablesCommand : VariablesCommand() {
     private val outputColorAsHex by option("--outputColorAsHex")
         .boolean()
         .default(true)
-    private val themeVariantMappingsFile by option("--themeVariantMappingsFile")
+    private val themeVariantMappings by option("--themeVariantMappingsFile")
         .help(
             """JSON file that contains theme variant mappings (e.g light and dark theming). The file should contain a 
                 |JSON object keyed by the variable collection name, and the values are the theme variant mappings""".trimMargin()
@@ -51,15 +52,12 @@ class RealVariablesCommand : VariablesCommand() {
             canBeFile = true,
             canBeDir = false,
         )
+        .convert { file ->
+            json.decodeFromString<Map<String, ThemeVariantMapping>>(file.readText())
+        }
+        .default(emptyMap())
 
     override fun createHandlers(outDirectory: File): List<VariableFileHandler> {
-        val themeVariantMappingFile = themeVariantMappingsFile
-        val themeVariantMappings = if (themeVariantMappingFile != null) {
-            json.decodeFromString<Map<String, ThemeVariantMapping>>(themeVariantMappingFile.readText())
-        } else {
-            emptyMap()
-        }
-
         val filters = filters.toVariableFilter()
         val writers = createWriters(outDirectory, filters)
         if (writers.isEmpty()) throw BadParameterValue("No outputs have been defined")
