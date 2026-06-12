@@ -295,12 +295,13 @@ All variable types will be outputted by default, but can be configured to be omi
 
 ### Filtering
 
-Variables can be filtered by collection name, mode name, and type.
-Include and exclude filters are mutually exclusive for a given dimension and can be repeated to supply multiple patterns.
+Variables can be filtered using the following options:
+- Collection: `--filterIncludedVariableCollection` / `--filterExcludedVariableCollection`
+- Mode: `--filterIncludedMode` / `--filterExcludedMode`
+- Variable name: `--filterIncludedVariableName` / `--filterExcludedVariableName`
+- Type: `--includeTypeBoolean`, `--includeTypeNumber`, `--includeTypeString`, `--includeTypeColor` (all default `true`)
 
-- Collection filters: `--filterIncludedVariableCollection` / `--filterExcludedVariableCollection`
-- Mode filters: `--filterIncludedMode` / `--filterExcludedMode`
-- Type filters: `--includeTypeBoolean`, `--includeTypeNumber`, `--includeTypeString`, `--includeTypeColor` (all default `true`)
+Include and exclude filters are mutually exclusive for a given dimension and can be repeated to supply multiple regex patterns.
 
 ### Theme variant mapping
 
