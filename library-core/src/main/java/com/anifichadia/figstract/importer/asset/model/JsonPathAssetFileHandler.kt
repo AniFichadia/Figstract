@@ -23,6 +23,7 @@ fun JsonPathAssetFileHandler(
     canvasFilter: (Node.Canvas) -> Boolean = { true },
     nodeFilter: (Node) -> Boolean = { true },
     instructionLimit: Int? = null,
+    onInstructionsCreated: (List<Instruction>) -> Unit = {},
     createInstructions: (node: Node, canvas: Node.Canvas) -> List<Instruction>,
 ): AssetFileHandler {
     val json = Json {
@@ -65,6 +66,7 @@ fun JsonPathAssetFileHandler(
                     this
                 }
             }
+            .also(onInstructionsCreated)
     }
 }
 

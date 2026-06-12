@@ -125,8 +125,13 @@ internal fun createArtworkFigmaFileHandler(
                 .filterIsInstance<Node.Canvas>()
                 .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
 
+            val seenCanvasNames = mutableSetOf<String>()
+            val seenNodeNames = mutableSetOf<String>()
+
             canvases
                 .flatMap { canvas ->
+                    seenCanvasNames += canvas.name
+
                     Instruction.buildInstructions {
                         canvas.traverseBreadthFirst { node, parent ->
                             if (node !is Node.Parent) return@traverseBreadthFirst
@@ -137,7 +142,9 @@ internal fun createArtworkFigmaFileHandler(
                             if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
                             if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
 
-                            val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+                            seenNodeNames += node.name
+
+                            val namingContext = renamingMap.toNamingContext(canvas, node)
 
                             fun addInstructions(
                                 exportConfig: ExportConfig,
@@ -203,6 +210,8 @@ internal fun createArtworkFigmaFileHandler(
                     }
                 }
                 .run {
+                    renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
+
                     if (instructionLimit != null) {
                         this.take(instructionLimit)
                     } else {
@@ -211,6 +220,9 @@ internal fun createArtworkFigmaFileHandler(
                 }
         }
     } else {
+        val seenCanvasNames = mutableSetOf<String>()
+        val seenNodeNames = mutableSetOf<String>()
+
         JsonPathAssetFileHandler(
             figmaFile = figmaFile,
             figmaFileBranchName = figmaFileBranchName,
@@ -220,9 +232,15 @@ internal fun createArtworkFigmaFileHandler(
             canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
             nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
             instructionLimit = instructionLimit,
+            onInstructionsCreated = {
+                renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
+            },
         ) { node, canvas ->
             Instruction.buildInstructions {
-                val namingContext = NodeTokenStringGenerator.NodeContext(canvas, node)
+                seenCanvasNames += canvas.name
+                seenNodeNames += node.name
+
+                val namingContext = renamingMap.toNamingContext(canvas, node)
 
                 if (androidImportPipeline != null) {
                     addInstruction(
