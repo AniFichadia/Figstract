@@ -13,7 +13,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
         prefix = "icons",
         androidFormat = """ic_{node.name}""",
         iosFormat = """{node.name}""",
-        webFormat = """ic_{node.name}""",
+        webFormat = """{node.name}""",
     )
 
     override fun createHandlerInternal(
