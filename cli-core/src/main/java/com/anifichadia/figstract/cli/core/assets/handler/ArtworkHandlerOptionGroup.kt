@@ -40,9 +40,9 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         .default(false)
     override val nameGenerators by AssetTokenStringGeneratorOptionGroup(
         prefix = prefix,
-        androidFormat = "artwork_{canvas.name}_{node.name}",
-        iosFormat = "Artwork{canvas.name}{node.name}",
-        webFormat = "artwork_{canvas.name}_{node.name}",
+        androidFormat = """{canvas.name}_{node.name}""",
+        iosFormat = """{canvas.name}{node.name}""",
+        webFormat = """{canvas.name}_{node.name}""",
     )
 
     override fun createHandlerInternal(
