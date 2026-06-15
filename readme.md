@@ -243,7 +243,7 @@ Artwork supports two crop modes, configured per run:
 #### iOS
 
 - **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source.
-  Optionally, HEIC format can be used instead of PNG via `--artworkIosOutputHeic` (see [HEIC output](#heic-output-ios) for setup requirements).
+  Optionally, HEIC format can be used instead of PNG (see [HEIC output](#heic-output-ios)).
 - **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
 
 ##### Grouping within asset catalogs
@@ -271,7 +271,7 @@ Assets.xcassets/
 
 ### HEIC output (iOS)
 
-HEIC can be enabled for iOS artwork via `--artworkIosOutputHeic`. This requires [`ImageMagick`](https://imagemagick.org/).
+HEIC can be enabled for iOS artwork via setting `--artworkIosOutputFormat` to `Heic`. This requires [`ImageMagick`](https://imagemagick.org/).
 
 **macOS**
 ```shell

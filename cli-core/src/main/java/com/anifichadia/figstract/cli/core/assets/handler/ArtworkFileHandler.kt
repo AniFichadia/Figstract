@@ -25,6 +25,7 @@ import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.AssetType
 import com.anifichadia.figstract.ios.assetcatalog.Scale
 import com.anifichadia.figstract.ios.figma.model.ios3xImage
+import com.anifichadia.figstract.ios.importer.asset.model.importing.ArtworkOutputFormat
 import com.anifichadia.figstract.ios.importer.asset.model.importing.HeicSupport
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosScaleAndStoreInAssetCatalog
 import java.io.File
@@ -50,7 +51,7 @@ internal fun createArtworkFigmaFileHandler(
     webExportConfig: ExportConfig = pngUnscaled,
     androidOutputDensityBuckets: List<DensityBucket> = DensityBucket.defaults,
     iosOutputScales: List<Scale> = Scale.defaults,
-    iosConvertToHeic: Boolean = false,
+    iosOutputFormat: ArtworkOutputFormat = ArtworkOutputFormat.Default,
     iosGroupByToken: NodeTokenStringGenerator? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
@@ -72,7 +73,7 @@ internal fun createArtworkFigmaFileHandler(
         val iosDirectory = File(iosOutDirectory, artworkDirectoryName)
         val assetCatalog = AssetCatalog(iosDirectory)
 
-        if (iosConvertToHeic) {
+        if (iosOutputFormat == ArtworkOutputFormat.Heic) {
             HeicSupport.requireAvailable()
         }
 
@@ -82,7 +83,7 @@ internal fun createArtworkFigmaFileHandler(
                 assetType = AssetType.Image.ImageSet,
                 sourceScale = Scale.`3x`,
                 scales = iosOutputScales,
-                convertToHeic = iosConvertToHeic,
+                outputFormat = iosOutputFormat,
                 groupByPathElements = iosGroupByToken != null,
             ),
         )
