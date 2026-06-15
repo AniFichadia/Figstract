@@ -12,9 +12,11 @@ import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableData
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
 import com.anifichadia.figstract.importer.variable.model.VariableImportResult
+import com.anifichadia.figstract.importer.variable.model.applyTo
 import com.anifichadia.figstract.importer.variable.model.variabletree.VariableGroup
 import com.anifichadia.figstract.importer.variable.model.variabletree.VariableTreeBuilder
 import com.anifichadia.figstract.importer.variable.model.variabletree.toDebugString
+import com.anifichadia.figstract.importer.variable.model.warnUnused
 import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.importer.variable.reporting.VariableImportReport
 import com.anifichadia.figstract.importer.variable.reporting.VariableImportReportRepository
@@ -46,12 +48,33 @@ class FigmaVariableImporter(
             handler.figmaFile to VariableImportReport(handler.figmaFile)
         }
 
+        val seenCollectionNames = handlers.associate { handler ->
+            handler.figmaFile to mutableSetOf<String>()
+        }
+        val seenVariablePaths = handlers.associate { handler ->
+            handler.figmaFile to mutableMapOf<String, MutableSet<String>>()
+        }
+
         val importFlow = handlers
-            .map { handler -> createProcessingFlow(handler, reports.getValue(handler.figmaFile)) }
+            .map { handler ->
+                createProcessingFlow(
+                    handler = handler,
+                    report = reports.getValue(handler.figmaFile),
+                    seenCollectionNames = seenCollectionNames.getValue(handler.figmaFile),
+                    seenVariablePaths = seenVariablePaths.getValue(handler.figmaFile),
+                )
+            }
             .merge()
 
         coroutineScope {
             importFlow.launchIn(this)
+        }
+
+        for (handler in handlers) {
+            handler.renamingMap.warnUnused(
+                seenCollectionNames = seenCollectionNames.getValue(handler.figmaFile),
+                seenVariablePaths = seenVariablePaths.getValue(handler.figmaFile),
+            )
         }
 
         val failedFiles = mutableListOf<String>()
@@ -73,10 +96,18 @@ class FigmaVariableImporter(
     private fun createProcessingFlow(
         handler: VariableFileHandler,
         report: VariableImportReport,
+        seenCollectionNames: MutableSet<String>,
+        seenVariablePaths: MutableMap<String, MutableSet<String>>,
     ): Flow<Unit> {
         return flow {
             val resolvedHandler = variableFileHandlerForBranch(handler)
-            emitAll(createResolvedProcessingFlow(resolvedHandler, report))
+            val resolvedFlow = createResolvedProcessingFlow(
+                handler = resolvedHandler,
+                report = report,
+                seenCollectionNames = seenCollectionNames,
+                seenVariablePaths = seenVariablePaths,
+            )
+            emitAll(resolvedFlow)
         }
     }
 
@@ -95,14 +126,24 @@ class FigmaVariableImporter(
     private fun createResolvedProcessingFlow(
         handler: VariableFileHandler,
         report: VariableImportReport,
+        seenCollectionNames: MutableSet<String>,
+        seenVariablePaths: MutableMap<String, MutableSet<String>>,
     ): Flow<Unit> {
         val handlersFlow = flowOf(handler)
 
         val fileFlow = createFigmaFileFlow(handlersFlow, report)
 
-        val exportFlow = createExportFlow(fileFlow, report)
+        val exportFlow = createExportFlow(
+            fileFlow = fileFlow,
+            report = report,
+            seenCollectionNames = seenCollectionNames,
+            seenVariablePaths = seenVariablePaths,
+        )
 
-        val importFlow = createImportFlow(exportFlow, report)
+        val importFlow = createImportFlow(
+            exportFlow = exportFlow,
+            report = report,
+        )
 
         return importFlow
     }
@@ -142,6 +183,8 @@ class FigmaVariableImporter(
     private fun createExportFlow(
         fileFlow: Flow<Pair<VariableFileHandler, ApiResponse<GetLocalVariablesResponse>>>,
         report: VariableImportReport,
+        seenCollectionNames: MutableSet<String>,
+        seenVariablePaths: MutableMap<String, MutableSet<String>>,
     ): Flow<ExportOutput> {
         return fileFlow
             .map { (handler, getLocalVariablesResponse) ->
@@ -205,7 +248,13 @@ class FigmaVariableImporter(
                             colorsProvided = filter.variableTypeFilter.includeColors,
                         )
 
-                        handler to variableData
+                        val renamedVariableData = handler.renamingMap.applyTo(
+                            variableData = variableData,
+                            seenCollectionNames = seenCollectionNames,
+                            seenVariablePaths = seenVariablePaths,
+                        )
+
+                        handler to renamedVariableData
                     }
             }
             .flatMapConcat {

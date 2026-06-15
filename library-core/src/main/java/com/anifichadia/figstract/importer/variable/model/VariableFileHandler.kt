@@ -9,6 +9,7 @@ data class VariableFileHandler(
     val figmaFileBranchName: String?,
     val figmaFileVersion: String?,
     val filter: VariableFileFilter,
+    val renamingMap: VariableRenamingMap,
     val themeVariantMappings: Map<String, ThemeVariantMapping>,
     val variableOrganizationStrategy: VariableOrganizationStrategy,
     val writers: List<VariableDataWriter>,

@@ -6,6 +6,7 @@ import com.anifichadia.figstract.android.importer.variable.model.writer.AndroidX
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableFileFilter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler
+import com.anifichadia.figstract.importer.variable.model.VariableRenamingMap
 import com.anifichadia.figstract.importer.variable.model.writer.JsonVariableDataWriter
 import com.anifichadia.figstract.importer.variable.model.writer.VariableDataWriter
 import com.anifichadia.figstract.ios.importer.variable.model.writer.IosAssetCatalogVariableDataWriter
@@ -57,6 +58,36 @@ class RealVariablesCommand : VariablesCommand() {
         }
         .default(emptyMap())
 
+    private val renamingMap by option("--variableRenamingMapFile")
+        .help(
+            """Path to a JSON file mapping old variable collection and/or variable path names to new names.
+            |Collection renames are applied first; variable path renames are then looked up using the resolved (post-rename) collection name. 
+            |Format:
+            |{
+            |   "collections": {
+            |       "OldCollectionName": "NewCollectionName"
+            |   },
+            |   "variables": {
+            |       "NewCollectionName": {
+            |           "old/variable/path": "new/variable/path"
+            |       }
+            |   }
+            |}""".trimMargin(),
+        )
+        .file(
+            mustExist = true,
+            canBeFile = true,
+            canBeDir = false,
+        )
+        .convert { file ->
+            try {
+                VariableRenamingMap.fromFile(file)
+            } catch (e: Exception) {
+                throw BadParameterValue("Failed to parse variable renaming map file '$file': ${e.message}")
+            }
+        }
+        .default(VariableRenamingMap.Empty)
+
     override fun createHandlers(outDirectory: File): List<VariableFileHandler> {
         val filters = filters.toVariableFilter()
         val writers = createWriters(outDirectory, filters)
@@ -68,6 +99,7 @@ class RealVariablesCommand : VariablesCommand() {
                 figmaFileBranchName = figmaFileBranchName,
                 figmaFileVersion = figmaFileVersion,
                 filter = filters,
+                renamingMap = renamingMap,
                 themeVariantMappings = themeVariantMappings,
                 variableOrganizationStrategy = variableOrganizationStrategy.toVariableOrganizationStrategy(),
                 writers = writers,
