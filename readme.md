@@ -210,7 +210,7 @@ The following tokens are supported, wrapped in `{}`:
 If the separator is not found in the node name, the full name is used.
 
 Names are automatically cased to match platform conventions (snake_case for Android and Web, UpperCamelCase for iOS).
-Override the format using `--artworkAndroidFormat`, `--artworkIosFormat`, `--artworkWebFormat` (and `icons` equivalents).
+Override the format using `--artworkAndroidNamingFormat`, `--artworkIosNamingFormat`, `--artworkWebNamingFormat` (and `icons` equivalents).
 
 ### Processing records
 
@@ -248,7 +248,7 @@ Artwork supports two crop modes, configured per run:
 
 ##### Grouping within asset catalogs
 
-Assets can be grouped into named folders within the Asset Catalog with the same [Custom naming tokens](#custom-naming) using `--artworkIosGroupByTokenFormat` and `--iconsIosGroupByTokenFormat`.
+Assets can be grouped into named folders within the Asset Catalog with the same [Custom naming tokens](#custom-naming) using `--artworkIosGroupByTokenNamingFormat` and `--iconsIosGroupByTokenNamingFormat`.
 Not supplying a value or using a blank string will disable the option.
 
 Recommended formats are:
@@ -267,7 +267,7 @@ Assets.xcassets/
 ```
 
 > [!TIP]
-> When enabled, consider setting `--artworkIosFormat` or `--iconsIosFormat` to avoid redundant info between the namespace and asset. E.g. `--artworkIosFormat` to `{node.name}` and `--iconsIosFormat` to `{node.name.split "/" first}`.
+> When enabled, consider setting `--artworkIosNamingFormat` or `--iconsIosNamingFormat` to avoid redundant info between the namespace and asset. E.g. `--artworkIosNamingFormat` to `{node.name}` and `--iconsIosNamingFormat` to `{node.name.split "/" first}`.
 
 ### HEIC output (iOS)
 
