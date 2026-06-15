@@ -242,10 +242,6 @@ class FigmaVariableImporter(
                         val variableData = VariableData(
                             variableCollection = variableCollection,
                             variablesByMode = variablesByMode,
-                            booleansProvided = filter.variableTypeFilter.includeBooleans,
-                            numbersProvided = filter.variableTypeFilter.includeNumbers,
-                            stringsProvided = filter.variableTypeFilter.includeStrings,
-                            colorsProvided = filter.variableTypeFilter.includeColors,
                         )
 
                         val renamedVariableData = handler.renamingMap.applyTo(
