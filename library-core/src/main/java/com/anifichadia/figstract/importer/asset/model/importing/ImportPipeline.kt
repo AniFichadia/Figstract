@@ -4,6 +4,7 @@ import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.ImportTarget.Companion.merge
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Output.Companion.single
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.and
+import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.or
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.IfElse.Companion.otherwiseDefault
 import com.anifichadia.figstract.model.Describeable
@@ -196,15 +197,15 @@ data class ImportPipeline(
         }
 
         class IfElse(
-            private val step: Step,
-            private val otherwise: Step = otherwiseDefault,
+            private val step: () -> Step,
+            private val otherwise: () -> Step = otherwiseDefault,
             private val predicate: suspend (instruction: Instruction, input: Output) -> Boolean,
         ) : Step, Describeable {
             override suspend fun process(instruction: Instruction, input: Output): List<Output> {
                 val stepToRun = if (predicate(instruction, input)) {
-                    step
+                    step()
                 } else {
-                    otherwise
+                    otherwise()
                 }
 
                 return stepToRun.process(instruction, input)
@@ -219,7 +220,7 @@ data class ImportPipeline(
             }
 
             companion object {
-                val otherwiseDefault = passThrough()
+                val otherwiseDefault = { passThrough() }
             }
         }
 
@@ -284,6 +285,8 @@ data class ImportPipeline(
                 }
             }
 
+            fun thenAll(vararg elements: Step) = listOf(*elements).then()
+
             infix fun Step.and(other: Step): Step {
                 return resolve(this, other) { first, second ->
                     And(first, second)
@@ -315,12 +318,34 @@ data class ImportPipeline(
                 }
             }
 
-            fun Step.ifElse(
-                step: Step,
-                otherwise: Step = otherwiseDefault,
+            fun ifCondition(
                 predicate: suspend (instruction: Instruction, input: Output) -> Boolean,
+                step: () -> Step,
+            ): Step {
+                return ifElseCondition(predicate, step, otherwiseDefault)
+            }
+
+            fun ifCondition(
+                predicate: Boolean,
+                step: () -> Step,
+            ): Step {
+                return ifElseCondition(predicate, step, otherwiseDefault)
+            }
+
+            fun ifElseCondition(
+                predicate: suspend (instruction: Instruction, input: Output) -> Boolean,
+                step: () -> Step,
+                otherwise: () -> Step,
             ): Step {
                 return IfElse(step, otherwise, predicate)
+            }
+
+            fun ifElseCondition(
+                predicate: Boolean,
+                step: () -> Step,
+                otherwise: () -> Step,
+            ): Step {
+                return IfElse(step, otherwise) { _, _ -> predicate }
             }
 
             private inline fun resolve(
