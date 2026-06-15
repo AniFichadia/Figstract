@@ -140,7 +140,7 @@ val convertToPngLossless = convertToFormat("convertToPngLossless()", "png", PngW
 /**
  * @param qualityPercent Must be between 0 and 100
  */
-fun convertToPngLossy(qualityPercent: Int = 75): ImportPipeline.Step {
+fun convertToPngLossy(qualityPercent: Int = PNG_LOSSY_QUALITY_PERCENT_DEFAULT): ImportPipeline.Step {
     require(qualityPercent in (0..100)) { "qualityPercent must be between 0 and 100" }
 
     return convertToFormat(
@@ -157,7 +157,7 @@ val convertToWebPLossless = convertToWebP("convertToWebPLossless()", WebpWriter.
 /**
  * @param qualityPercent Must be between 0 and 100
  */
-fun convertToWebPLossy(qualityPercent: Int = 75): ImportPipeline.Step {
+fun convertToWebPLossy(qualityPercent: Int = WEBP_LOSSY_QUALITY_PERCENT_DEFAULT): ImportPipeline.Step {
     require(qualityPercent in (0..100)) { "qualityPercent must be between 0 and 100" }
 
     return convertToWebP(
@@ -184,3 +184,7 @@ private fun convertToFormat(description: String, targetFormat: String?, writer: 
             .single()
     }
 //endregion
+
+const val PNG_LOSSY_QUALITY_PERCENT_DEFAULT = 75
+
+const val WEBP_LOSSY_QUALITY_PERCENT_DEFAULT = 75

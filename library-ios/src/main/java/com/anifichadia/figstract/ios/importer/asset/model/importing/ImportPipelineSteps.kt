@@ -4,7 +4,7 @@ import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Output.Companion.single
 import com.anifichadia.figstract.util.FileManagement
 
-fun convertToHeic(qualityPercent: Int = 85): ImportPipeline.Step {
+fun convertToHeic(qualityPercent: Int = HEIC_LOSSY_QUALITY_PERCENT_DEFAULT): ImportPipeline.Step {
     require(qualityPercent in (0..100)) { "qualityPercent must be between 0 and 100" }
 
     return ImportPipeline.Step("convertToHeic(qualityPercent=$qualityPercent)") { instruction, input ->
@@ -53,3 +53,5 @@ fun convertToHeic(qualityPercent: Int = 85): ImportPipeline.Step {
         }
     }
 }
+
+const val HEIC_LOSSY_QUALITY_PERCENT_DEFAULT = 75
