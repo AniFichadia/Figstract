@@ -58,7 +58,6 @@ subprojects {
         compilerOptions {
             jvmTarget.set(kotlinJvmTarget)
             optIn.addAll(kotlinOptIns)
-            freeCompilerArgs.add("-Xexplicit-backing-fields")
         }
     }
 
