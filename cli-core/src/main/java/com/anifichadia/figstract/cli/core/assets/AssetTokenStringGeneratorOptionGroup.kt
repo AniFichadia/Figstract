@@ -40,7 +40,7 @@ class AssetTokenStringGeneratorOptionGroup(
         ): OptionWithValues<NodeTokenStringGenerator, NodeTokenStringGenerator, NodeTokenStringGenerator> {
             val tokens = NodeTokenStringGenerator.tokens.joinToString(", ") { it.format.pattern }
             return option(
-                "--${prefix}Format",
+                "--${prefix}NamingFormat",
                 help = "Naming format for ${prefix}. Supported tokens: $tokens",
             )
                 .convert { NodeTokenStringGenerator(it, casing) }
