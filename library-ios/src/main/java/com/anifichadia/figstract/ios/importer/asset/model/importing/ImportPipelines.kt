@@ -8,6 +8,7 @@ import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.S
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveExtension
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.resolveOutputName
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
+import com.anifichadia.figstract.importer.asset.model.importing.convertToPngLossy
 import com.anifichadia.figstract.importer.asset.model.importing.scale
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.AssetType
@@ -21,7 +22,7 @@ fun iosScaleAndStoreInAssetCatalog(
     assetType: AssetType.Image,
     sourceScale: Scale,
     scales: List<Scale> = Scale.defaults,
-    convertToHeic: Boolean = false,
+    outputFormat: ArtworkOutputFormat = ArtworkOutputFormat.Default,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,
     groupByPathElements: Boolean = false,
@@ -29,7 +30,11 @@ fun iosScaleAndStoreInAssetCatalog(
     return scales
         .map { targetScale ->
             scale(sourceScale.scaleRelativeTo(targetScale)) then
-                (if (convertToHeic) convertToHeic() else passThrough()) then
+                when (outputFormat) {
+                    ArtworkOutputFormat.Heic -> convertToHeic()
+                    ArtworkOutputFormat.PngLossy -> convertToPngLossy()
+                    ArtworkOutputFormat.Default -> passThrough()
+                } then
                 iosStoreInAssetCatalog(
                     assetCatalog = assetCatalog,
                     assetType = assetType,

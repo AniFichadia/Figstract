@@ -11,6 +11,7 @@ import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.exporting.pngUnscaled
 import com.anifichadia.figstract.ios.assetcatalog.Scale
 import com.anifichadia.figstract.ios.figma.model.ios3xImage
+import com.anifichadia.figstract.ios.importer.asset.model.importing.ArtworkOutputFormat
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.multiple
@@ -35,9 +36,9 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         .enum<Scale>()
         .multiple(default = Scale.defaults)
         .unique()
-    private val artworkIosConvertToHeic by option("--${prefix}IosConvertToHeic")
-        .boolean()
-        .default(false)
+    private val artworkIosOutputFormat by option("--${prefix}IosOutputFormat")
+        .enum<ArtworkOutputFormat>()
+        .default(ArtworkOutputFormat.Default)
     override val nameGenerators by AssetTokenStringGeneratorOptionGroup(
         prefix = prefix,
         androidFormat = """{canvas.name}_{node.name}""",
@@ -80,7 +81,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             webExportConfig = pngUnscaled,
             androidOutputDensityBuckets = artworkAndroidOutputDensityBuckets.toList(),
             iosOutputScales = artworkIosOutputScales.toList(),
-            iosConvertToHeic = artworkIosConvertToHeic,
+            iosOutputFormat = artworkIosOutputFormat,
             iosGroupByToken = iosGroupByToken,
             instructionLimit = instructionLimit,
         )
