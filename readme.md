@@ -29,7 +29,7 @@ Figstract uses the [Figma REST API](https://www.figma.com/developers/api) and ha
 - **Concurrent and Parallel**: Uses concurrency and multithreading to process Figma files at speed
 - **Multi-file**: Operations can handle multiple Figma files in parallel
 - **Flexible filters**: Manage included and excluded tokens
-- **Renaming**: Remap canvas and node names before output using a JSON file
+- **Renaming**: Remap names for assets and variables before output
 - **Theme-aware**: Supports light/dark theme variant mapping for variables, generating separate light and dark values in a single pass
 
 Figstract operations use a processing pipeline:
@@ -302,6 +302,33 @@ Variables can be filtered using the following options:
 - Type: `--includeTypeBoolean`, `--includeTypeNumber`, `--includeTypeString`, `--includeTypeColor` (all default `true`)
 
 Include and exclude filters are mutually exclusive for a given dimension and can be repeated to supply multiple regex patterns.
+
+### Renaming
+
+Variable collection and variable path names can be remapped before output using a JSON renaming map file supplied via `--variableRenamingMapFile <path>`.
+This is useful for normalizing names that don't follow engineering naming conventions without modifying the Figma file itself.
+
+Collection renames are applied first. 
+Variable path renames are then looked up using the **resolved** (post-rename) collection name, so if you rename a collection you should use its new name as the key in `variables`.
+
+The file contains uses the following format where `collections` and `variables` are case-sensitive dictionaries of old name (case-sensitive) to new name:
+
+```json
+{
+  "collections": {
+    "Old Collection Name": "New Collection Name"
+  },
+  "variables": {
+    "New Collection Name": {
+      "old/variable/path": "new/variable/path",
+      "colors/primary 500": "colors/primary-500"
+    }
+  }
+}
+```
+
+Both `collections` and `variables` are optional. Entries not present in a map are left unchanged.
+Non-matching entries will produce a warning in the log.
 
 ### Theme variant mapping
 
