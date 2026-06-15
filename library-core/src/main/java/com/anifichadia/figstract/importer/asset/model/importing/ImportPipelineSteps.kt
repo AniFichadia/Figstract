@@ -140,7 +140,7 @@ val convertToPngLossless = convertToFormat("convertToPngLossless()", "png", PngW
 /**
  * @param qualityPercent Must be between 0 and 100
  */
-private fun convertToPngLossy(qualityPercent: Int = 75): ImportPipeline.Step {
+fun convertToPngLossy(qualityPercent: Int = 75): ImportPipeline.Step {
     require(qualityPercent in (0..100)) { "qualityPercent must be between 0 and 100" }
 
     return convertToFormat(
