@@ -156,6 +156,165 @@ The following args provide file targeting options:
 Asset importing uses a composable pipeline, allowing you to chain transformers and handlers together.
 This makes it possible to apply format conversion, renaming, and other processing steps in a flexible way.
 
+### Pipeline DSL
+
+You can supply additional pre-processing steps to inject before Figstract's built-in platform steps
+using a text-based pipeline DSL. This lets you apply transformations — scaling, format conversion,
+renaming, path manipulation — without writing Kotlin.
+
+#### DSL format
+
+Each non-blank, non-comment line is a pipeline expression. Lines starting with `#` (or with an
+inline `#` outside a quoted value) are treated as comments. Multiple top-level lines are sequenced
+with `->`.
+
+Each step is written as a function call:
+
+```
+stepName()
+stepName(param=value)
+stepName(param1=value1, param2=value2)
+```
+
+##### Sequential composition (`->` / `then`)
+
+Outputs from the left step are fed into the right step in order.
+
+```
+# Scale then convert then rename — all on one line
+scale(scale=2.0) -> convertToWebPLossy(qualityPercent=80) -> renameSuffix(suffix=_web)
+
+# Or spread across lines — equivalent to joining with ->
+scale(scale=2.0)
+convertToWebPLossy(qualityPercent=80)
+renameSuffix(suffix=_web)
+```
+
+##### Parallel fan-out (`and`)
+
+Runs all comma-separated branches against the same input concurrently; collects all outputs.
+Each branch is a full pipeline chain and can itself use `->`.
+
+```
+# Produce both WebP and PNG from the same input
+and(convertToWebPLossy(qualityPercent=75), convertToPngLossless())
+
+# Branches can be chains
+and(
+  convertToWebPLossy(qualityPercent=75) -> renameSuffix(suffix=_web),
+  convertToPngLossless() -> renameSuffix(suffix=_fallback)
+)
+```
+
+##### First-non-empty fallback (`or`)
+
+Tries each branch in order; returns the output of the first branch that produces a non-empty result.
+
+```
+or(convertToWebPLossy(qualityPercent=75), convertToPngLossless())
+```
+
+##### Nesting
+
+Combinators can be arbitrarily nested and combined with `->`:
+
+```
+# Scale first, then fan out into two formats
+scale(scale=2.0) -> and(
+  convertToWebPLossy(qualityPercent=75) -> renameSuffix(suffix=_web),
+  or(convertToWebPLossy(qualityPercent=50), convertToPngLossless()) -> renameSuffix(suffix=_small)
+)
+```
+
+#### Built-in steps
+
+| Step                                 | Parameters                                                       | Description                                      |
+|--------------------------------------|------------------------------------------------------------------|--------------------------------------------------|
+| `passThrough()`                      | -                                                                | No-op; useful as a placeholder                   |
+| `scale(scale)`                       | `scale`: Float                                                   | Scales the image by a factor                     |
+| `scaleToSize(width, height)`         | `width`: Int, `height`: Int                                      | Scales to exact pixel dimensions                 |
+| `scaleToWidth(width)`                | `width`: Int                                                     | Scales to target width, preserving aspect ratio  |
+| `scaleToHeight(height)`              | `height`: Int                                                    | Scales to target height, preserving aspect ratio |
+| `rename(name)`                       | `name`: String                                                   | Replaces the output file name                    |
+| `renameSuffix(suffix)`               | `suffix`: String                                                 | Appends a suffix to the output file name         |
+| `renamePrefix(prefix)`               | `prefix`: String                                                 | Prepends a prefix to the output file name        |
+| `pathElementsAppend(pathElements)`   | `pathElements`: comma-separated String, or `pathElement`: String | Appends path segments to the output path         |
+| `convertToPngLossless()`             | -                                                                | Converts to lossless PNG                         |
+| `convertToPngLossy(qualityPercent)`  | `qualityPercent`: Int (default `75`)                             | Converts to lossy PNG                            |
+| `convertToWebPLossless()`            | -                                                                | Converts to lossless WebP                        |
+| `convertToWebPLossy(qualityPercent)` | `qualityPercent`: Int (default `75`)                             | Converts to lossy WebP                           |
+
+**Android-specific steps** (available when using `library-android`):
+
+| Step                                | Parameters | Description                                                            |
+|-------------------------------------|------------|------------------------------------------------------------------------|
+| `androidSvgToAvd()`                 | -          | Converts SVG to Android Vector Drawable XML                            |
+| `androidVectorColorToPlaceholder()` | -          | Replaces vector drawable colors with the Figstract magenta placeholder |
+
+**iOS-specific steps** (available when using `library-ios`):
+
+| Step                            | Parameters                           | Description                                                 |
+|---------------------------------|--------------------------------------|-------------------------------------------------------------|
+| `convertToHeic(qualityPercent)` | `qualityPercent`: Int (default `75`) | Converts PNG to HEIC ( see [HEIC output](#heic-output-ios)) |
+
+#### CLI usage
+
+Supply an inline DSL string or a path to a `.pipeline` file. The two options are mutually exclusive.
+
+**Inline:**
+```shell
+--artworkPipelineSteps "scale(scale=0.5) -> convertToWebPLossy(qualityPercent=80)"
+--iconsPipelineSteps "renameSuffix(suffix=_v2)"
+```
+
+**File:**
+```shell
+--artworkPipelineFile ./pipelines/artwork.pipeline
+--iconsPipelineFile ./pipelines/icons.pipeline
+```
+
+The additional steps run before Figstract's built-in platform steps (density scaling, asset catalog storage, etc).
+
+#### Library usage
+
+Each module ships its own registry singleton. Compose them with `+` — the right-hand side wins on
+any name collision.
+
+```kotlin
+// Core steps only (the default)
+val step = ImportPipelineDsl.parse(
+    """
+    scale(scale=0.5)
+    convertToWebPLossy(qualityPercent=80)
+    """.trimIndent()
+)
+
+// Compose registries for Android
+val registry = CoreImportPipelineStepRegistry + AndroidImportPipelineStepRegistry
+val step = ImportPipelineDsl.parse("androidSvgToAvd()", registry)
+
+// Compose registries for iOS
+val registry = CoreImportPipelineStepRegistry + IosImportPipelineStepRegistry
+val step = ImportPipelineDsl.parse("convertToHeic(qualityPercent=90)", registry)
+
+// Compose all three
+val registry = CoreImportPipelineStepRegistry +
+    AndroidImportPipelineStepRegistry +
+    IosImportPipelineStepRegistry
+
+// From a file
+val step = ImportPipelineDsl.parseFile(File("./my.pipeline"), registry)
+
+// With custom steps — build a registry from a map and compose it in
+val custom = ImportPipelineStepRegistry(
+    mapOf("myStep" to ImportPipelineStepRegistry.StepFactory { params ->
+        val quality = params["quality"]?.toInt() ?: 80
+        convertToWebPLossy(quality)
+    })
+)
+val registry = CoreImportPipelineStepRegistry + custom
+```
+
 ### Filtering
 
 Assets can be filtered by canvas (page), node, and parent node name using regex patterns.
