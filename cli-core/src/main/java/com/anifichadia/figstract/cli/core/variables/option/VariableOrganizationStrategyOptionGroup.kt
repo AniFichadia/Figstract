@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.cli.core.variables
+package com.anifichadia.figstract.cli.core.variables.option
 
 import com.anifichadia.figstract.importer.variable.model.variableorganization.CustomRegexVariableOrganizationStrategy
 import com.anifichadia.figstract.importer.variable.model.variableorganization.FullPathVariableOrganizationStrategy

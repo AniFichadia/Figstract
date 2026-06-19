@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.cli.core.assets
+package com.anifichadia.figstract.cli.core.assets.option
 
 import com.anifichadia.figstract.util.ToUpperCamelCase
 import com.github.ajalt.clikt.parameters.groups.OptionGroup

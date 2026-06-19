@@ -1,7 +1,7 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
-import com.anifichadia.figstract.cli.core.assets.AssetRenamingMap
-import com.anifichadia.figstract.cli.core.assets.NodeTokenStringGenerator
+import com.anifichadia.figstract.cli.core.assets.model.AssetRenamingMap
+import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.util.createLogger
 
