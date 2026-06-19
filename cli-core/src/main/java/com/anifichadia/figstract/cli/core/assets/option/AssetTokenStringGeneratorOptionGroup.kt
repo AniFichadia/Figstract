@@ -1,7 +1,8 @@
-package com.anifichadia.figstract.cli.core.assets
+package com.anifichadia.figstract.cli.core.assets.option
 
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
-import com.anifichadia.figstract.model.TokenStringGenerator.Casing
+import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
+import com.anifichadia.figstract.model.TokenStringGenerator
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.OptionWithValues
 import com.github.ajalt.clikt.parameters.options.convert
@@ -17,26 +18,26 @@ class AssetTokenStringGeneratorOptionGroup(
     val android by createOption(
         prefix = "${prefix}Android",
         defaultFormat = androidFormat,
-        casing = Casing.SnakeCase,
+        casing = TokenStringGenerator.Casing.SnakeCase,
     )
 
     val ios by createOption(
         prefix = "${prefix}Ios",
         defaultFormat = iosFormat,
-        casing = Casing.UpperCamelCase,
+        casing = TokenStringGenerator.Casing.UpperCamelCase,
     )
 
     val web by createOption(
         prefix = "${prefix}Web",
         defaultFormat = webFormat,
-        casing = Casing.SnakeCase,
+        casing = TokenStringGenerator.Casing.SnakeCase,
     )
 
     companion object {
         fun OptionGroup.createOption(
             prefix: String,
             defaultFormat: String,
-            casing: Casing,
+            casing: TokenStringGenerator.Casing,
         ): OptionWithValues<NodeTokenStringGenerator, NodeTokenStringGenerator, NodeTokenStringGenerator> {
             val tokens = NodeTokenStringGenerator.tokens.joinToString(", ") { it.format.pattern }
             return option(

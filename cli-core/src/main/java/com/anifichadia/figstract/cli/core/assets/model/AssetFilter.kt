@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.cli.core.assets
+package com.anifichadia.figstract.cli.core.assets.model
 
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.importer.asset.model.NodeFilter

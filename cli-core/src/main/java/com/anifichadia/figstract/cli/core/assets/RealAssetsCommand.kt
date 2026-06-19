@@ -2,6 +2,7 @@ package com.anifichadia.figstract.cli.core.assets
 
 import com.anifichadia.figstract.cli.core.assets.handler.ArtworkHandlerOptionGroup
 import com.anifichadia.figstract.cli.core.assets.handler.IconsHandlerOptionGroup
+import com.anifichadia.figstract.cli.core.assets.option.PlatformOptionGroup
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.groups.provideDelegate

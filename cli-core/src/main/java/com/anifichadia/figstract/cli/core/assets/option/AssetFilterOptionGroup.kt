@@ -1,7 +1,8 @@
-package com.anifichadia.figstract.cli.core.assets
+package com.anifichadia.figstract.cli.core.assets.option
 
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.IncludeOrExcludeFilterOptionGroup
+import com.anifichadia.figstract.cli.core.assets.model.AssetFilter
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.importer.asset.model.NodeFilter
 import com.github.ajalt.clikt.core.MultiUsageError

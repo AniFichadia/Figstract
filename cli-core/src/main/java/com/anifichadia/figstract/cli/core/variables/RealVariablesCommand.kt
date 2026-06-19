@@ -3,6 +3,9 @@ package com.anifichadia.figstract.cli.core.variables
 import com.anifichadia.figstract.ExperimentalFigstractApi
 import com.anifichadia.figstract.android.importer.variable.model.writer.AndroidComposeVariableDataWriter
 import com.anifichadia.figstract.android.importer.variable.model.writer.AndroidXmlVariableDataWriter
+import com.anifichadia.figstract.cli.core.variables.option.AndroidXmlOptionGroup
+import com.anifichadia.figstract.cli.core.variables.option.VariableFilterOptionGroup
+import com.anifichadia.figstract.cli.core.variables.option.VariableOrganizationStrategyOptionGroup
 import com.anifichadia.figstract.importer.variable.model.ThemeVariantMapping
 import com.anifichadia.figstract.importer.variable.model.VariableFileFilter
 import com.anifichadia.figstract.importer.variable.model.VariableFileHandler

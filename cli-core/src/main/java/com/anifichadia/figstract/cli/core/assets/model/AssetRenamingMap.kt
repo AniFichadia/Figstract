@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.cli.core.assets
+package com.anifichadia.figstract.cli.core.assets.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -8,7 +8,7 @@ import java.io.File
  * A renaming map for assets, allowing canvas and/or node names to be overridden before name generation occurs.
  *
  * Keys for both maps are the old name (case-sensitive), and the values are the new name
- * 
+ *
  * Both keys are optional. Entries not present in a map are left unchanged.
  */
 @Serializable

@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.cli.core.variables
+package com.anifichadia.figstract.cli.core.variables.option
 
 import com.anifichadia.figstract.cli.core.IncludeOrExcludeFilterOptionGroup
 import com.anifichadia.figstract.cli.core.provideDelegate
