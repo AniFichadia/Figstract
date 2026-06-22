@@ -6,16 +6,14 @@ abstract class IncludeOrExcludeFilter<T> {
     protected abstract val getFilterableProperty: (T) -> String
 
     fun accept(value: T): Boolean {
+        if (include.isEmpty() && exclude.isEmpty()) return true
+
         val filterableProperty = getFilterableProperty(value)
 
-        if (include.isNotEmpty()) {
-            return include.any { it.matches(filterableProperty) }
+        return if (include.isNotEmpty()) {
+            include.any { it.matches(filterableProperty) }
+        } else {
+            !exclude.any { it.matches(filterableProperty) }
         }
-
-        if (exclude.isNotEmpty()) {
-            return !exclude.any { it.matches(filterableProperty) }
-        }
-
-        return true
     }
 }
