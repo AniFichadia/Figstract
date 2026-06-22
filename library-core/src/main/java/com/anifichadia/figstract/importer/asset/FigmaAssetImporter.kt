@@ -261,6 +261,7 @@ class FigmaAssetImporter(
                         format = exportConfig.format,
                         scale = exportConfig.scale,
                         contentsOnly = exportConfig.contentsOnly,
+                        useAbsoluteBounds = exportConfig.useAbsoluteBounds,
                     )
                     getImagesApiResponse.logError { "Getting images ${handler.figmaFileDefinition.fileKey}, chunkIndex: $chunkIndex, $exportConfig" }
                     logger.info { "Getting images ${handler.figmaFileDefinition.fileKey}, chunkIndex: $chunkIndex, $exportConfig: Finish ${getImagesApiResponse.isSuccess()}" }
