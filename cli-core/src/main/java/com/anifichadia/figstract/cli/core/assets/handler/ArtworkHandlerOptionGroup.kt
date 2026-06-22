@@ -2,12 +2,13 @@ package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.android.figma.model.androidImageXxxHdpi
 import com.anifichadia.figstract.android.importer.asset.model.drawable.DensityBucket
-import com.anifichadia.figstract.cli.core.assets.model.AssetRenamingMap
-import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.assets.option.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.provideDelegate
+import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
+import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.importer.asset.model.exporting.pngUnscaled
 import com.anifichadia.figstract.ios.assetcatalog.Scale
 import com.anifichadia.figstract.ios.figma.model.ios3xImage
@@ -47,9 +48,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
     )
 
     override fun createHandlerInternal(
-        figmaFile: String,
-        figmaFileBranchName: String?,
-        figmaFileVersion: String?,
+        figmaFileDefinition: FigmaFileDefinition,
         androidOutDirectory: File?,
         iosOutDirectory: File?,
         webOutDirectory: File?,
@@ -62,9 +61,7 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         if (!(artworkCreateUncropped || artworkCreateCropped)) throw BadParameterValue("Atleast createUncropped or createCropped must be set to true")
 
         return createArtworkFigmaFileHandler(
-            figmaFile = figmaFile,
-            figmaFileBranchName = figmaFileBranchName,
-            figmaFileVersion = figmaFileVersion,
+            figmaFileDefinition = figmaFileDefinition,
             createUncropped = artworkCreateUncropped,
             createCropped = artworkCreateCropped,
             androidOutDirectory = androidOutDirectory,

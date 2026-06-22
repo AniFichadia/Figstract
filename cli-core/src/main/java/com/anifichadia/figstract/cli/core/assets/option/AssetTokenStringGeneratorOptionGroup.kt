@@ -1,7 +1,7 @@
 package com.anifichadia.figstract.cli.core.assets.option
 
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
-import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
+import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.model.TokenStringGenerator
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.OptionWithValues

@@ -1,4 +1,4 @@
-package com.anifichadia.figstract.cli.core.assets.model
+package com.anifichadia.figstract.importer.asset.model
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

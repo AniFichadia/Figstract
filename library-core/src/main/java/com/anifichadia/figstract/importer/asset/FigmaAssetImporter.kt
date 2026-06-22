@@ -51,11 +51,17 @@ class FigmaAssetImporter(
 ) {
     suspend fun importFromFigma(handlers: List<AssetFileHandler>) {
         val reports = handlers.associate { handler ->
-            handler.figmaFile to FigmaImportReport(handler.figmaFile)
+            val figmaFile = handler.figmaFileDefinition.fileKey
+            figmaFile to FigmaImportReport(figmaFile)
         }
 
         val importFlow = handlers
-            .map { handler -> createProcessingFlowForHandler(handler, reports.getValue(handler.figmaFile)) }
+            .map { handler ->
+                createProcessingFlowForHandler(
+                    handler = handler,
+                    report = reports.getValue(handler.figmaFileDefinition.fileKey),
+                )
+            }
             .merge()
 
         coroutineScope {
@@ -90,10 +96,10 @@ class FigmaAssetImporter(
     }
 
     private suspend fun assetFileHandlerForBranch(handler: AssetFileHandler): AssetFileHandler {
-        val figmaFileBranchName = handler.figmaFileBranchName ?: return handler
+        val figmaFileBranchName = handler.figmaFileDefinition.branchName ?: return handler
 
         val branchKey = figmaApi.getFileWithBranchName(
-            key = handler.figmaFile,
+            key = handler.figmaFileDefinition.fileKey,
             branchName = figmaFileBranchName,
             logger = logger,
         )
@@ -105,7 +111,7 @@ class FigmaAssetImporter(
         handler: AssetFileHandler,
         report: FigmaImportReport,
     ): Flow<Unit> {
-        val figmaFile = handler.figmaFile
+        val figmaFile = handler.figmaFileDefinition.fileKey
         var lastUpdated: OffsetDateTime? = null
 
         val handlersFlow = flowOf(handler)
@@ -148,18 +154,18 @@ class FigmaAssetImporter(
         return handlers
             .flowOn(defaultContext)
             .map { handler ->
-                logger.debug { "Fetching ${handler.figmaFile}: Start" }
+                logger.debug { "Fetching ${handler.figmaFileDefinition.fileKey}: Start" }
                 val getFileApiResponse = figmaApi.getFile(
-                    key = handler.figmaFile,
-                    version = handler.figmaFileVersion,
+                    key = handler.figmaFileDefinition.fileKey,
+                    version = handler.figmaFileDefinition.version,
                 )
-                logger.info { "Fetching ${handler.figmaFile}: Finish ${getFileApiResponse.isSuccess()}" }
-                getFileApiResponse.logError { "Fetching ${handler.figmaFile}" }
+                logger.info { "Fetching ${handler.figmaFileDefinition.fileKey}: Finish ${getFileApiResponse.isSuccess()}" }
+                getFileApiResponse.logError { "Fetching ${handler.figmaFileDefinition.fileKey}" }
 
                 if (!getFileApiResponse.isSuccess()) {
                     report.record(
                         ImportResult.Failure.GetFileFailed(
-                            figmaFile = handler.figmaFile,
+                            figmaFile = handler.figmaFileDefinition.fileKey,
                             cause = (getFileApiResponse as ApiResponse.Failure).asException(),
                         )
                     )
@@ -180,14 +186,14 @@ class FigmaAssetImporter(
         val instructionsFlow = fileFlow
             .filter { (handler, getFileApiResponse) ->
                 val response = getFileApiResponse.successBodyOrThrow()
-                val record = processingRecordRepository.readRecord(handler.figmaFile)
+                val record = processingRecordRepository.readRecord(handler.figmaFileDefinition.fileKey)
 
                 val processFile = if (record != null) {
                     response.lastModified > record.lastProcessed
                 } else {
                     true
                 }
-                logger.info { "Should process ${handler.figmaFile}: $processFile" }
+                logger.info { "Should process ${handler.figmaFileDefinition.fileKey}: $processFile" }
 
                 processFile
             }
@@ -247,24 +253,24 @@ class FigmaAssetImporter(
                 val instructions = chunk.instructions
 
                 flow {
-                    logger.debug { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig: Started" }
+                    logger.debug { "Getting images ${handler.figmaFileDefinition.fileKey}, chunkIndex: $chunkIndex, $exportConfig: Started" }
 
                     val getImagesApiResponse = figmaApi.getImages(
-                        key = handler.figmaFile,
+                        key = handler.figmaFileDefinition.fileKey,
                         ids = instructions.map { it.export.nodeId },
                         format = exportConfig.format,
                         scale = exportConfig.scale,
                         contentsOnly = exportConfig.contentsOnly,
                     )
-                    getImagesApiResponse.logError { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig" }
-                    logger.info { "Getting images ${handler.figmaFile}, chunkIndex: $chunkIndex, $exportConfig: Finish ${getImagesApiResponse.isSuccess()}" }
+                    getImagesApiResponse.logError { "Getting images ${handler.figmaFileDefinition.fileKey}, chunkIndex: $chunkIndex, $exportConfig" }
+                    logger.info { "Getting images ${handler.figmaFileDefinition.fileKey}, chunkIndex: $chunkIndex, $exportConfig: Finish ${getImagesApiResponse.isSuccess()}" }
 
                     if (!getImagesApiResponse.isSuccess()) {
                         val cause = (getImagesApiResponse as ApiResponse.Failure).asException()
                         instructions.forEach { instruction ->
                             report.record(
                                 ImportResult.Failure.NodeFailure.GetImagesFailed(
-                                    figmaFile = handler.figmaFile,
+                                    figmaFile = handler.figmaFileDefinition.fileKey,
                                     nodeId = instruction.export.nodeId,
                                     cause = cause,
                                 )
@@ -283,7 +289,7 @@ class FigmaAssetImporter(
                                 instructionsForNode.forEach { _ ->
                                     report.record(
                                         ImportResult.Failure.NodeFailure.NoImageUrl(
-                                            figmaFile = handler.figmaFile,
+                                            figmaFile = handler.figmaFileDefinition.fileKey,
                                             nodeId = nodeId,
                                         )
                                     )
@@ -310,7 +316,7 @@ class FigmaAssetImporter(
                                 instructionsForNode.forEach { _ ->
                                     report.record(
                                         ImportResult.Failure.NodeFailure.DownloadFailed(
-                                            figmaFile = handler.figmaFile,
+                                            figmaFile = handler.figmaFileDefinition.fileKey,
                                             nodeId = nodeId,
                                             imageUrl = imageUrl,
                                             cause = e,
@@ -336,23 +342,23 @@ class FigmaAssetImporter(
         return exportFlow
             .map { exportOutput ->
                 val (handler, instruction, data, imageUrl) = exportOutput
-                logger.debug { "Importing ${handler.figmaFile} $instruction: Started" }
+                logger.debug { "Importing ${handler.figmaFileDefinition.fileKey} $instruction: Started" }
                 try {
                     instruction.import.pipeline.execute(instruction, data)
                     report.record(
                         ImportResult.Success(
-                            figmaFile = handler.figmaFile,
+                            figmaFile = handler.figmaFileDefinition.fileKey,
                             nodeId = instruction.export.nodeId,
                             imageUrl = imageUrl,
                             instruction = instruction,
                         )
                     )
-                    logger.info { "Importing ${handler.figmaFile} $instruction: Finished true" }
+                    logger.info { "Importing ${handler.figmaFileDefinition.fileKey} $instruction: Finished true" }
                 } catch (e: Throwable) {
-                    logger.error(e) { "Importing ${handler.figmaFile} $instruction: Finished false" }
+                    logger.error(e) { "Importing ${handler.figmaFileDefinition.fileKey} $instruction: Finished false" }
                     report.record(
                         ImportResult.Failure.NodeFailure.ImportPipelineFailed(
-                            figmaFile = handler.figmaFile,
+                            figmaFile = handler.figmaFileDefinition.fileKey,
                             nodeId = instruction.export.nodeId,
                             instruction = instruction,
                             cause = e,

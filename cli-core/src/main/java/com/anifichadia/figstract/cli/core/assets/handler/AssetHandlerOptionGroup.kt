@@ -1,13 +1,14 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
-import com.anifichadia.figstract.cli.core.assets.model.AssetRenamingMap
-import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.assets.option.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup.Companion.createOption
 import com.anifichadia.figstract.cli.core.provideDelegate
+import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
+import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.model.TokenStringGenerator.Casing
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.convert
@@ -78,9 +79,11 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
             val figmaFile = this.figmaFile
             if (figmaFile != null) {
                 return createHandlerInternal(
-                    figmaFile = figmaFile,
-                    figmaFileBranchName = figmaFileBranchName,
-                    figmaFileVersion = figmaFileVersion,
+                    figmaFileDefinition = FigmaFileDefinition(
+                        fileKey = figmaFile,
+                        branchName = figmaFileBranchName,
+                        version = figmaFileVersion,
+                    ),
                     androidOutDirectory = androidOutDirectory,
                     iosOutDirectory = iosOutDirectory,
                     webOutDirectory = webOutDirectory,
@@ -98,9 +101,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
     }
 
     protected abstract fun createHandlerInternal(
-        figmaFile: String,
-        figmaFileBranchName: String?,
-        figmaFileVersion: String?,
+        figmaFileDefinition: FigmaFileDefinition,
         androidOutDirectory: File?,
         iosOutDirectory: File?,
         webOutDirectory: File?,
