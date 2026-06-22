@@ -1,6 +1,6 @@
 package com.anifichadia.figstract.importer.asset.model
 
-import com.anifichadia.figstract.figma.FileKey
+import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.type.serializer.figmaSerializersModule
@@ -14,9 +14,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 
 @Suppress("FunctionName")
 fun JsonPathAssetFileHandler(
-    figmaFile: FileKey,
-    figmaFileBranchName: String?,
-    figmaFileVersion: String?,
+    figmaFileDefinition: FigmaFileDefinition,
     jsonPath: String,
     assetsPerChunk: Int = AssetFileHandler.DEFAULT_ASSETS_PER_CHUNK,
     lifecycle: Lifecycle = Lifecycle.NoOp,
@@ -31,9 +29,7 @@ fun JsonPathAssetFileHandler(
     }
 
     return AssetFileHandler(
-        figmaFile = figmaFile,
-        figmaFileBranchName = figmaFileBranchName,
-        figmaFileVersion = figmaFileVersion,
+        figmaFileDefinition = figmaFileDefinition,
         assetsPerChunk = assetsPerChunk,
         lifecycle = lifecycle,
     ) { response, _ ->

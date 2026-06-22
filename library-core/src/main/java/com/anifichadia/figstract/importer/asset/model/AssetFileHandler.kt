@@ -1,20 +1,21 @@
 package com.anifichadia.figstract.importer.asset.model
 
+import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.figma.model.GetFilesResponse
 import com.anifichadia.figstract.importer.Lifecycle
 
 data class AssetFileHandler(
-    val figmaFile: FileKey,
-    val figmaFileBranchName: String?,
-    val figmaFileVersion: String?,
+    val figmaFileDefinition: FigmaFileDefinition,
     val assetsPerChunk: Int = DEFAULT_ASSETS_PER_CHUNK,
     val lifecycle: Lifecycle = Lifecycle.NoOp,
     val extractor: Extractor,
 ) {
     fun withResolvedBranchKey(branchKey: FileKey) = copy(
-        figmaFile = branchKey,
-        figmaFileBranchName = null,
+        figmaFileDefinition = figmaFileDefinition.copy(
+            fileKey = branchKey,
+            branchName = null,
+        ),
     )
 
     /**

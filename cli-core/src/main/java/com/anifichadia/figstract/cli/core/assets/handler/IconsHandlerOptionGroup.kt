@@ -5,6 +5,7 @@ import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.assets.option.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.provideDelegate
+import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import java.io.File
 
@@ -17,9 +18,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
     )
 
     override fun createHandlerInternal(
-        figmaFile: String,
-        figmaFileBranchName: String?,
-        figmaFileVersion: String?,
+        figmaFileDefinition: FigmaFileDefinition,
         androidOutDirectory: File?,
         iosOutDirectory: File?,
         webOutDirectory: File?,
@@ -30,9 +29,7 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
         instructionLimit: Int?,
     ): AssetFileHandler {
         return createIconFigmaFileHandler(
-            figmaFile = figmaFile,
-            figmaFileBranchName = figmaFileBranchName,
-            figmaFileVersion = figmaFileVersion,
+            figmaFileDefinition = figmaFileDefinition,
             androidOutDirectory = androidOutDirectory,
             iosOutDirectory = iosOutDirectory,
             webOutDirectory = webOutDirectory,

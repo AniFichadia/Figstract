@@ -7,7 +7,7 @@ import com.anifichadia.figstract.cli.core.assets.model.AssetFilter
 import com.anifichadia.figstract.cli.core.assets.model.AssetRenamingMap
 import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.timingLogger
-import com.anifichadia.figstract.figma.FileKey
+import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.figma.model.ExportSetting
 import com.anifichadia.figstract.figma.model.Node
 import com.anifichadia.figstract.figma.model.Node.Companion.traverseBreadthFirst
@@ -32,9 +32,7 @@ import java.io.File
 
 @Suppress("SameParameterValue")
 internal fun createArtworkFigmaFileHandler(
-    figmaFile: FileKey,
-    figmaFileBranchName: String?,
-    figmaFileVersion: String?,
+    figmaFileDefinition: FigmaFileDefinition,
     createUncropped: Boolean,
     createCropped: Boolean,
     androidOutDirectory: File?,
@@ -117,9 +115,7 @@ internal fun createArtworkFigmaFileHandler(
 
     return if (jsonPath == null) {
         AssetFileHandler(
-            figmaFile = figmaFile,
-            figmaFileBranchName = figmaFileBranchName,
-            figmaFileVersion = figmaFileVersion,
+            figmaFileDefinition = figmaFileDefinition,
             lifecycle = lifecycle,
         ) { response, _ ->
             val canvases = response.document.children
@@ -225,9 +221,7 @@ internal fun createArtworkFigmaFileHandler(
         val seenNodeNames = mutableSetOf<String>()
 
         JsonPathAssetFileHandler(
-            figmaFile = figmaFile,
-            figmaFileBranchName = figmaFileBranchName,
-            figmaFileVersion = figmaFileVersion,
+            figmaFileDefinition = figmaFileDefinition,
             jsonPath = jsonPath,
             lifecycle = lifecycle,
             canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
