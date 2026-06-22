@@ -5,21 +5,23 @@ import com.anifichadia.figstract.android.importer.asset.model.importing.androidV
 import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.figma.model.Node
-import com.anifichadia.figstract.figma.model.Node.Companion.traverseBreadthFirst
 import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.AssetFilter
 import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
+import com.anifichadia.figstract.importer.asset.model.FigmaAssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.Companion.addInstruction
-import com.anifichadia.figstract.importer.asset.model.JsonPathAssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.JsonPath
+import com.anifichadia.figstract.importer.asset.model.NodeDiscoveryStrategy
 import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
+import com.anifichadia.figstract.importer.asset.model.TraverseBreadthFirst
+import com.anifichadia.figstract.importer.asset.model.asSeenNameTracker
 import com.anifichadia.figstract.importer.asset.model.exporting.svg
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.then
 import com.anifichadia.figstract.importer.asset.model.toNamingContext
-import com.anifichadia.figstract.importer.asset.model.warnUnused
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.AssetType
 import com.anifichadia.figstract.ios.assetcatalog.Scale
@@ -95,116 +97,73 @@ internal fun createIconFigmaFileHandler(
     )
     //endregion
 
-    fun MutableList<Instruction>.generateInstructions(canvas: Node.Canvas, node: Node) {
-        val namingContext = renamingMap.toNamingContext(canvas, node)
+    // A node is a candidate if it's a direct child of the canvas, a Component, and has a Vector child.
+    val discoveryStrategy = if (jsonPath == null) {
+        NodeDiscoveryStrategy.TraverseBreadthFirst { node, parent ->
+            if (node !is Node.Parent) return@TraverseBreadthFirst false
+            // Look for first descendants of the canvas. Traversal runs once per canvas, so a
+            // Node.Canvas parent here can only be the canvas currently being traversed.
+            if (parent !is Node.Canvas) return@TraverseBreadthFirst false
 
-        if (androidImportPipeline != null) {
-            addInstruction(
-                exportNode = node,
-                exportConfig = svg,
-                importOutputName = androidNameGenerator.generate(namingContext),
-                importPipeline = androidImportPipeline,
-            )
+            node.children.filterIsInstance<Node.Vector>().firstOrNull() ?: return@TraverseBreadthFirst false
+
+            if (node !is Node.Component) return@TraverseBreadthFirst false
+
+            true
         }
-
-        if (iosImportPipeline != null) {
-            val iosPathElements = if (iosGroupByToken != null) {
-                listOf(iosGroupByToken.generate(namingContext))
-            } else {
-                emptyList()
-            }
-
-            addInstruction(
-                exportNode = node,
-                exportConfig = iosIcon,
-                importTarget = Instruction.ImportTarget.Initial(
-                    outputName = iosNameGenerator.generate(namingContext),
-                    pathElements = iosPathElements,
-                ),
-                importPipeline = iosImportPipeline,
-            )
-        }
-
-        if (webImportPipeline != null) {
-            addInstruction(
-                exportNode = node,
-                exportConfig = svg,
-                importOutputName = webNameGenerator.generate(namingContext),
-                importPipeline = webImportPipeline,
-            )
-        }
+    } else {
+        NodeDiscoveryStrategy.JsonPath(jsonPath)
     }
 
     // Icons are smaller, so we can retrieve more at the same time
     val assetsPerChunk = 50
 
-    return if (jsonPath == null) {
-        AssetFileHandler(
-            figmaFileDefinition = figmaFileDefinition,
-            assetsPerChunk = assetsPerChunk,
-            lifecycle = lifecycle,
-        ) { response, _ ->
-            val canvases = response.document.children
-                .filterIsInstance<Node.Canvas>()
-                .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
+    return FigmaAssetFileHandler(
+        figmaFileDefinition = figmaFileDefinition,
+        discoveryStrategy = discoveryStrategy,
+        assetFilter = assetFilter,
+        assetsPerChunk = assetsPerChunk,
+        lifecycle = lifecycle,
+        instructionLimit = instructionLimit,
+        seenNameTracker = renamingMap.asSeenNameTracker(),
+    ) { canvas, node ->
+        Instruction.buildInstructions {
+            val namingContext = renamingMap.toNamingContext(canvas, node)
 
-            val seenCanvasNames = mutableSetOf<String>()
-            val seenNodeNames = mutableSetOf<String>()
+            if (androidImportPipeline != null) {
+                addInstruction(
+                    exportNode = node,
+                    exportConfig = svg,
+                    importOutputName = androidNameGenerator.generate(namingContext),
+                    importPipeline = androidImportPipeline,
+                )
+            }
 
-            canvases
-                .flatMap { canvas ->
-                    seenCanvasNames += canvas.name
-
-                    Instruction.buildInstructions {
-                        canvas.traverseBreadthFirst { node, parent ->
-                            if (node !is Node.Parent) return@traverseBreadthFirst
-                            // Look for first descendants of the canvas
-                            if (parent !== canvas) return@traverseBreadthFirst
-
-                            node.children.filterIsInstance<Node.Vector>().firstOrNull() ?: return@traverseBreadthFirst
-
-                            if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                            if (!assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
-
-                            val nodeToExport = node as? Node.Component ?: return@traverseBreadthFirst
-
-                            seenNodeNames += node.name
-
-                            generateInstructions(canvas, nodeToExport)
-                        }
-                    }
+            if (iosImportPipeline != null) {
+                val iosPathElements = if (iosGroupByToken != null) {
+                    listOf(iosGroupByToken.generate(namingContext))
+                } else {
+                    emptyList()
                 }
-                .run {
-                    renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
 
-                    if (instructionLimit != null) {
-                        this.take(instructionLimit)
-                    } else {
-                        this
-                    }
-                }
-        }
-    } else {
-        val seenCanvasNames = mutableSetOf<String>()
-        val seenNodeNames = mutableSetOf<String>()
+                addInstruction(
+                    exportNode = node,
+                    exportConfig = iosIcon,
+                    importTarget = Instruction.ImportTarget.Initial(
+                        outputName = iosNameGenerator.generate(namingContext),
+                        pathElements = iosPathElements,
+                    ),
+                    importPipeline = iosImportPipeline,
+                )
+            }
 
-        JsonPathAssetFileHandler(
-            figmaFileDefinition = figmaFileDefinition,
-            jsonPath = jsonPath,
-            assetsPerChunk = assetsPerChunk,
-            lifecycle = lifecycle,
-            canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
-            nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
-            instructionLimit = instructionLimit,
-            onInstructionsCreated = {
-                renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
-            },
-        ) { node, canvas ->
-            Instruction.buildInstructions {
-                seenCanvasNames += canvas.name
-                seenNodeNames += node.name
-
-                generateInstructions(canvas, node)
+            if (webImportPipeline != null) {
+                addInstruction(
+                    exportNode = node,
+                    exportConfig = svg,
+                    importOutputName = webNameGenerator.generate(namingContext),
+                    importPipeline = webImportPipeline,
+                )
             }
         }
     }

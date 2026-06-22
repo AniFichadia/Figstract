@@ -5,24 +5,25 @@ import com.anifichadia.figstract.android.importer.asset.model.drawable.DensityBu
 import com.anifichadia.figstract.android.importer.asset.model.importing.androidImageScaleAndStoreInDensityBuckets
 import com.anifichadia.figstract.cli.core.timingLogger
 import com.anifichadia.figstract.figma.FigmaFileDefinition
-import com.anifichadia.figstract.figma.model.ExportSetting
 import com.anifichadia.figstract.figma.model.Node
-import com.anifichadia.figstract.figma.model.Node.Companion.traverseBreadthFirst
 import com.anifichadia.figstract.figma.model.Paint
 import com.anifichadia.figstract.importer.Lifecycle
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.AssetFilter
 import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
+import com.anifichadia.figstract.importer.asset.model.FigmaAssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.Instruction
 import com.anifichadia.figstract.importer.asset.model.Instruction.Companion.addInstruction
-import com.anifichadia.figstract.importer.asset.model.JsonPathAssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.JsonPath
+import com.anifichadia.figstract.importer.asset.model.NodeDiscoveryStrategy
 import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
+import com.anifichadia.figstract.importer.asset.model.TraverseBreadthFirst
+import com.anifichadia.figstract.importer.asset.model.asSeenNameTracker
 import com.anifichadia.figstract.importer.asset.model.exporting.ExportConfig
 import com.anifichadia.figstract.importer.asset.model.exporting.pngUnscaled
 import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.toNamingContext
-import com.anifichadia.figstract.importer.asset.model.warnUnused
 import com.anifichadia.figstract.ios.assetcatalog.AssetCatalog
 import com.anifichadia.figstract.ios.assetcatalog.AssetType
 import com.anifichadia.figstract.ios.assetcatalog.Scale
@@ -115,165 +116,97 @@ internal fun createArtworkFigmaFileHandler(
     )
     //endregion
 
-    return if (jsonPath == null) {
-        AssetFileHandler(
-            figmaFileDefinition = figmaFileDefinition,
-            lifecycle = lifecycle,
-        ) { response, _ ->
-            val canvases = response.document.children
-                .filterIsInstance<Node.Canvas>()
-                .filter { canvas -> assetFilter.canvasNameFilter.accept(canvas) }
+    // A node is a candidate if it's a Parent with a Fillable child carrying an image fill.
+    val discoveryStrategy = if (jsonPath == null) {
+        NodeDiscoveryStrategy.TraverseBreadthFirst { node, parent ->
+            if (node !is Node.Parent) return@TraverseBreadthFirst false
+            val child = node.children.filterIsInstance<Node.Fillable>().firstOrNull()
+                ?: return@TraverseBreadthFirst false
+            if (!child.fills.any { it is Paint.Image }) return@TraverseBreadthFirst false
 
-            val seenCanvasNames = mutableSetOf<String>()
-            val seenNodeNames = mutableSetOf<String>()
-
-            canvases
-                .flatMap { canvas ->
-                    seenCanvasNames += canvas.name
-
-                    Instruction.buildInstructions {
-                        canvas.traverseBreadthFirst { node, parent ->
-                            if (node !is Node.Parent) return@traverseBreadthFirst
-                            val child = node.children.filterIsInstance<Node.Fillable>().firstOrNull()
-                                ?: return@traverseBreadthFirst
-                            if (!child.fills.any { it is Paint.Image }) return@traverseBreadthFirst
-
-                            if (!assetFilter.nodeNameFilter.accept(node)) return@traverseBreadthFirst
-                            if (parent != null && !assetFilter.parentNameFilter.accept(parent)) return@traverseBreadthFirst
-
-                            seenNodeNames += node.name
-
-                            val namingContext = renamingMap.toNamingContext(canvas, node)
-
-                            fun addInstructions(
-                                exportConfig: ExportConfig,
-                                nameGenerator: NodeTokenStringGenerator,
-                                importPipeline: ImportPipeline,
-                                pathElements: List<String> = emptyList(),
-                            ) {
-                                if (createUncropped) {
-                                    addInstruction(
-                                        exportNode = node,
-                                        exportConfig = exportConfig,
-                                        importTarget = Instruction.ImportTarget.Initial(
-                                            outputName = nameGenerator.generate(namingContext),
-                                            pathElements = pathElements,
-                                        ),
-                                        importPipeline = importPipeline,
-                                    )
-                                }
-                                if (createCropped) {
-                                    addInstruction(
-                                        exportNode = child,
-                                        exportConfig = exportConfig,
-                                        importTarget = Instruction.ImportTarget.Initial(
-                                            outputName = nameGenerator.generate(namingContext, suffix = "cropped"),
-                                            pathElements = pathElements,
-                                        ),
-                                        importPipeline = importPipeline,
-                                    )
-                                }
-                            }
-
-                            if (androidImportPipeline != null) {
-                                addInstructions(
-                                    exportConfig = androidExportConfig,
-                                    nameGenerator = androidNameGenerator,
-                                    importPipeline = androidImportPipeline,
-                                )
-                            }
-
-                            if (iosImportPipeline != null) {
-                                val iosPathElements = if (iosGroupByToken != null) {
-                                    listOf(iosGroupByToken.generate(namingContext))
-                                } else {
-                                    emptyList()
-                                }
-
-                                addInstructions(
-                                    exportConfig = iosExportConfig,
-                                    nameGenerator = iosNameGenerator,
-                                    importPipeline = iosImportPipeline,
-                                    pathElements = iosPathElements,
-                                )
-                            }
-
-                            if (webImportPipeline != null) {
-                                addInstructions(
-                                    exportConfig = webExportConfig,
-                                    nameGenerator = webNameGenerator,
-                                    importPipeline = webImportPipeline,
-                                )
-                            }
-                        }
-                    }
-                }
-                .run {
-                    renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
-
-                    if (instructionLimit != null) {
-                        this.take(instructionLimit)
-                    } else {
-                        this
-                    }
-                }
+            true
         }
     } else {
-        val seenCanvasNames = mutableSetOf<String>()
-        val seenNodeNames = mutableSetOf<String>()
+        NodeDiscoveryStrategy.JsonPath(jsonPath)
+    }
 
-        JsonPathAssetFileHandler(
-            figmaFileDefinition = figmaFileDefinition,
-            jsonPath = jsonPath,
-            lifecycle = lifecycle,
-            canvasFilter = { canvas -> assetFilter.nodeNameFilter.accept(canvas) },
-            nodeFilter = { node -> assetFilter.nodeNameFilter.accept(node) },
-            instructionLimit = instructionLimit,
-            onInstructionsCreated = {
-                renamingMap.warnUnused(seenCanvasNames, seenNodeNames)
-            },
-        ) { node, canvas ->
-            Instruction.buildInstructions {
-                seenCanvasNames += canvas.name
-                seenNodeNames += node.name
+    // Looks up the same Fillable child the discovery predicate matched against, to export the "cropped" variant.
+    // This is a pure function of node, so it's safe to recompute here rather than threading it through discovery.
+    fun croppedChildOf(node: Node): Node? =
+        (node as? Node.Parent)?.children?.filterIsInstance<Node.Fillable>()?.firstOrNull()
 
-                val namingContext = renamingMap.toNamingContext(canvas, node)
+    return FigmaAssetFileHandler(
+        figmaFileDefinition = figmaFileDefinition,
+        discoveryStrategy = discoveryStrategy,
+        assetFilter = assetFilter,
+        lifecycle = lifecycle,
+        instructionLimit = instructionLimit,
+        seenNameTracker = renamingMap.asSeenNameTracker(),
+    ) { canvas, node ->
+        Instruction.buildInstructions {
+            val croppedChild = croppedChildOf(node)
 
-                if (androidImportPipeline != null) {
+            val namingContext = renamingMap.toNamingContext(canvas, node)
+
+            fun addInstructions(
+                exportConfig: ExportConfig,
+                nameGenerator: NodeTokenStringGenerator,
+                importPipeline: ImportPipeline,
+                pathElements: List<String> = emptyList(),
+            ) {
+                if (createUncropped) {
                     addInstruction(
                         exportNode = node,
-                        exportConfig = androidImageXxxHdpi,
-                        importOutputName = androidNameGenerator.generate(namingContext),
-                        importPipeline = androidImportPipeline,
-                    )
-                }
-
-                if (iosImportPipeline != null) {
-                    val iosPathElements = if (iosGroupByToken != null) {
-                        listOf(iosGroupByToken.generate(namingContext))
-                    } else {
-                        emptyList()
-                    }
-
-                    addInstruction(
-                        exportNode = node,
-                        exportConfig = ios3xImage,
+                        exportConfig = exportConfig,
                         importTarget = Instruction.ImportTarget.Initial(
-                            outputName = iosNameGenerator.generate(namingContext),
-                            pathElements = iosPathElements,
+                            outputName = nameGenerator.generate(namingContext),
+                            pathElements = pathElements,
                         ),
-                        importPipeline = iosImportPipeline,
+                        importPipeline = importPipeline,
                     )
+                }
+                if (createCropped && croppedChild != null) {
+                    addInstruction(
+                        exportNode = croppedChild,
+                        exportConfig = exportConfig,
+                        importTarget = Instruction.ImportTarget.Initial(
+                            outputName = nameGenerator.generate(namingContext, suffix = "cropped"),
+                            pathElements = pathElements,
+                        ),
+                        importPipeline = importPipeline,
+                    )
+                }
+            }
+
+            if (androidImportPipeline != null) {
+                addInstructions(
+                    exportConfig = androidExportConfig,
+                    nameGenerator = androidNameGenerator,
+                    importPipeline = androidImportPipeline,
+                )
+            }
+
+            if (iosImportPipeline != null) {
+                val iosPathElements = if (iosGroupByToken != null) {
+                    listOf(iosGroupByToken.generate(namingContext))
+                } else {
+                    emptyList()
                 }
 
-                if (webImportPipeline != null) {
-                    addInstruction(
-                        exportNode = node,
-                        exportConfig = ExportConfig(ExportSetting.Format.PNG),
-                        importOutputName = webNameGenerator.generate(namingContext),
-                        importPipeline = webImportPipeline,
-                    )
-                }
+                addInstructions(
+                    exportConfig = iosExportConfig,
+                    nameGenerator = iosNameGenerator,
+                    importPipeline = iosImportPipeline,
+                    pathElements = iosPathElements,
+                )
+            }
+
+            if (webImportPipeline != null) {
+                addInstructions(
+                    exportConfig = webExportConfig,
+                    nameGenerator = webNameGenerator,
+                    importPipeline = webImportPipeline,
+                )
             }
         }
     }
