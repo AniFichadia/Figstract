@@ -6,6 +6,14 @@ import com.anifichadia.figstract.util.createLogger
 private val renamingLogger = createLogger("AssetRenaming")
 
 /**
+ * Adapts this [AssetRenamingMap] into a [SeenNameTracker] that warns about any canvas/node renaming
+ * entries whose keys were never matched against the reported seen names.
+ */
+fun AssetRenamingMap.asSeenNameTracker(): SeenNameTracker = SeenNameTracker { seenCanvasNames, seenNodeNames ->
+    warnUnused(seenCanvasNames, seenNodeNames)
+}
+
+/**
  * Produces a [NodeTokenStringGenerator.NodeContext] with canvas and node names remapped according to this [AssetRenamingMap].
  *
  * The canvas is remapped via [Node.Canvas.copy], which is safe as it's a data class.
