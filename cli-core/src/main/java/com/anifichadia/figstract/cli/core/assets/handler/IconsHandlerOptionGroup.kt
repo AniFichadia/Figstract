@@ -1,12 +1,12 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
-import com.anifichadia.figstract.cli.core.assets.model.AssetRenamingMap
-import com.anifichadia.figstract.cli.core.assets.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.cli.core.assets.option.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
+import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
 import java.io.File
 
 class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
