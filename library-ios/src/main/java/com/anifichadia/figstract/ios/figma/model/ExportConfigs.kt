@@ -7,6 +7,7 @@ import com.anifichadia.figstract.ios.assetcatalog.Scale
 
 val iosIcon = ExportConfig(
     format = ExportSetting.Format.PDF,
+    useAbsoluteBounds = true,
 )
 
 /** This is a template and should not be used directly. The [ExportConfig.scale] has been set to an impossible value. */
