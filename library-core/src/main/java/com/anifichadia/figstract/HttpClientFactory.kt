@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.ProxyConfig
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.BrowserUserAgent
+import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.cache.storage.CacheStorage
@@ -67,6 +68,14 @@ object HttpClientFactory {
 
             engine {
                 this.proxy = proxy
+            }
+
+            install(HttpRequestRetry) {
+                maxRetries = 3
+
+                retryOnExceptionOrServerErrors()
+
+                exponentialDelay()
             }
 
             install(HttpTimeout) {
