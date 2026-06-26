@@ -21,8 +21,10 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 
-abstract class AssetsCommand : SuspendingCliktCommand(
-    name = "assets",
+abstract class BaseAssetsCommand(
+    name: String,
+) : SuspendingCliktCommand(
+    name = name,
 ) {
     override val printHelpOnEmptyArgs = true
 
