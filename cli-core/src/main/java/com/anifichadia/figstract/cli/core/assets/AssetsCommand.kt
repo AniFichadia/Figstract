@@ -74,10 +74,13 @@ abstract class AssetsCommand : SuspendingCliktCommand(
             processingRecordRepository = processingRecordRepository,
             importReportRepository = importReportRepository,
         )
+        val handlers = createHandlers(outDirectory)
+        if (handlers.isEmpty()) error("No handlers available.")
+
         coroutineScope {
             try {
                 importer.importFromFigma(
-                    handlers = createHandlers(outDirectory),
+                    handlers = handlers,
                 )
             } catch (e: Throwable) {
                 echo(e.message, err = true)
