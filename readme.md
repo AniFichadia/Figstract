@@ -244,6 +244,13 @@ scale(scale=2.0) -> and(
 | `convertToWebPLossless()`            | -                                                                | Converts to lossless WebP                        |
 | `convertToWebPLossy(qualityPercent)` | `qualityPercent`: Int (default `75`)                             | Converts to lossy WebP                           |
 
+**Destination steps** (require `destinationStepRegistry(baseDirectory)` to be composed in):
+
+| Step                         | Parameters     | Description                                                                     |
+|------------------------------|----------------|---------------------------------------------------------------------------------|
+| `destinationNone()`          | -              | Black hole; discards output                                                     |
+| `destinationDirectory(path)` | `path`: String | Writes output to a directory resolved relative to the configured base directory |
+
 **Android-specific steps** (available when using `library-android`):
 
 | Step                                | Parameters | Description                                                            |
@@ -253,9 +260,18 @@ scale(scale=2.0) -> and(
 
 **iOS-specific steps** (available when using `library-ios`):
 
-| Step                            | Parameters                           | Description                                                 |
-|---------------------------------|--------------------------------------|-------------------------------------------------------------|
-| `convertToHeic(qualityPercent)` | `qualityPercent`: Int (default `75`) | Converts PNG to HEIC ( see [HEIC output](#heic-output-ios)) |
+| Step                            | Parameters                           | Description                                                |
+|---------------------------------|--------------------------------------|------------------------------------------------------------|
+| `convertToHeic(qualityPercent)` | `qualityPercent`: Int (default `85`) | Converts PNG to HEIC (see [HEIC output](#heic-output-ios)) |
+
+**iOS asset catalog steps** (require `iosAssetCatalogStepRegistry(baseDirectory)` to be composed in):
+
+| Step                             | Parameters                                                                                                                                                                | Description                                                                      |
+|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| `iosStoreInAssetCatalog`         | `path`, `scale`, `assetType`? (`imageset`/`iconset`, default `imageset`), `catalogName`? (default `Assets`), `idiom`? (default `universal`)                               | Stores a single image into an asset catalog at the given scale                   |
+| `iosScaleAndStoreInAssetCatalog` | `path`, `sourceScale`, `assetType`?, `catalogName`?, `scales`? (comma-separated, default all), `idiom`?, `outputFormat`? (`Default`/`Heic`/`PngLossy`, default `Default`) | Scales an image to multiple scales and stores all variants into an asset catalog |
+
+`scale` / `sourceScale` / `scales` values: `1x`, `2x`, `3x`
 
 #### CLI usage
 
@@ -297,10 +313,23 @@ val step = ImportPipelineDsl.parse("androidSvgToAvd()", registry)
 val registry = CoreImportPipelineStepRegistry + IosImportPipelineStepRegistry
 val step = ImportPipelineDsl.parse("convertToHeic(qualityPercent=90)", registry)
 
-// Compose all three
+// With destination steps — base directory is required for path resolution
+val registry = CoreImportPipelineStepRegistry + destinationStepRegistry(baseDirectory = outputDir)
+val step = ImportPipelineDsl.parse(
+    """
+    and(
+      convertToWebPLossy(qualityPercent=75) -> destination.directory(path=web),
+      convertToPngLossless()               -> destination.directory(path=fallback)
+    )
+    """.trimIndent(),
+    registry,
+)
+
+// Compose all registries
 val registry = CoreImportPipelineStepRegistry +
     AndroidImportPipelineStepRegistry +
-    IosImportPipelineStepRegistry
+    IosImportPipelineStepRegistry +
+    destinationStepRegistry(baseDirectory = outputDir)
 
 // From a file
 val step = ImportPipelineDsl.parseFile(File("./my.pipeline"), registry)
@@ -646,13 +675,13 @@ Refer to [AndroidComposeVariableDataWriter](library-android/src/main/java/com/an
 Figstract is structured as a multi-module Gradle project.
 The modules are layered so that platform-specific modules depend on core, and the CLI depends on all of them.
 
-| Module            | Artifact                                    | Description                                                                                              |
-|-------------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `library-core`    | `com.anifichadia.figstract:library-core`    | Core pipeline abstractions, Figma REST API client, JSON variable writer, JsonPath-based asset extraction |
-| `library-android` | `com.anifichadia.figstract:library-android` | Android-specific importers: WEBP, AVD conversion, density scaling, etc.                                  |
-| `library-ios`     | `com.anifichadia.figstract:library-ios`     | iOS-specific importers: iOS asset scaling, asset catalog management                                      |
+| Module            | Artifact                                    | Description                                                                                               |
+|-------------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `library-core`    | `com.anifichadia.figstract:library-core`    | Core pipeline abstractions, Figma REST API client, JSON variable writer, JsonPath-based asset extraction  |
+| `library-android` | `com.anifichadia.figstract:library-android` | Android-specific importers: WEBP, AVD conversion, density scaling, etc.                                   |
+| `library-ios`     | `com.anifichadia.figstract:library-ios`     | iOS-specific importers: iOS asset scaling, asset catalog management                                       |
 | `cli-core`        | `com.anifichadia.figstract:cli-core`        | Reusable CLI building blocks (option groups, base commands) for composing custom CLIs on top of Figstract |
-| `cli`             | `com.anifichadia.figstract:cli`             | Out-of-the-box CLI built on Clikt, bundles all modules into a fat JAR via Shadow                         |
+| `cli`             | `com.anifichadia.figstract:cli`             | Out-of-the-box CLI built on Clikt, bundles all modules into a fat JAR via Shadow                          |
 
 If you want to build your own tooling on top of Figstract rather than using the CLI out of the box, depend on only the library modules you need and use the `cli-core` and `cli` modules as a template.
 
