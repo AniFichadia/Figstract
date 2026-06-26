@@ -60,11 +60,13 @@ class FigstractCommand private constructor() : SuspendingCliktCommand(
     companion object {
         operator fun invoke(
             assetsCommand: BaseAssetsCommand,
+            assetBatchCommand: BaseAssetsCommand,
             variablesCommand: VariablesCommand,
         ): FigstractCommand {
             return FigstractCommand()
                 .subcommands(
                     assetsCommand,
+                    assetBatchCommand,
                     variablesCommand,
                 )
         }

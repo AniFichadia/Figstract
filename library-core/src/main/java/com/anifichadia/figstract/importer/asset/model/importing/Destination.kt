@@ -9,8 +9,7 @@ import com.anifichadia.figstract.type.fold
 import java.io.File
 
 /**
- * Used to save the output of an [ImportPipeline]. This is a specialised, finalising version of
- * [ImportPipeline.Step].
+ * Used to save the output of an [ImportPipeline]. This is a specialised, finalising version of [ImportPipeline.Step].
  */
 abstract class Destination : ImportPipeline.Step {
     abstract suspend fun write(
