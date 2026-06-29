@@ -69,14 +69,14 @@ The CLI can be configured with CLI args, or by supplying a `[subcommandName].pro
 ### Custom CA Certificates (Corporate networks)
 
 Some corporates may use of custom CA certificates for internal monitoring, causing the JVM to fail certificate verification and prevent access to the Figma API or where assets are stored.
-You can create a custom truststore that includes your organisation's CA certificates:
+You can create a custom truststore that includes your organization's CA certificates:
 
 1. Copy default JVM cacerts:
     ```shell
     cp $JAVA_HOME/lib/security/cacerts ~/.figstract-cacerts
     ```
-2. Export your organisation's CA certs as a `.pem` or `.cer` file.
-   This really depends on how CA certs are managed within your organisation.
+2. Export your organization's CA certs as a `.pem` or `.cer` file.
+   This really depends on how CA certs are managed within your organization.
    On MacOS, these may be located in **Keychain access** under the **System** or **System Roots** keychains.
    CA certs may also be provided for use for these purposes.
 3. Import each CA cert into the truststore using (include the appropriate `<ca-cert>` and
@@ -105,12 +105,29 @@ If your network requires a proxy to reach the Figma API or asset download URLs, 
 - `--proxyHost`: proxy hostname
 - `--proxyPort`: proxy port
 
+### Output directory
+
+All subcommands write to `./out/<subcommand>/` by default.
+Override using `--out <path>` / `-o <path>`.
+
+### Advanced API options
+
+The following global options tune Figma API behavior:
+
+- `--figmaApiConcurrencyLimit`: maximum number of concurrent Figma API requests (default: `5`)
+- `--figmaApiRetryLimit`: maximum number of retries on transient failures (default: `15`)
+
 ## Authentication
 
 Figstract supports the following authentication mechanisms to accessing Figma:
 
 - Personal Access Tokens (PATs).
   Refer to the [Figma documentation](https://help.figma.com/hc/en-us/articles/8085703771159-Manage-personal-access-tokens) and [API reference](https://www.figma.com/developers/api#authentication) for more info.
+
+The following global options configure authentication:
+
+- `--auth`: the credential value (required)
+- `--authType`: `AccessToken` (default)
 
 ### Scopes
 
@@ -126,10 +143,11 @@ When generating credentials, ensure that the following [scopes](https://www.figm
 
 Either one auth credential can be generated with all the scopes above, or specific auth credentials can be created for each subcommand.
 
-## Logging
+### Logging
 
 Figstract uses [kotlin-logging](https://github.com/oshai/kotlin-logging) and [Logback](https://logback.qos.ch/) for logging, and logs errors to the console by default.
 When using the CLI, the log level can be configured using the `--logLevel` option (e.g. `--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
+
 
 ## Assets (`assets` subcommand)
 
@@ -202,7 +220,7 @@ Use `--artworkJsonPath` or `--iconsJsonPath` to supply the expression.
 
 ### Custom naming
 
-Output file names can be customised using a format string.
+Output file names can be customized using a format string.
 The following tokens are supported, wrapped in `{}`:
 
 - `canvas.id` — the canvas (page) ID
@@ -225,6 +243,11 @@ The record is stored as `processing_record.json` in the output directory.
 
 - `--processingRecordEnabled` (default `true`): enable or disable processing records
 - `--processingRecordName`: a unique name suffix for the record file, useful when running multiple configurations against the same Figma file (e.g. `processing_record_icons.json`)
+
+### Import reports
+
+After each run, Figstract writes a JSON import report to the output directory with the name `import_report_<figmaFileKey>_<timestamp>.json`.
+The report captures which assets or variables were processed, skipped, or failed, and is useful for debugging and auditing runs.
 
 ### Output formats
 
@@ -294,15 +317,14 @@ Consider running this on macOS or Linux (including WSL2).
 
 ### Pipeline DSL
 
-You can supply additional pre-processing steps to inject before Figstract's built-in platform steps
-using a text-based pipeline DSL. This lets you apply transformations — scaling, format conversion,
-renaming, path manipulation — without writing Kotlin.
+You can supply additional pre-processing steps to inject before Figstract's built-in platform steps using a text-based pipeline DSL. 
+This lets you apply transformations (scaling, format conversion, renaming, path manipulation) without writing Kotlin and creating custom implementations.
 
 #### DSL format
 
-Each non-blank, non-comment line is a pipeline expression. Lines starting with `#` (or with an
-inline `#` outside a quoted value) are treated as comments. Multiple top-level lines are sequenced
-with `->`.
+Each non-blank, non-comment line is a pipeline expression. 
+Lines starting with `#` (or with an inline `#` outside a quoted value) are treated as comments. 
+Multiple top-level lines are sequenced with `->`.
 
 Each step is written as a function call:
 
@@ -317,10 +339,10 @@ stepName(param1=value1, param2=value2)
 Outputs from the left step are fed into the right step in order.
 
 ```
-# Scale then convert then rename — all on one line
+# Scale then convert then rename
 scale(scale=2.0) -> convertToWebPLossy(qualityPercent=80) -> renameSuffix(suffix=_web)
 
-# Or spread across lines — equivalent to joining with ->
+# Or spread across lines (equivalent to joining with ->)
 scale(scale=2.0)
 convertToWebPLossy(qualityPercent=80)
 renameSuffix(suffix=_web)
@@ -328,8 +350,8 @@ renameSuffix(suffix=_web)
 
 ##### Parallel fan-out (`and`)
 
-Runs all comma-separated branches against the same input concurrently; collects all outputs.
-Each branch is a full pipeline chain and can itself use `->`.
+Runs all comma-separated branches against the same input and collects all outputs.
+Each branch is a full pipeline chain and can itself use [sequential steps](#sequential-composition----then).
 
 ```
 # Produce both WebP and PNG from the same input
@@ -344,7 +366,7 @@ and(
 
 ##### First-non-empty fallback (`or`)
 
-Tries each branch in order; returns the output of the first branch that produces a non-empty result.
+Tries each branch in order and returns the output of the first branch that produces a non-empty result.
 
 ```
 or(convertToWebPLossy(qualityPercent=75), convertToPngLossless())
@@ -463,14 +485,14 @@ Its top-level structure is:
 {
   "batches": [
     {
-      "type": "Artwork", 
+      "type": "Artwork",
       // etc 
     },
-    { 
+    {
       "type": "Icon",
       // etc
     },
-    { 
+    {
       "type": "Custom",
       // etc
     }
@@ -589,7 +611,8 @@ Shares the same output behavior as the `assets` subcommand's icon handler.
 {
   "androidFormat": "ic_{node.name}",
   "iosFormat": "{node.name}",
-  "webFormat": "{node.name}"
+  "webFormat": "{node.name}",
+  "webCasing": "SnakeCase" // optional, values are None, UpperCamelCase, LowerCamelCase, SnakeCase, ScreamingSnakeCase
 }
 ```
 
@@ -704,6 +727,16 @@ All variable types (booleans, numbers, strings and colors) are supported.
 
 All variable types will be outputted by default, but can be configured to be omitted completely.
 
+### Figma file targeting
+
+The `variables` subcommand accepts one or more Figma file keys via `--figmaFile` (repeatable).
+All files are processed in parallel.
+The following options apply globally across all targeted files:
+
+- `--figmaFile`: Figma file key (repeatable)
+- `--figmaFileBranchName`: file branch name
+- `--figmaFileVersion`: file version
+
 ### Filtering
 
 Variables can be filtered using the following options:
@@ -741,9 +774,38 @@ The file contains uses the following format where `collections` and `variables` 
 Both `collections` and `variables` are optional. Entries not present in a map are left unchanged.
 Non-matching entries will produce a warning in the log.
 
+### Variable organization strategies
+
+Variable paths from Figma are rewritten before generating output using a configurable strategy.
+This controls how deeply-nested variable paths (e.g. `colour/Primary/Primary`) map to names and structure in generated files.
+
+- `--variableOrganizationStrategy`: one of `Default`, `FullPath`, `LeafOnly`, `StripRoot`, `CustomRegex` (default: `Default`, which is equivalent to `FullPath` with nested as false)
+- `--variableOrganizationStrategyNested`: split the rewritten path on `/` to produce nested group hierarchy (default: `false`).
+  Applies to `FullPath`, `StripRoot`, and `CustomRegex`.
+- `--variableOrganizationStrategyPattern`: Kotlin regex applied to the raw Figma variable path.
+  Required when strategy is `CustomRegex`.
+- `--variableOrganizationStrategyReplacement`: replacement string for `--variableOrganizationStrategyPattern`.
+  Supports backreferences (`$1`, `${name}`).
+  Required when strategy is `CustomRegex`.
+
+For the input `colour/Primary/Primary`:
+
+| Strategy      | Nested | Example input                             | Example output                |
+|---------------|--------|-------------------------------------------|-------------------------------|
+| `Default`     | N/A    | N / A                                     | `colourPrimaryPrimary` (flat) |
+| `FullPath`    | false  | N / A                                     | `colourPrimaryPrimary` (flat) |
+| `FullPath`    | true   | N / A                                     | `colour > Primary > Primary`  |
+| `LeafOnly`    | N/A    | N / A                                     | `Primary`                     |
+| `StripRoot`   | false  | N / A                                     | `PrimaryPrimary` (flat)       |
+| `StripRoot`   | true   | N / A                                     | `Primary > Primary`           |
+| `CustomRegex` | false  | pattern `^colour/(.+)$`, replacement `$1` | `PrimaryPrimary`              |
+
+> [!NOTE]
+> Strategies other than `Default` and `FullPath` are experimental and subject to change.
+
 ### Theme variant mapping
 
-Figstract supports resolving variables to themes.
+Figstract supports resolving variables to themes using `--themeVariantMappingsFile <path>`, which takes a JSON file.
 
 #### Light / Dark
 
@@ -752,6 +814,20 @@ This is particularly useful for Android Compose, where `light` and `dark` compan
 
 When no light/dark mapping is detected, all modes are output individually as separate nested objects.
 
+The file maps variable collection names to theme variant mappings:
+
+```json
+{
+  "My Variable Collection": {
+    "type": "LightAndDark",
+    "lightThemeModeName": "Light",
+    "darkThemeModeName": "Dark"
+  }
+}
+```
+
+Collections not present in the file are treated as having no theme variant mapping and all modes are output individually.
+
 #### Material theming
 
 > [!NOTE]
@@ -759,15 +835,18 @@ When no light/dark mapping is detected, all modes are output individually as sep
 
 ### Output formats
 
+At least one output format must be enabled.
+Multiple formats can be enabled simultaneously.
 All output formats use the variable collection's name as the file name.
-Variables will be first grouped by mode then by variable type within each variable collection's file.
-Colors can be configured to be outputted as either Hex or RGBA values (RGBA values are floats between 0 and 1 inclusive).
+Variables are grouped by mode then by variable type within each collection's file.
+Colors can be output as either Hex or RGBA values (RGBA values are floats between 0 and 1 inclusive), controlled by `--outputColorAsHex` (default: `true`).
 
-Note: Variable collection, mode and variable names will be sanitised to conform with platform / language conventions.
+Note: Variable collection, mode and variable names will be sanitized to conform with platform / language conventions.
 
 #### Web / Any
 
-For web (or any platform), Figstract generates JSON files with the following format:
+For web (or any platform), Figstract generates JSON files with the following format.
+Enable with `--outputJson true`.
 
 *My Variable Collection.json*
 
@@ -793,24 +872,19 @@ For web (or any platform), Figstract generates JSON files with the following for
         "b": 0.3,
         "a": 1.0
       },
-      "color rgba var 2": {
-        "r": 1.0,
-        "g": 1.0,
-        "b": 1.0,
-        "a": 1.0
-      },
-      "color hex var 1": "0xFF19334C",
-      "color hex var 2": "0xFFFFFFFF"
+      "color hex var 1": "0xFF19334C"
     }
   }
 }
 ```
 
-Refer to [JsonVariableDataWriter](library-core/src/main/java/com/anifichadia/figstract/importer/variable/model/JsonVariableDataWriter.kt) for the implementation.
+Output is written to `json/` within the output directory.
+Refer to [JsonVariableDataWriter](library-core/src/main/java/com/anifichadia/figstract/importer/variable/model/writer/JsonVariableDataWriter.kt) for the implementation.
 
 #### Android Compose
 
-Figstract generates an R-file-like Kotlin object with constants with the following format:
+Figstract generates an R-file-like Kotlin object with constants.
+Enable with `--outputAndroidCompose true --outputAndroidComposePackageName <package>`.
 
 *MyVariableCollection.kt*
 
@@ -824,17 +898,14 @@ public object MyVariableCollection {
     public object MyMode {
         public object Booleans {
             public val boolVar1: Boolean = true
-            public val boolVar2: Boolean = false
         }
 
         public object Numbers {
             public val numberVar1: Double = 123.45
-            public val numberVar2: Double = -543.21
         }
 
         public object Strings {
             public val stringVar1: String = "Hello"
-            public val stringVar2: String = "World"
         }
 
         public object Colors {
@@ -844,14 +915,7 @@ public object MyVariableCollection {
                 blue = 0.3f,
                 alpha = 1.0f,
             )
-            public val colorRgbaVar2: Color = Color(
-                red = 1.0f,
-                green = 1.0f,
-                blue = 1.0f,
-                alpha = 1.0f,
-            )
             public val colorHexVar1: Color = Color(0xFF19334C)
-            public val colorHexVar2: Color = Color(0xFFFFFFFF)
         }
     }
 }
@@ -861,37 +925,72 @@ When light/dark theme variant mapping is active (see [Theme variant mapping](#th
 
 ```kotlin
 public object MyVariableCollection {
-   public data class Colors(
-      val primaryColor: Color,
-      val backgroundColor: Color,
-   ) {
-      public companion object {
-         public val light: Colors = Colors(
-            primaryColor = Color(0xFF0057FF),
-            backgroundColor = Color(0xFFFFFFFF),
-         )
-         public val dark: Colors = Colors(
-            primaryColor = Color(0xFF82AAFF),
-            backgroundColor = Color(0xFF121212),
-         )
-      }
-   }
+    public data class Colors(
+        val primaryColor: Color,
+        val backgroundColor: Color,
+    ) {
+        public companion object {
+            public val light: Colors = Colors(
+                primaryColor = Color(0xFF0057FF),
+                backgroundColor = Color(0xFFFFFFFF),
+            )
+            public val dark: Colors = Colors(
+                primaryColor = Color(0xFF82AAFF),
+                backgroundColor = Color(0xFF121212),
+            )
+        }
+    }
 }
 ```
 
-The package must be specified when configuring this output.
-
-Refer to [AndroidComposeVariableDataWriter](library-android/src/main/java/com/anifichadia/figstract/android/importer/variable/model/AndroidComposeVariableDataWriter.kt) for the implementation.
+Output is written to `android/compose/` within the output directory.
+Refer to [AndroidComposeVariableDataWriter](library-android/src/main/java/com/anifichadia/figstract/android/importer/variable/model/writer/AndroidComposeVariableDataWriter.kt) for the implementation.
 
 #### Android XML
 
 > [!NOTE]
-> Coming soon
+> This output is experimental and subject to change.
 
-#### iOS
+Figstract generates Android XML resource files.
+Enable with `--outputAndroidXml true`.
+
+Light and dark theme values are written to `res/values/` and `res/values-night/` respectively.
+Single-mode variables are written to `res/values/` only.
+
+The following additional options are available:
+
+- `--outputAndroidXmlSplitByType` (default `true`): write each resource type (`bools`, `integers`, `strings`, `colors`, etc.) to its own file, following Android conventions.
+- `--outputAndroidXmlNamespaceUsingCollectionName` (default `true`): prefix XML resource names with the sanitized collection name (e.g. `my_collection_group_leaf`).
+  When `false`, the collection name is omitted and the first path segment is used (e.g. `group_leaf`).
+- `--outputAndroidXmlNumberOutput`: controls how number variables are written.
+  One of `NONE` (skipped), `INTEGER` (truncated to `<integer>`), `DIMEN` (`<dimen>` with `dp` unit), `FLOAT` (unitless `<item type="dimen" format="float">`).
+  Default: `INTEGER`.
+
+Output is written to `android/xml/` within the output directory.
+
+#### iOS SwiftUI
 
 > [!NOTE]
-> Coming soon
+> This output is experimental and subject to change.
+
+Figstract generates Swift source files using SwiftPoet.
+Enable with `--outputIosSwiftUi true --outputIosSwiftUiModule <module>`.
+
+Variable groups are represented as Swift enums, with each type bucket as a nested enum.
+When light/dark theme variant mapping is active, color buckets are represented as structs with `light` and `dark` static properties.
+
+Output is written to `ios/swiftui/<module>/` within the output directory.
+
+#### iOS Asset Catalog
+
+> [!NOTE]
+> This output is experimental and subject to change.
+> Only color variables are supported; booleans and numbers are not written.
+
+Figstract generates Xcode asset catalog color sets for color variables.
+Enable with `--outputIosAssetCatalog true`.
+
+Output is written to `ios/asset catalog/` within the output directory.
 
 ## Module structure
 
@@ -943,5 +1042,6 @@ repositories {
 - Shell wrapper
 - GitHub action support
 - Better error handling
-- Android XML variable output
-- iOS variable output
+- Material theming support for variables
+- Android XML variable output (experimental, available, subject to change)
+- iOS variable output (experimental, available, subject to change)
