@@ -58,7 +58,13 @@ Run the following command to run Figstract and list the subcommands and options:
 java -jar /path/to/cli.jar --help
 ```
 
-The CLI can be configured with CLI args, or by supplying a `[subcommandName].properties` file with the same keys as the arguments in the working directory (e.g. `assets.properties`).
+The CLI has three subcommands:
+
+- `assets`: extract artwork and icons using per-type CLI flags
+- `asset-batch`: extract one or more asset batches defined in a JSON config file
+- `variables`: extract design system variables
+
+The CLI can be configured with CLI args, or by supplying a `[subcommandName].properties` or a `[subcommandName].json` file with the same keys as the arguments in the working directory (e.g. `assets.properties` or `assets.json`)
 
 ### Custom CA Certificates (Corporate networks)
 
@@ -110,10 +116,10 @@ Figstract supports the following authentication mechanisms to accessing Figma:
 
 When generating credentials, ensure that the following [scopes](https://www.figma.com/developers/api#authentication-scopes) are configured.
 
-| Operation | Required scope              |
-|-----------|-----------------------------|
-| assets    | `File content`              |
-| variables | `File content`, `Variables` |
+| Operation              | Required scope              |
+|------------------------|-----------------------------|
+| assets / asset batches | `File content`              |
+| variables              | `File content`, `Variables` |
 
 > [!CAUTION]
 > Ensure scopes are set to `Read only` and tokens are refreshed regularly
@@ -125,7 +131,7 @@ Either one auth credential can be generated with all the scopes above, or specif
 Figstract uses [kotlin-logging](https://github.com/oshai/kotlin-logging) and [Logback](https://logback.qos.ch/) for logging, and logs errors to the console by default.
 When using the CLI, the log level can be configured using the `--logLevel` option (e.g. `--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
 
-## Assets
+## Assets (`assets` subcommand)
 
 Figstract extracts two types of assets from Figma files: **artwork** (raster images) and **icons** (vector graphics).
 Both are configured independently and can target multiple platforms in a single run.
@@ -155,165 +161,6 @@ The following args provide file targeting options:
 
 Asset importing uses a composable pipeline, allowing you to chain transformers and handlers together.
 This makes it possible to apply format conversion, renaming, and other processing steps in a flexible way.
-
-### Pipeline DSL
-
-You can supply additional pre-processing steps to inject before Figstract's built-in platform steps
-using a text-based pipeline DSL. This lets you apply transformations — scaling, format conversion,
-renaming, path manipulation — without writing Kotlin.
-
-#### DSL format
-
-Each non-blank, non-comment line is a pipeline expression. Lines starting with `#` (or with an
-inline `#` outside a quoted value) are treated as comments. Multiple top-level lines are sequenced
-with `->`.
-
-Each step is written as a function call:
-
-```
-stepName()
-stepName(param=value)
-stepName(param1=value1, param2=value2)
-```
-
-##### Sequential composition (`->` / `then`)
-
-Outputs from the left step are fed into the right step in order.
-
-```
-# Scale then convert then rename — all on one line
-scale(scale=2.0) -> convertToWebPLossy(qualityPercent=80) -> renameSuffix(suffix=_web)
-
-# Or spread across lines — equivalent to joining with ->
-scale(scale=2.0)
-convertToWebPLossy(qualityPercent=80)
-renameSuffix(suffix=_web)
-```
-
-##### Parallel fan-out (`and`)
-
-Runs all comma-separated branches against the same input concurrently; collects all outputs.
-Each branch is a full pipeline chain and can itself use `->`.
-
-```
-# Produce both WebP and PNG from the same input
-and(convertToWebPLossy(qualityPercent=75), convertToPngLossless())
-
-# Branches can be chains
-and(
-  convertToWebPLossy(qualityPercent=75) -> renameSuffix(suffix=_web),
-  convertToPngLossless() -> renameSuffix(suffix=_fallback)
-)
-```
-
-##### First-non-empty fallback (`or`)
-
-Tries each branch in order; returns the output of the first branch that produces a non-empty result.
-
-```
-or(convertToWebPLossy(qualityPercent=75), convertToPngLossless())
-```
-
-##### Nesting
-
-Combinators can be arbitrarily nested and combined with `->`:
-
-```
-# Scale first, then fan out into two formats
-scale(scale=2.0) -> and(
-  convertToWebPLossy(qualityPercent=75) -> renameSuffix(suffix=_web),
-  or(convertToWebPLossy(qualityPercent=50), convertToPngLossless()) -> renameSuffix(suffix=_small)
-)
-```
-
-#### Built-in steps
-
-| Step                                 | Parameters                                                       | Description                                      |
-|--------------------------------------|------------------------------------------------------------------|--------------------------------------------------|
-| `passThrough()`                      | -                                                                | No-op; useful as a placeholder                   |
-| `scale(scale)`                       | `scale`: Float                                                   | Scales the image by a factor                     |
-| `scaleToSize(width, height)`         | `width`: Int, `height`: Int                                      | Scales to exact pixel dimensions                 |
-| `scaleToWidth(width)`                | `width`: Int                                                     | Scales to target width, preserving aspect ratio  |
-| `scaleToHeight(height)`              | `height`: Int                                                    | Scales to target height, preserving aspect ratio |
-| `rename(name)`                       | `name`: String                                                   | Replaces the output file name                    |
-| `renameSuffix(suffix)`               | `suffix`: String                                                 | Appends a suffix to the output file name         |
-| `renamePrefix(prefix)`               | `prefix`: String                                                 | Prepends a prefix to the output file name        |
-| `pathElementsAppend(pathElements)`   | `pathElements`: comma-separated String, or `pathElement`: String | Appends path segments to the output path         |
-| `convertToPngLossless()`             | -                                                                | Converts to lossless PNG                         |
-| `convertToPngLossy(qualityPercent)`  | `qualityPercent`: Int (default `75`)                             | Converts to lossy PNG                            |
-| `convertToWebPLossless()`            | -                                                                | Converts to lossless WebP                        |
-| `convertToWebPLossy(qualityPercent)` | `qualityPercent`: Int (default `75`)                             | Converts to lossy WebP                           |
-
-**Android-specific steps** (available when using `library-android`):
-
-| Step                                | Parameters | Description                                                            |
-|-------------------------------------|------------|------------------------------------------------------------------------|
-| `androidSvgToAvd()`                 | -          | Converts SVG to Android Vector Drawable XML                            |
-| `androidVectorColorToPlaceholder()` | -          | Replaces vector drawable colors with the Figstract magenta placeholder |
-
-**iOS-specific steps** (available when using `library-ios`):
-
-| Step                            | Parameters                           | Description                                                 |
-|---------------------------------|--------------------------------------|-------------------------------------------------------------|
-| `convertToHeic(qualityPercent)` | `qualityPercent`: Int (default `75`) | Converts PNG to HEIC ( see [HEIC output](#heic-output-ios)) |
-
-#### CLI usage
-
-Supply an inline DSL string or a path to a `.pipeline` file. The two options are mutually exclusive.
-
-**Inline:**
-```shell
---artworkPipelineSteps "scale(scale=0.5) -> convertToWebPLossy(qualityPercent=80)"
---iconsPipelineSteps "renameSuffix(suffix=_v2)"
-```
-
-**File:**
-```shell
---artworkPipelineFile ./pipelines/artwork.pipeline
---iconsPipelineFile ./pipelines/icons.pipeline
-```
-
-The additional steps run before Figstract's built-in platform steps (density scaling, asset catalog storage, etc).
-
-#### Library usage
-
-Each module ships its own registry singleton. Compose them with `+` — the right-hand side wins on
-any name collision.
-
-```kotlin
-// Core steps only (the default)
-val step = ImportPipelineDsl.parse(
-    """
-    scale(scale=0.5)
-    convertToWebPLossy(qualityPercent=80)
-    """.trimIndent()
-)
-
-// Compose registries for Android
-val registry = CoreImportPipelineStepRegistry + AndroidImportPipelineStepRegistry
-val step = ImportPipelineDsl.parse("androidSvgToAvd()", registry)
-
-// Compose registries for iOS
-val registry = CoreImportPipelineStepRegistry + IosImportPipelineStepRegistry
-val step = ImportPipelineDsl.parse("convertToHeic(qualityPercent=90)", registry)
-
-// Compose all three
-val registry = CoreImportPipelineStepRegistry +
-    AndroidImportPipelineStepRegistry +
-    IosImportPipelineStepRegistry
-
-// From a file
-val step = ImportPipelineDsl.parseFile(File("./my.pipeline"), registry)
-
-// With custom steps — build a registry from a map and compose it in
-val custom = ImportPipelineStepRegistry(
-    mapOf("myStep" to ImportPipelineStepRegistry.StepFactory { params ->
-        val quality = params["quality"]?.toInt() ?: 80
-        convertToWebPLossy(quality)
-    })
-)
-val registry = CoreImportPipelineStepRegistry + custom
-```
 
 ### Filtering
 
@@ -411,7 +258,7 @@ Assets can be grouped into named folders within the Asset Catalog with the same 
 Not supplying a value or using a blank string will disable the option.
 
 Recommended formats are:
- - `{canvas.name}`
+- `{canvas.name}`
 
 When enabled, each group a namespace folder in the asset catalog:
 
@@ -445,7 +292,412 @@ apt-get install -y imagemagick
 **Windows:** Not supported as ImageMagick does not support writing HEIC on Windows due to licensing restrictions.
 Consider running this on macOS or Linux (including WSL2).
 
-## Variables
+### Pipeline DSL
+
+You can supply additional pre-processing steps to inject before Figstract's built-in platform steps
+using a text-based pipeline DSL. This lets you apply transformations — scaling, format conversion,
+renaming, path manipulation — without writing Kotlin.
+
+#### DSL format
+
+Each non-blank, non-comment line is a pipeline expression. Lines starting with `#` (or with an
+inline `#` outside a quoted value) are treated as comments. Multiple top-level lines are sequenced
+with `->`.
+
+Each step is written as a function call:
+
+```
+stepName()
+stepName(param=value)
+stepName(param1=value1, param2=value2)
+```
+
+##### Sequential composition (`->` / `then`)
+
+Outputs from the left step are fed into the right step in order.
+
+```
+# Scale then convert then rename — all on one line
+scale(scale=2.0) -> convertToWebPLossy(qualityPercent=80) -> renameSuffix(suffix=_web)
+
+# Or spread across lines — equivalent to joining with ->
+scale(scale=2.0)
+convertToWebPLossy(qualityPercent=80)
+renameSuffix(suffix=_web)
+```
+
+##### Parallel fan-out (`and`)
+
+Runs all comma-separated branches against the same input concurrently; collects all outputs.
+Each branch is a full pipeline chain and can itself use `->`.
+
+```
+# Produce both WebP and PNG from the same input
+and(convertToWebPLossy(qualityPercent=75), convertToPngLossless())
+
+# Branches can be chains
+and(
+  convertToWebPLossy(qualityPercent=75) -> renameSuffix(suffix=_web),
+  convertToPngLossless() -> renameSuffix(suffix=_fallback)
+)
+```
+
+##### First-non-empty fallback (`or`)
+
+Tries each branch in order; returns the output of the first branch that produces a non-empty result.
+
+```
+or(convertToWebPLossy(qualityPercent=75), convertToPngLossless())
+```
+
+##### Nesting
+
+Combinators can be arbitrarily nested and combined with `->`:
+
+```
+# Scale first, then fan out into two formats
+scale(scale=2.0) -> and(
+  convertToWebPLossy(qualityPercent=75) -> renameSuffix(suffix=_web),
+  or(convertToWebPLossy(qualityPercent=50), convertToPngLossless()) -> renameSuffix(suffix=_small)
+)
+```
+
+#### Built-in steps
+
+| Step                                 | Parameters                                                       | Description                                      |
+|--------------------------------------|------------------------------------------------------------------|--------------------------------------------------|
+| `passThrough()`                      | -                                                                | No-op; useful as a placeholder                   |
+| `scale(scale)`                       | `scale`: Float                                                   | Scales the image by a factor                     |
+| `scaleToSize(width, height)`         | `width`: Int, `height`: Int                                      | Scales to exact pixel dimensions                 |
+| `scaleToWidth(width)`                | `width`: Int                                                     | Scales to target width, preserving aspect ratio  |
+| `scaleToHeight(height)`              | `height`: Int                                                    | Scales to target height, preserving aspect ratio |
+| `rename(name)`                       | `name`: String                                                   | Replaces the output file name                    |
+| `renameSuffix(suffix)`               | `suffix`: String                                                 | Appends a suffix to the output file name         |
+| `renamePrefix(prefix)`               | `prefix`: String                                                 | Prepends a prefix to the output file name        |
+| `pathElementsAppend(pathElements)`   | `pathElements`: comma-separated String, or `pathElement`: String | Appends path segments to the output path         |
+| `convertToPngLossless()`             | -                                                                | Converts to lossless PNG                         |
+| `convertToPngLossy(qualityPercent)`  | `qualityPercent`: Int (default `75`)                             | Converts to lossy PNG                            |
+| `convertToWebPLossless()`            | -                                                                | Converts to lossless WebP                        |
+| `convertToWebPLossy(qualityPercent)` | `qualityPercent`: Int (default `75`)                             | Converts to lossy WebP                           |
+
+**Destination steps** (require `destinationStepRegistry(baseDirectory)` to be composed in):
+
+| Step                         | Parameters     | Description                                                                     |
+|------------------------------|----------------|---------------------------------------------------------------------------------|
+| `destinationNone()`          | -              | Black hole; discards output                                                     |
+| `destinationDirectory(path)` | `path`: String | Writes output to a directory resolved relative to the configured base directory |
+
+**Android-specific steps** (available when using `library-android`):
+
+| Step                                | Parameters | Description                                                            |
+|-------------------------------------|------------|------------------------------------------------------------------------|
+| `androidSvgToAvd()`                 | -          | Converts SVG to Android Vector Drawable XML                            |
+| `androidVectorColorToPlaceholder()` | -          | Replaces vector drawable colors with the Figstract magenta placeholder |
+
+**iOS-specific steps** (available when using `library-ios`):
+
+| Step                            | Parameters                           | Description                                                |
+|---------------------------------|--------------------------------------|------------------------------------------------------------|
+| `convertToHeic(qualityPercent)` | `qualityPercent`: Int (default `85`) | Converts PNG to HEIC (see [HEIC output](#heic-output-ios)) |
+
+**iOS asset catalog steps** (require `iosAssetCatalogStepRegistry(baseDirectory)` to be composed in):
+
+| Step                             | Parameters                                                                                                                                                                | Description                                                                      |
+|----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| `iosStoreInAssetCatalog`         | `path`, `scale`, `assetType`? (`imageset`/`iconset`, default `imageset`), `catalogName`? (default `Assets`), `idiom`? (default `universal`)                               | Stores a single image into an asset catalog at the given scale                   |
+| `iosScaleAndStoreInAssetCatalog` | `path`, `sourceScale`, `assetType`?, `catalogName`?, `scales`? (comma-separated, default all), `idiom`?, `outputFormat`? (`Default`/`Heic`/`PngLossy`, default `Default`) | Scales an image to multiple scales and stores all variants into an asset catalog |
+
+`scale` / `sourceScale` / `scales` values: See [Scale](library-ios/src/main/java/com/anifichadia/figstract/ios/assetcatalog/Scale.kt)
+
+#### Library usage
+
+Each module ships its own platform specific registries.
+These can be composed with the `+` / `plus` operator, with the right-hand side winning on any name collision.
+
+```kotlin
+// Core steps only
+val step = ImportPipelineDsl(
+    registry = CoreImportPipelineStepRegistry,
+).parse(
+    """
+    scale(scale=0.5)
+    convertToWebPLossy(qualityPercent=80)
+    """.trimIndent()
+)
+
+// With destination steps - base directory is required for path resolution
+val registry = CoreImportPipelineStepRegistry + destinationStepRegistry(baseDirectory = outputDir)
+val step = ImportPipelineDsl(
+    registry).parse(
+    """
+    and(
+      convertToWebPLossy(qualityPercent=75) -> destinationDirectory(path=web),
+      convertToPngLossless()                -> destinationDirectory(path=fallback)
+    )
+    """.trimIndent(),
+)
+
+// The CLI pre-builds a combined registry for all platforms and destinations:
+val registry = combinedStepRegistries(outDir)
+
+// With custom steps — use the builder DSL and compose in
+val custom = ImportPipelineStepRegistry.buildImportPipelineStepRegistry {
+    "myStep" withFactory { params ->
+        val quality = params.valueOrDefault<Int>("quality") { 80 }
+        convertToWebPLossy(quality)
+    }
+}
+val registry = CoreImportPipelineStepRegistry + custom
+// etc
+```
+
+
+## Asset Batch processing (`asset-batch` subcommand)
+
+The `asset-batch` subcommand processes one or more asset batches defined in a single JSON config file, removing the need to invoke the CLI separately for each Figma file or asset type.
+Refer to [Assets](#assets-assets-subcommand) for additional details.
+The config file supports `//` and `/* */` comments.
+Its top-level structure is:
+
+```json
+{
+  "batches": [
+    {
+      "type": "Artwork", 
+      // etc 
+    },
+    { 
+      "type": "Icon",
+      // etc
+    },
+    { 
+      "type": "Custom",
+      // etc
+    }
+  ]
+}
+```
+
+Each batch entry is one of three types selected by the `type` discriminator field.
+Batches with `"enabled": false` are skipped.
+
+### Common fields
+
+All batch types share these fields:
+
+| Field              | Type    | Default                 | Description                                                                               |
+|--------------------|---------|-------------------------|-------------------------------------------------------------------------------------------|
+| `fileDefinition`   | object  | required                | Figma file to extract from: `{ "fileKey": "...", "branchName": "...", "version": "..." }` |
+| `enabled`          | boolean | required                | Set `false` to skip this batch                                                            |
+| `outDirectory`     | string  | global `--outDirectory` | Per-batch output directory override                                                       |
+| `jsonPath`         | string  | required for Custom     | JsonPath expression to locate nodes. For Artwork and Icons, this is optional              |
+| `instructionLimit` | int     | -                       | Max assets to process                                                                     |
+| `assetFilter`      | object  | no filter               | Include/exclude by canvas, node, or parent name using regex patterns                      |
+| `renamingMap`      | object  | empty                   | Rename canvases or nodes before name generation. Refer to [Renaming](#renaming)           |
+
+`assetFilter`:
+```json
+{
+  "canvasNameFilter": {
+    "include": [
+      "regex"
+    ],
+    "exclude": [
+      "regex"
+    ]
+  },
+  "nodeNameFilter": {
+    "include": [
+      "regex"
+    ],
+    "exclude": [
+      "regex"
+    ]
+  },
+  "parentNameFilter": {
+    "include": [
+      "regex"
+    ],
+    "exclude": [
+      "regex"
+    ]
+  }
+}
+```
+
+### Type: `"Artwork"`
+
+Shares the same output behavior as the `assets` subcommand's artwork handler.
+
+| Field                         | Type    | Default           | Description                                               |
+|-------------------------------|---------|-------------------|-----------------------------------------------------------|
+| `namingFormats`               | object  | see below         | Token format strings for generated file names             |
+| `platformOptions`             | object  | all enabled       | Enable/disable Android, iOS, web output                   |
+| `iosGroupByTokenNamingFormat` | string  | -                 | Token format for iOS asset catalog grouping               |
+| `createUncropped`             | boolean | `true`            | Export full uncropped image                               |
+| `createCropped`               | boolean | `false`           | Export cropped image fill only                            |
+| `androidOutputDensityBuckets` | array   | all except `LDPI` | Subset of `LDPI` `MDPI` `HDPI` `XHDPI` `XXHDPI` `XXXHDPI` |
+| `iosOutputScales`             | array   | all               | Subset of `1x` `2x` `3x`                                  |
+| `iosOutputFormat`             | string  | `Default`         | One of `Default` `Heic` `PngLossy`                        |
+
+`namingFormats` defaults:
+```json
+{
+  "androidFormat": "{canvas.name}_{node.name}",
+  "iosFormat": "{canvas.name}{node.name}",
+  "webFormat": "{canvas.name}_{node.name}"
+}
+```
+
+`platformOptions`:
+```json
+{
+  "androidEnabled": true,
+  "iosEnabled": true,
+  "webEnabled": true
+}
+```
+
+Example:
+```json
+{
+  "type": "Artwork",
+  "fileDefinition": {
+    "fileKey": "abc123"
+  },
+  "enabled": true,
+  "createCropped": true,
+  "iosOutputFormat": "Heic",
+  "platformOptions": {
+    "webEnabled": false
+  }
+}
+```
+
+### Type: `"Icon"`
+
+Shares the same output behavior as the `assets` subcommand's icon handler.
+
+| Field                         | Type   | Default     | Description                                   |
+|-------------------------------|--------|-------------|-----------------------------------------------|
+| `namingFormats`               | object | see below   | Token format strings for generated file names |
+| `platformOptions`             | object | all enabled | Enable/disable Android, iOS, web output       |
+| `iosGroupByTokenNamingFormat` | string | -           | Token format for iOS asset catalog grouping   |
+
+`namingFormats` defaults:
+```json
+{
+  "androidFormat": "ic_{node.name}",
+  "iosFormat": "{node.name}",
+  "webFormat": "{node.name}"
+}
+```
+
+Example
+```json
+{
+  "type": "Icon",
+  "fileDefinition": {
+    "fileKey": "abc123"
+  },
+  "enabled": true,
+  "platformOptions": {
+    "iosEnabled": false
+  }
+}
+```
+
+### Type: `"Custom"`
+
+Fully custom pipeline.
+Gives direct control over how assets are exported from Figma and processed.
+The `pipelineDefinition` field accepts the full [Pipeline DSL](#pipeline-dsl) syntax, and has access to all registered steps including destination and iOS asset catalog steps.
+
+| Field                | Type   | Default  | Description                                                                                                              |
+|----------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------|
+| `pipelineDefinition` | string | required | Pipeline DSL steps                                                                                                       |
+| `exportConfig`       | object | required | How to request the asset from Figma                                                                                      |
+| `namingFormat`       | string | required | Token format string for generated file names                                                                             |
+| `namingCasing`       | string | required | One of `LOWER_CAMEL_CASE` `UPPER_CAMEL_CASE` `LOWER_SNAKE_CASE` `UPPER_SNAKE_CASE` `LOWER_KEBAB_CASE` `UPPER_KEBAB_CASE` |
+
+`exportConfig`
+See [ExportSettings.Format](library-core/src/main/java/com/anifichadia/figstract/figma/model/ExportSetting.kt)
+```json
+{
+  "format": "PNG", // Options: JPG, PNG, SVG, PDF
+  "scale": 1.0, // Must be between 0.01 and 4
+  "contentsOnly": false, // optional
+  "useAbsoluteBounds": false // optional
+}
+```
+
+Example
+```json
+{
+  "type": "Custom",
+  "fileDefinition": {
+    "fileKey": "abc123"
+  },
+  "enabled": true,
+  "jsonPath": "$.children[?(@.type == 'COMPONENT' && @.children[?(@.type == 'VECTOR')])]",
+  "exportConfig": {
+    "format": "PNG",
+    "scale": 3.0
+  },
+  "namingFormat": "{node.name}",
+  "namingCasing": "LOWER_SNAKE_CASE",
+  "pipelineDefinition": "convertToWebPLossy(qualityPercent=80) -> destinationDirectory(path=web/assets)"
+}
+```
+
+### Full example
+
+```json
+{
+  "batches": [
+    {
+      "type": "Artwork",
+      "fileDefinition": {
+        "fileKey": "abc123"
+      },
+      "enabled": true,
+      "createCropped": true,
+      "iosOutputFormat": "Heic",
+      "platformOptions": {
+        "webEnabled": false
+      }
+    },
+    {
+      "type": "Icon",
+      "fileDefinition": {
+        "fileKey": "abc123"
+      },
+      "enabled": true,
+      "platformOptions": {
+        "iosEnabled": false
+      }
+    },
+    {
+      "type": "Custom",
+      "fileDefinition": {
+        "fileKey": "abc123"
+      },
+      "enabled": true,
+      "jsonPath": "$.children[?(@.type == 'COMPONENT' && @.children[?(@.type == 'VECTOR')])]",
+      "exportConfig": {
+        "format": "PNG",
+        "scale": 3.0
+      },
+      "namingFormat": "{node.name}",
+      "namingCasing": "LOWER_SNAKE_CASE",
+      "pipelineDefinition": "convertToWebPLossy(qualityPercent=80) -> destinationDirectory(path=web/assets)"
+    }
+  ]
+}
+```
+
+
+## Variables (`variables` subcommand)
 
 Figstract can extract [local variables](https://www.figma.com/developers/api#get-local-variables-endpoint) from Figma files.
 All variable types (booleans, numbers, strings and colors) are supported.
@@ -467,7 +719,7 @@ Include and exclude filters are mutually exclusive for a given dimension and can
 Variable collection and variable path names can be remapped before output using a JSON renaming map file supplied via `--variableRenamingMapFile <path>`.
 This is useful for normalizing names that don't follow engineering naming conventions without modifying the Figma file itself.
 
-Collection renames are applied first. 
+Collection renames are applied first.
 Variable path renames are then looked up using the **resolved** (post-rename) collection name, so if you rename a collection you should use its new name as the key in `variables`.
 
 The file contains uses the following format where `collections` and `variables` are case-sensitive dictionaries of old name (case-sensitive) to new name:
@@ -646,13 +898,13 @@ Refer to [AndroidComposeVariableDataWriter](library-android/src/main/java/com/an
 Figstract is structured as a multi-module Gradle project.
 The modules are layered so that platform-specific modules depend on core, and the CLI depends on all of them.
 
-| Module            | Artifact                                    | Description                                                                                              |
-|-------------------|---------------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `library-core`    | `com.anifichadia.figstract:library-core`    | Core pipeline abstractions, Figma REST API client, JSON variable writer, JsonPath-based asset extraction |
-| `library-android` | `com.anifichadia.figstract:library-android` | Android-specific importers: WEBP, AVD conversion, density scaling, etc.                                  |
-| `library-ios`     | `com.anifichadia.figstract:library-ios`     | iOS-specific importers: iOS asset scaling, asset catalog management                                      |
+| Module            | Artifact                                    | Description                                                                                               |
+|-------------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `library-core`    | `com.anifichadia.figstract:library-core`    | Core pipeline abstractions, Figma REST API client, JSON variable writer, JsonPath-based asset extraction  |
+| `library-android` | `com.anifichadia.figstract:library-android` | Android-specific importers: WEBP, AVD conversion, density scaling, etc.                                   |
+| `library-ios`     | `com.anifichadia.figstract:library-ios`     | iOS-specific importers: iOS asset scaling, asset catalog management                                       |
 | `cli-core`        | `com.anifichadia.figstract:cli-core`        | Reusable CLI building blocks (option groups, base commands) for composing custom CLIs on top of Figstract |
-| `cli`             | `com.anifichadia.figstract:cli`             | Out-of-the-box CLI built on Clikt, bundles all modules into a fat JAR via Shadow                         |
+| `cli`             | `com.anifichadia.figstract:cli`             | Out-of-the-box CLI built on Clikt, bundles all modules into a fat JAR via Shadow                          |
 
 If you want to build your own tooling on top of Figstract rather than using the CLI out of the box, depend on only the library modules you need and use the `cli-core` and `cli` modules as a template.
 

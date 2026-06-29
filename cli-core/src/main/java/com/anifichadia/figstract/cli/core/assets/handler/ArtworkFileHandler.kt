@@ -33,7 +33,6 @@ import com.anifichadia.figstract.ios.importer.asset.model.importing.HeicSupport
 import com.anifichadia.figstract.ios.importer.asset.model.importing.iosScaleAndStoreInAssetCatalog
 import java.io.File
 
-@Suppress("SameParameterValue")
 internal fun createArtworkFigmaFileHandler(
     figmaFileDefinition: FigmaFileDefinition,
     createUncropped: Boolean,
@@ -118,7 +117,7 @@ internal fun createArtworkFigmaFileHandler(
 
     // A node is a candidate if it's a Parent with a Fillable child carrying an image fill.
     val discoveryStrategy = if (jsonPath == null) {
-        NodeDiscoveryStrategy.TraverseBreadthFirst { node, parent ->
+        NodeDiscoveryStrategy.TraverseBreadthFirst { node, _ ->
             if (node !is Node.Parent) return@TraverseBreadthFirst false
             val child = node.children.filterIsInstance<Node.Fillable>().firstOrNull()
                 ?: return@TraverseBreadthFirst false

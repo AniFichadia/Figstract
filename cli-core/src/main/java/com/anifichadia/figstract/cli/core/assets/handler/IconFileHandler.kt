@@ -30,7 +30,6 @@ import com.anifichadia.figstract.ios.importer.asset.model.importing.iosStoreInAs
 import com.anifichadia.figstract.type.fold
 import java.io.File
 
-@Suppress("SameParameterValue")
 internal fun createIconFigmaFileHandler(
     figmaFileDefinition: FigmaFileDefinition,
     androidOutDirectory: File?,

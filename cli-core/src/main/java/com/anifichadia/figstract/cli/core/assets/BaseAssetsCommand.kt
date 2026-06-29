@@ -21,8 +21,10 @@ import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 
-abstract class AssetsCommand : SuspendingCliktCommand(
-    name = "assets",
+abstract class BaseAssetsCommand(
+    name: String,
+) : SuspendingCliktCommand(
+    name = name,
 ) {
     override val printHelpOnEmptyArgs = true
 
@@ -74,10 +76,13 @@ abstract class AssetsCommand : SuspendingCliktCommand(
             processingRecordRepository = processingRecordRepository,
             importReportRepository = importReportRepository,
         )
+        val handlers = createHandlers(outDirectory)
+        if (handlers.isEmpty()) error("No handlers available.")
+
         coroutineScope {
             try {
                 importer.importFromFigma(
-                    handlers = createHandlers(outDirectory),
+                    handlers = handlers,
                 )
             } catch (e: Throwable) {
                 echo(e.message, err = true)

@@ -8,7 +8,7 @@ import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.groups.provideDelegate
 import java.io.File
 
-class RealAssetsCommand : AssetsCommand() {
+class RealAssetsCommand : BaseAssetsCommand(name = "assets") {
     private val artworkHandlerOptions by ArtworkHandlerOptionGroup()
 
     private val iconHandlerOptions by IconsHandlerOptionGroup()

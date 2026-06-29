@@ -1,5 +1,6 @@
 package com.anifichadia.figstract.importer.asset.model.importing.dsl
 
+import com.anifichadia.figstract.importer.asset.model.importing.Destination
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline.Step.Companion.passThrough
 import com.anifichadia.figstract.importer.asset.model.importing.PNG_LOSSY_QUALITY_PERCENT_DEFAULT
 import com.anifichadia.figstract.importer.asset.model.importing.WEBP_LOSSY_QUALITY_PERCENT_DEFAULT
@@ -16,6 +17,7 @@ import com.anifichadia.figstract.importer.asset.model.importing.scale
 import com.anifichadia.figstract.importer.asset.model.importing.scaleToHeight
 import com.anifichadia.figstract.importer.asset.model.importing.scaleToSize
 import com.anifichadia.figstract.importer.asset.model.importing.scaleToWidth
+import java.io.File
 
 val CoreImportPipelineStepRegistry = buildImportPipelineStepRegistry {
     "passThrough" withFactory { passThrough() }
@@ -67,5 +69,19 @@ val CoreImportPipelineStepRegistry = buildImportPipelineStepRegistry {
     "convertToWebPLossless" withFactory { convertToWebPLossless }
     "convertToWebPLossy" withFactory { params ->
         convertToWebPLossy(params.valueOrDefault<Int>("qualityPercent") { WEBP_LOSSY_QUALITY_PERCENT_DEFAULT })
+    }
+}
+
+fun destinationStepRegistry(
+    baseDirectory: File = File("."),
+): ImportPipelineStepRegistry = buildImportPipelineStepRegistry {
+    "destinationNone" withFactory {
+        Destination.None
+    }
+
+    "destinationDirectory" withFactory { params ->
+        val path = params.value<String>("path")
+        val resolved = baseDirectory.resolve(path)
+        Destination.directoryDestination(resolved)
     }
 }

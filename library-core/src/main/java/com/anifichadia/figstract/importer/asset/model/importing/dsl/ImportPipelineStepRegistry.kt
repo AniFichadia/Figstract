@@ -54,6 +54,7 @@ class ImportPipelineStepRegistry(
     }
 
     class StepParams(original: Map<String, String>) : Map<String, String> by original {
+        //region Values
         inline fun <reified T> value(
             key: String,
             noinline map: (String) -> T? = { it.fromString<T>(key) },
@@ -69,6 +70,78 @@ class ImportPipelineStepRegistry(
             noinline map: (String) -> T? = { it.fromString<T>(key) },
             default: () -> T,
         ): T = valueOrNull(key, map) ?: default()
+        //endregion
+
+        //region Enums
+        inline fun <reified T : Enum<T>> enum(
+            key: String,
+        ): T = enumOrNull<T>(key) ?: throw ImportPipelineDslException("Missing parameter '$key' with no default")
+
+        inline fun <reified T : Enum<T>> enumOrNull(
+            key: String,
+        ): T? {
+            val raw = this[key] ?: return null
+            return raw.toEnum<T>()
+                ?: throw ImportPipelineDslException("Parameter '$key' must be one of ${enumValues<T>().map { it.name }}, got '$raw'")
+        }
+
+        inline fun <reified T : Enum<T>> enumOrDefault(
+            key: String,
+            default: () -> T,
+        ): T = enumOrNull<T>(key) ?: default()
+        //endregion
+
+        //region List
+        inline fun <reified T> list(
+            key: String,
+            separator: String = ",",
+            noinline map: (String) -> T? = { it.fromString<T>(key) },
+        ): List<T> = listOrNull(key, separator, map)
+            ?: throw ImportPipelineDslException("Missing parameter '$key' with no default")
+
+        inline fun <reified T> listOrNull(
+            key: String,
+            separator: String = ",",
+            noinline map: (String) -> T? = { it.fromString<T>(key) },
+        ): List<T>? = this[key]
+            ?.split(separator)
+            ?.map { token ->
+                val trimmed = token.trim()
+                map(trimmed)
+                    ?: throw ImportPipelineDslException("Could not convert '$trimmed' to ${T::class.simpleName} for parameter '$key'")
+            }
+
+        inline fun <reified T> listOrDefault(
+            key: String,
+            separator: String = ",",
+            noinline map: (String) -> T? = { it.fromString<T>(key) },
+            default: () -> List<T>,
+        ): List<T> = listOrNull(key, separator, map) ?: default()
+        //endregion
+
+        //region Enum list
+        inline fun <reified T : Enum<T>> enumList(
+            key: String,
+            separator: String = ",",
+        ): List<T> = enumListOrNull<T>(key, separator)
+            ?: throw ImportPipelineDslException("Missing parameter '$key' with no default")
+
+        inline fun <reified T : Enum<T>> enumListOrNull(
+            key: String,
+            separator: String = ",",
+        ): List<T>? = listOrNull(key, separator) { it.toEnum<T>() }
+
+        inline fun <reified T : Enum<T>> enumListOrDefault(
+            key: String,
+            separator: String = ",",
+            default: () -> List<T>,
+        ): List<T> = enumListOrNull<T>(key, separator) ?: default()
+        //endregion
+
+        //region Converters
+        inline fun <reified T : Enum<T>> String.toEnum(): T? {
+            return enumValues<T>().firstOrNull { it.name == this }
+        }
 
         private inline fun <reified T> String.fromString(key: String): T? = when (T::class) {
             String::class -> this
@@ -89,6 +162,7 @@ class ImportPipelineStepRegistry(
 
             else -> null
         } as T?
+        //endregion
     }
 
     /** Converts the params of a [StepExpression] into an [ImportPipeline.Step]. */

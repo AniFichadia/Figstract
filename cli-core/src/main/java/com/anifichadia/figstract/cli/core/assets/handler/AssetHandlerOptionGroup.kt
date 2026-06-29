@@ -1,5 +1,6 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
+import com.anifichadia.figstract.Conventions
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup
@@ -9,7 +10,7 @@ import com.anifichadia.figstract.figma.FigmaFileDefinition
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
 import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
 import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
-import com.anifichadia.figstract.model.TokenStringGenerator.Casing
+import com.anifichadia.figstract.ios.ios
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.default
@@ -63,7 +64,7 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
         prefix = "${prefix}IosGroupByToken",
         // Intentionally blank as a default value since it's tricky to create a nullable option
         defaultFormat = "",
-        casing = Casing.UpperCamelCase,
+        casing = Conventions.Casing.ios,
     )
 
     private val instructionLimit by option("--${prefix}InstructionLimit").int()

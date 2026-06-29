@@ -1,7 +1,7 @@
 package com.anifichadia.figstract.cli.core
 
 import com.anifichadia.figstract.HttpClientFactory
-import com.anifichadia.figstract.cli.core.assets.AssetsCommand
+import com.anifichadia.figstract.cli.core.assets.BaseAssetsCommand
 import com.anifichadia.figstract.cli.core.variables.VariablesCommand
 import com.anifichadia.figstract.figma.api.FigmaApiImpl
 import com.anifichadia.figstract.figma.api.FigmaApiProxyWithFlowControl
@@ -59,12 +59,14 @@ class FigstractCommand private constructor() : SuspendingCliktCommand(
 
     companion object {
         operator fun invoke(
-            assetsCommand: AssetsCommand,
+            assetsCommand: BaseAssetsCommand,
+            assetBatchCommand: BaseAssetsCommand,
             variablesCommand: VariablesCommand,
         ): FigstractCommand {
             return FigstractCommand()
                 .subcommands(
                     assetsCommand,
+                    assetBatchCommand,
                     variablesCommand,
                 )
         }
