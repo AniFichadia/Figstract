@@ -58,7 +58,13 @@ Run the following command to run Figstract and list the subcommands and options:
 java -jar /path/to/cli.jar --help
 ```
 
-The CLI can be configured with CLI args, or by supplying a `[subcommandName].properties` file with the same keys as the arguments in the working directory (e.g. `assets.properties`).
+The CLI has three subcommands:
+
+- `assets`: extract artwork and icons using per-type CLI flags
+- `asset-batch`: extract one or more asset batches defined in a JSON config file
+- `variables`: extract design system variables
+
+The CLI can be configured with CLI args, or by supplying a `[subcommandName].properties` or a `[subcommandName].json` file with the same keys as the arguments in the working directory (e.g. `assets.properties` or `assets.json`)
 
 ### Custom CA Certificates (Corporate networks)
 
@@ -110,10 +116,10 @@ Figstract supports the following authentication mechanisms to accessing Figma:
 
 When generating credentials, ensure that the following [scopes](https://www.figma.com/developers/api#authentication-scopes) are configured.
 
-| Operation | Required scope              |
-|-----------|-----------------------------|
-| assets    | `File content`              |
-| variables | `File content`, `Variables` |
+| Operation              | Required scope              |
+|------------------------|-----------------------------|
+| assets / asset batches | `File content`              |
+| variables              | `File content`, `Variables` |
 
 > [!CAUTION]
 > Ensure scopes are set to `Read only` and tokens are refreshed regularly
@@ -125,7 +131,7 @@ Either one auth credential can be generated with all the scopes above, or specif
 Figstract uses [kotlin-logging](https://github.com/oshai/kotlin-logging) and [Logback](https://logback.qos.ch/) for logging, and logs errors to the console by default.
 When using the CLI, the log level can be configured using the `--logLevel` option (e.g. `--logLevel DEBUG`), or by configuring logback using environment variables (refer to https://logback.qos.ch/manual/configuration.html#configFileProperty).
 
-## Assets
+## Assets (`assets` subcommand)
 
 Figstract extracts two types of assets from Figma files: **artwork** (raster images) and **icons** (vector graphics).
 Both are configured independently and can target multiple platforms in a single run.
@@ -155,6 +161,136 @@ The following args provide file targeting options:
 
 Asset importing uses a composable pipeline, allowing you to chain transformers and handlers together.
 This makes it possible to apply format conversion, renaming, and other processing steps in a flexible way.
+
+### Filtering
+
+Assets can be filtered by canvas (page), node, and parent node name using regex patterns.
+Include and exclude filters are mutually exclusive.
+Filters can be repeated to supply multiple patterns.
+
+- Canvas filters: `--artworkFilterIncludedCanvas` / `--artworkFilterExcludedCanvas` (and `icons` equivalents)
+- Node filters: `--artworkFilterIncludedNode` / `--artworkFilterExcludedNode`
+- Parent node filters: `--artworkFilterIncludedParentNode` / `--artworkFilterExcludedParentNode`
+
+### Renaming
+
+Canvas and node names can be remapped before output using a JSON renaming map file using `--artworkRenamingMap <path>` and `--iconsRenamingMap <path>`.
+This is useful for normalizing names that don't follow engineering naming conventions without modifying the Figma file itself.
+
+The file contains uses the following format where `canvases` and `nodes` are dictionaries of old name (case-sensitive) to new name:
+
+```json
+{
+  "canvases": {
+    "Old Canvas Name": "New Canvas Name"
+  },
+  "nodes": {
+    "old/node/name": "new/node/name"
+  }
+}
+```
+
+Non-matching entries will produce a warning in the log.
+
+### JsonPath
+
+[JsonPath](https://github.com/json-path/JsonPath) expressions (Stefan Goessner's implementation) can be used to locate nodes.
+Expressions are relative to each canvas and should locate the required node (refer to the [Figma API Node reference](https://www.figma.com/developers/api#node-types) for node types).
+Canvas and node filters will be applied, but parent node filters aren't supported when using JsonPath.
+
+Use `--artworkJsonPath` or `--iconsJsonPath` to supply the expression.
+
+### Custom naming
+
+Output file names can be customised using a format string.
+The following tokens are supported, wrapped in `{}`:
+
+- `canvas.id` — the canvas (page) ID
+- `canvas.name` — the canvas (page) name
+- `node.id` — the node ID
+- `node.name` — the node name
+- `node.name.split "<sep>" first` — splits the node name on `<sep>` (a regex) and takes the first segment
+- `node.name.split "<sep>" last` — splits the node name on `<sep>` (a regex) and takes the last segment
+- `node.name.split "<sep>" <N>` — splits the node name on `<sep>` (a regex) and takes the segment at index `N`
+
+If the separator is not found in the node name, the full name is used.
+
+Names are automatically cased to match platform conventions (snake_case for Android and Web, UpperCamelCase for iOS).
+Override the format using `--artworkAndroidNamingFormat`, `--artworkIosNamingFormat`, `--artworkWebNamingFormat` (and `icons` equivalents).
+
+### Processing records
+
+Processing records prevent re-processing Figma files that haven't changed since the last run, based on the file's last-modified timestamp.
+The record is stored as `processing_record.json` in the output directory.
+
+- `--processingRecordEnabled` (default `true`): enable or disable processing records
+- `--processingRecordName`: a unique name suffix for the record file, useful when running multiple configurations against the same Figma file (e.g. `processing_record_icons.json`)
+
+### Output formats
+
+At least one platform must be enabled (`--platformAndroid`, `--platformIos`, `--platformWeb`).
+Output is written to `android/`, `ios/`, and `web/` subdirectories within the output directory.
+
+Artwork supports two crop modes, configured per run:
+
+- `--artworkCreateUncropped` (default `true`): exports the full frame using the parent
+- `--artworkCreateCropped` (default `false`): exports the image fill only, appending a `_cropped` suffix
+
+#### Web
+
+- **Artwork**: PNG
+- **Icons**: SVG
+
+#### Android
+
+- **Artwork**: PNG scaled into density buckets (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) from a `xxxhdpi` source
+- **Icons**: SVG converted to Android Vector Drawable (AVD), with colors replaced by a magenta placeholder for tinting
+
+#### iOS
+
+- **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source.
+  Optionally, HEIC format can be used instead of PNG (see [HEIC output](#heic-output-ios)).
+- **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
+
+##### Grouping within asset catalogs
+
+Assets can be grouped into named folders within the Asset Catalog with the same [Custom naming tokens](#custom-naming) using `--artworkIosGroupByTokenNamingFormat` and `--iconsIosGroupByTokenNamingFormat`.
+Not supplying a value or using a blank string will disable the option.
+
+Recommended formats are:
+- `{canvas.name}`
+
+When enabled, each group a namespace folder in the asset catalog:
+
+```
+Assets.xcassets/
+  MyGroup/
+    Images/
+      hero_image.imageset/
+  AnotherGroup/
+    Images/
+      banner.imageset/
+```
+
+> [!TIP]
+> When enabled, consider setting `--artworkIosNamingFormat` or `--iconsIosNamingFormat` to avoid redundant info between the namespace and asset. E.g. `--artworkIosNamingFormat` to `{node.name}` and `--iconsIosNamingFormat` to `{node.name.split "/" first}`.
+
+### HEIC output (iOS)
+
+HEIC can be enabled for iOS artwork via setting `--artworkIosOutputFormat` to `Heic`. This requires [`ImageMagick`](https://imagemagick.org/).
+
+**macOS**
+```shell
+brew install imagemagick
+```
+
+**Linux**
+```shell
+apt-get install -y imagemagick
+```
+
+**Windows:** Not supported as ImageMagick does not support writing HEIC on Windows due to licensing restrictions.
+Consider running this on macOS or Linux (including WSL2).
 
 ### Pipeline DSL
 
@@ -271,210 +407,297 @@ scale(scale=2.0) -> and(
 | `iosStoreInAssetCatalog`         | `path`, `scale`, `assetType`? (`imageset`/`iconset`, default `imageset`), `catalogName`? (default `Assets`), `idiom`? (default `universal`)                               | Stores a single image into an asset catalog at the given scale                   |
 | `iosScaleAndStoreInAssetCatalog` | `path`, `sourceScale`, `assetType`?, `catalogName`?, `scales`? (comma-separated, default all), `idiom`?, `outputFormat`? (`Default`/`Heic`/`PngLossy`, default `Default`) | Scales an image to multiple scales and stores all variants into an asset catalog |
 
-`scale` / `sourceScale` / `scales` values: `1x`, `2x`, `3x`
-
-#### CLI usage
-
-Supply an inline DSL string or a path to a `.pipeline` file. The two options are mutually exclusive.
-
-**Inline:**
-```shell
---artworkPipelineSteps "scale(scale=0.5) -> convertToWebPLossy(qualityPercent=80)"
---iconsPipelineSteps "renameSuffix(suffix=_v2)"
-```
-
-**File:**
-```shell
---artworkPipelineFile ./pipelines/artwork.pipeline
---iconsPipelineFile ./pipelines/icons.pipeline
-```
-
-The additional steps run before Figstract's built-in platform steps (density scaling, asset catalog storage, etc).
+`scale` / `sourceScale` / `scales` values: See [Scale](library-ios/src/main/java/com/anifichadia/figstract/ios/assetcatalog/Scale.kt)
 
 #### Library usage
 
-Each module ships its own registry singleton. Compose them with `+` — the right-hand side wins on
-any name collision.
+Each module ships its own platform specific registries.
+These can be composed with the `+` / `plus` operator, with the right-hand side winning on any name collision.
 
 ```kotlin
-// Core steps only (the default)
-val step = ImportPipelineDsl.parse(
+// Core steps only
+val step = ImportPipelineDsl(
+    registry = CoreImportPipelineStepRegistry,
+).parse(
     """
     scale(scale=0.5)
     convertToWebPLossy(qualityPercent=80)
     """.trimIndent()
 )
 
-// Compose registries for Android
-val registry = CoreImportPipelineStepRegistry + AndroidImportPipelineStepRegistry
-val step = ImportPipelineDsl.parse("androidSvgToAvd()", registry)
-
-// Compose registries for iOS
-val registry = CoreImportPipelineStepRegistry + IosImportPipelineStepRegistry
-val step = ImportPipelineDsl.parse("convertToHeic(qualityPercent=90)", registry)
-
-// With destination steps — base directory is required for path resolution
+// With destination steps - base directory is required for path resolution
 val registry = CoreImportPipelineStepRegistry + destinationStepRegistry(baseDirectory = outputDir)
-val step = ImportPipelineDsl.parse(
+val step = ImportPipelineDsl(
+    registry).parse(
     """
     and(
-      convertToWebPLossy(qualityPercent=75) -> destination.directory(path=web),
-      convertToPngLossless()               -> destination.directory(path=fallback)
+      convertToWebPLossy(qualityPercent=75) -> destinationDirectory(path=web),
+      convertToPngLossless()                -> destinationDirectory(path=fallback)
     )
     """.trimIndent(),
-    registry,
 )
 
-// Compose all registries
-val registry = CoreImportPipelineStepRegistry +
-    AndroidImportPipelineStepRegistry +
-    IosImportPipelineStepRegistry +
-    destinationStepRegistry(baseDirectory = outputDir)
+// The CLI pre-builds a combined registry for all platforms and destinations:
+val registry = combinedStepRegistries(outDir)
 
-// From a file
-val step = ImportPipelineDsl.parseFile(File("./my.pipeline"), registry)
-
-// With custom steps — build a registry from a map and compose it in
-val custom = ImportPipelineStepRegistry(
-    mapOf("myStep" to ImportPipelineStepRegistry.StepFactory { params ->
-        val quality = params["quality"]?.toInt() ?: 80
+// With custom steps — use the builder DSL and compose in
+val custom = ImportPipelineStepRegistry.buildImportPipelineStepRegistry {
+    "myStep" withFactory { params ->
+        val quality = params.valueOrDefault<Int>("quality") { 80 }
         convertToWebPLossy(quality)
-    })
-)
+    }
+}
 val registry = CoreImportPipelineStepRegistry + custom
+// etc
 ```
 
-### Filtering
 
-Assets can be filtered by canvas (page), node, and parent node name using regex patterns.
-Include and exclude filters are mutually exclusive.
-Filters can be repeated to supply multiple patterns.
+## Asset Batch processing (`asset-batch` subcommand)
 
-- Canvas filters: `--artworkFilterIncludedCanvas` / `--artworkFilterExcludedCanvas` (and `icons` equivalents)
-- Node filters: `--artworkFilterIncludedNode` / `--artworkFilterExcludedNode`
-- Parent node filters: `--artworkFilterIncludedParentNode` / `--artworkFilterExcludedParentNode`
-
-### Renaming
-
-Canvas and node names can be remapped before output using a JSON renaming map file using `--artworkRenamingMap <path>` and `--iconsRenamingMap <path>`.
-This is useful for normalizing names that don't follow engineering naming conventions without modifying the Figma file itself.
-
-The file contains uses the following format where `canvases` and `nodes` are dictionaries of old name (case-sensitive) to new name:
+The `asset-batch` subcommand processes one or more asset batches defined in a single JSON config file, removing the need to invoke the CLI separately for each Figma file or asset type.
+Refer to [Assets](#assets-assets-subcommand) for additional details.
+The config file supports `//` and `/* */` comments.
+Its top-level structure is:
 
 ```json
 {
-  "canvases": {
-    "Old Canvas Name": "New Canvas Name"
+  "batches": [
+    {
+      "type": "Artwork", 
+      // etc 
+    },
+    { 
+      "type": "Icon",
+      // etc
+    },
+    { 
+      "type": "Custom",
+      // etc
+    }
+  ]
+}
+```
+
+Each batch entry is one of three types selected by the `type` discriminator field.
+Batches with `"enabled": false` are skipped.
+
+### Common fields
+
+All batch types share these fields:
+
+| Field              | Type    | Default                 | Description                                                                               |
+|--------------------|---------|-------------------------|-------------------------------------------------------------------------------------------|
+| `fileDefinition`   | object  | required                | Figma file to extract from: `{ "fileKey": "...", "branchName": "...", "version": "..." }` |
+| `enabled`          | boolean | required                | Set `false` to skip this batch                                                            |
+| `outDirectory`     | string  | global `--outDirectory` | Per-batch output directory override                                                       |
+| `jsonPath`         | string  | required for Custom     | JsonPath expression to locate nodes. For Artwork and Icons, this is optional              |
+| `instructionLimit` | int     | -                       | Max assets to process                                                                     |
+| `assetFilter`      | object  | no filter               | Include/exclude by canvas, node, or parent name using regex patterns                      |
+| `renamingMap`      | object  | empty                   | Rename canvases or nodes before name generation. Refer to [Renaming](#renaming)           |
+
+`assetFilter`:
+```json
+{
+  "canvasNameFilter": {
+    "include": [
+      "regex"
+    ],
+    "exclude": [
+      "regex"
+    ]
   },
-  "nodes": {
-    "old/node/name": "new/node/name"
+  "nodeNameFilter": {
+    "include": [
+      "regex"
+    ],
+    "exclude": [
+      "regex"
+    ]
+  },
+  "parentNameFilter": {
+    "include": [
+      "regex"
+    ],
+    "exclude": [
+      "regex"
+    ]
   }
 }
 ```
 
-Non-matching entries will produce a warning in the log.
+### Type: `"Artwork"`
 
-### JsonPath
+Shares the same output behavior as the `assets` subcommand's artwork handler.
 
-[JsonPath](https://github.com/json-path/JsonPath) expressions (Stefan Goessner's implementation) can be used to locate nodes.
-Expressions are relative to each canvas and should locate the required node (refer to the [Figma API Node reference](https://www.figma.com/developers/api#node-types) for node types).
-Canvas and node filters will be applied, but parent node filters aren't supported when using JsonPath.
+| Field                         | Type    | Default           | Description                                               |
+|-------------------------------|---------|-------------------|-----------------------------------------------------------|
+| `namingFormats`               | object  | see below         | Token format strings for generated file names             |
+| `platformOptions`             | object  | all enabled       | Enable/disable Android, iOS, web output                   |
+| `iosGroupByTokenNamingFormat` | string  | -                 | Token format for iOS asset catalog grouping               |
+| `createUncropped`             | boolean | `true`            | Export full uncropped image                               |
+| `createCropped`               | boolean | `false`           | Export cropped image fill only                            |
+| `androidOutputDensityBuckets` | array   | all except `LDPI` | Subset of `LDPI` `MDPI` `HDPI` `XHDPI` `XXHDPI` `XXXHDPI` |
+| `iosOutputScales`             | array   | all               | Subset of `1x` `2x` `3x`                                  |
+| `iosOutputFormat`             | string  | `Default`         | One of `Default` `Heic` `PngLossy`                        |
 
-Use `--artworkJsonPath` or `--iconsJsonPath` to supply the expression.
-
-### Custom naming
-
-Output file names can be customised using a format string.
-The following tokens are supported, wrapped in `{}`:
-
-- `canvas.id` — the canvas (page) ID
-- `canvas.name` — the canvas (page) name
-- `node.id` — the node ID
-- `node.name` — the node name
-- `node.name.split "<sep>" first` — splits the node name on `<sep>` (a regex) and takes the first segment
-- `node.name.split "<sep>" last` — splits the node name on `<sep>` (a regex) and takes the last segment
-- `node.name.split "<sep>" <N>` — splits the node name on `<sep>` (a regex) and takes the segment at index `N`
-
-If the separator is not found in the node name, the full name is used.
-
-Names are automatically cased to match platform conventions (snake_case for Android and Web, UpperCamelCase for iOS).
-Override the format using `--artworkAndroidNamingFormat`, `--artworkIosNamingFormat`, `--artworkWebNamingFormat` (and `icons` equivalents).
-
-### Processing records
-
-Processing records prevent re-processing Figma files that haven't changed since the last run, based on the file's last-modified timestamp.
-The record is stored as `processing_record.json` in the output directory.
-
-- `--processingRecordEnabled` (default `true`): enable or disable processing records
-- `--processingRecordName`: a unique name suffix for the record file, useful when running multiple configurations against the same Figma file (e.g. `processing_record_icons.json`)
-
-### Output formats
-
-At least one platform must be enabled (`--platformAndroid`, `--platformIos`, `--platformWeb`).
-Output is written to `android/`, `ios/`, and `web/` subdirectories within the output directory.
-
-Artwork supports two crop modes, configured per run:
-
-- `--artworkCreateUncropped` (default `true`): exports the full frame using the parent
-- `--artworkCreateCropped` (default `false`): exports the image fill only, appending a `_cropped` suffix
-
-#### Web
-
-- **Artwork**: PNG
-- **Icons**: SVG
-
-#### Android
-
-- **Artwork**: PNG scaled into density buckets (`mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`) from a `xxxhdpi` source
-- **Icons**: SVG converted to Android Vector Drawable (AVD), with colors replaced by a magenta placeholder for tinting
-
-#### iOS
-
-- **Artwork**: PNG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) with `@1x` - `@3x` scales from a `@3x` source.
-  Optionally, HEIC format can be used instead of PNG (see [HEIC output](#heic-output-ios)).
-- **Icons**: SVG stored in an [Asset Catalog](https://developer.apple.com/library/archive/documentation/Xcode/Reference/xcode_ref-Asset_Catalog_Format/index.html) at `@1x` scale
-
-##### Grouping within asset catalogs
-
-Assets can be grouped into named folders within the Asset Catalog with the same [Custom naming tokens](#custom-naming) using `--artworkIosGroupByTokenNamingFormat` and `--iconsIosGroupByTokenNamingFormat`.
-Not supplying a value or using a blank string will disable the option.
-
-Recommended formats are:
- - `{canvas.name}`
-
-When enabled, each group a namespace folder in the asset catalog:
-
-```
-Assets.xcassets/
-  MyGroup/
-    Images/
-      hero_image.imageset/
-  AnotherGroup/
-    Images/
-      banner.imageset/
+`namingFormats` defaults:
+```json
+{
+  "androidFormat": "{canvas.name}_{node.name}",
+  "iosFormat": "{canvas.name}{node.name}",
+  "webFormat": "{canvas.name}_{node.name}"
+}
 ```
 
-> [!TIP]
-> When enabled, consider setting `--artworkIosNamingFormat` or `--iconsIosNamingFormat` to avoid redundant info between the namespace and asset. E.g. `--artworkIosNamingFormat` to `{node.name}` and `--iconsIosNamingFormat` to `{node.name.split "/" first}`.
-
-### HEIC output (iOS)
-
-HEIC can be enabled for iOS artwork via setting `--artworkIosOutputFormat` to `Heic`. This requires [`ImageMagick`](https://imagemagick.org/).
-
-**macOS**
-```shell
-brew install imagemagick
+`platformOptions`:
+```json
+{
+  "androidEnabled": true,
+  "iosEnabled": true,
+  "webEnabled": true
+}
 ```
 
-**Linux**
-```shell
-apt-get install -y imagemagick
+Example:
+```json
+{
+  "type": "Artwork",
+  "fileDefinition": {
+    "fileKey": "abc123"
+  },
+  "enabled": true,
+  "createCropped": true,
+  "iosOutputFormat": "Heic",
+  "platformOptions": {
+    "webEnabled": false
+  }
+}
 ```
 
-**Windows:** Not supported as ImageMagick does not support writing HEIC on Windows due to licensing restrictions.
-Consider running this on macOS or Linux (including WSL2).
+### Type: `"Icon"`
 
-## Variables
+Shares the same output behavior as the `assets` subcommand's icon handler.
+
+| Field                         | Type   | Default     | Description                                   |
+|-------------------------------|--------|-------------|-----------------------------------------------|
+| `namingFormats`               | object | see below   | Token format strings for generated file names |
+| `platformOptions`             | object | all enabled | Enable/disable Android, iOS, web output       |
+| `iosGroupByTokenNamingFormat` | string | -           | Token format for iOS asset catalog grouping   |
+
+`namingFormats` defaults:
+```json
+{
+  "androidFormat": "ic_{node.name}",
+  "iosFormat": "{node.name}",
+  "webFormat": "{node.name}"
+}
+```
+
+Example
+```json
+{
+  "type": "Icon",
+  "fileDefinition": {
+    "fileKey": "abc123"
+  },
+  "enabled": true,
+  "platformOptions": {
+    "iosEnabled": false
+  }
+}
+```
+
+### Type: `"Custom"`
+
+Fully custom pipeline.
+Gives direct control over how assets are exported from Figma and processed.
+The `pipelineDefinition` field accepts the full [Pipeline DSL](#pipeline-dsl) syntax, and has access to all registered steps including destination and iOS asset catalog steps.
+
+| Field                | Type   | Default  | Description                                                                                                              |
+|----------------------|--------|----------|--------------------------------------------------------------------------------------------------------------------------|
+| `pipelineDefinition` | string | required | Pipeline DSL steps                                                                                                       |
+| `exportConfig`       | object | required | How to request the asset from Figma                                                                                      |
+| `namingFormat`       | string | required | Token format string for generated file names                                                                             |
+| `namingCasing`       | string | required | One of `LOWER_CAMEL_CASE` `UPPER_CAMEL_CASE` `LOWER_SNAKE_CASE` `UPPER_SNAKE_CASE` `LOWER_KEBAB_CASE` `UPPER_KEBAB_CASE` |
+
+`exportConfig`
+See [ExportSettings.Format](library-core/src/main/java/com/anifichadia/figstract/figma/model/ExportSetting.kt)
+```json
+{
+  "format": "PNG", // Options: JPG, PNG, SVG, PDF
+  "scale": 1.0, // Must be between 0.01 and 4
+  "contentsOnly": false, // optional
+  "useAbsoluteBounds": false // optional
+}
+```
+
+Example
+```json
+{
+  "type": "Custom",
+  "fileDefinition": {
+    "fileKey": "abc123"
+  },
+  "enabled": true,
+  "jsonPath": "$.children[?(@.type == 'COMPONENT' && @.children[?(@.type == 'VECTOR')])]",
+  "exportConfig": {
+    "format": "PNG",
+    "scale": 3.0
+  },
+  "namingFormat": "{node.name}",
+  "namingCasing": "LOWER_SNAKE_CASE",
+  "pipelineDefinition": "convertToWebPLossy(qualityPercent=80) -> destinationDirectory(path=web/assets)"
+}
+```
+
+### Full example
+
+```json
+{
+  "batches": [
+    {
+      "type": "Artwork",
+      "fileDefinition": {
+        "fileKey": "abc123"
+      },
+      "enabled": true,
+      "createCropped": true,
+      "iosOutputFormat": "Heic",
+      "platformOptions": {
+        "webEnabled": false
+      }
+    },
+    {
+      "type": "Icon",
+      "fileDefinition": {
+        "fileKey": "abc123"
+      },
+      "enabled": true,
+      "platformOptions": {
+        "iosEnabled": false
+      }
+    },
+    {
+      "type": "Custom",
+      "fileDefinition": {
+        "fileKey": "abc123"
+      },
+      "enabled": true,
+      "jsonPath": "$.children[?(@.type == 'COMPONENT' && @.children[?(@.type == 'VECTOR')])]",
+      "exportConfig": {
+        "format": "PNG",
+        "scale": 3.0
+      },
+      "namingFormat": "{node.name}",
+      "namingCasing": "LOWER_SNAKE_CASE",
+      "pipelineDefinition": "convertToWebPLossy(qualityPercent=80) -> destinationDirectory(path=web/assets)"
+    }
+  ]
+}
+```
+
+
+## Variables (`variables` subcommand)
 
 Figstract can extract [local variables](https://www.figma.com/developers/api#get-local-variables-endpoint) from Figma files.
 All variable types (booleans, numbers, strings and colors) are supported.
@@ -496,7 +719,7 @@ Include and exclude filters are mutually exclusive for a given dimension and can
 Variable collection and variable path names can be remapped before output using a JSON renaming map file supplied via `--variableRenamingMapFile <path>`.
 This is useful for normalizing names that don't follow engineering naming conventions without modifying the Figma file itself.
 
-Collection renames are applied first. 
+Collection renames are applied first.
 Variable path renames are then looked up using the **resolved** (post-rename) collection name, so if you rename a collection you should use its new name as the key in `variables`.
 
 The file contains uses the following format where `collections` and `variables` are case-sensitive dictionaries of old name (case-sensitive) to new name:
