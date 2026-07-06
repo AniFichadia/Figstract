@@ -21,7 +21,7 @@ fun iosScaleAndStoreInAssetCatalog(
     assetCatalog: AssetCatalog,
     assetType: AssetType.Image,
     sourceScale: Scale,
-    scales: List<Scale> = Scale.defaults,
+    scales: Set<Scale> = Scale.defaults,
     outputFormat: ArtworkOutputFormat = ArtworkOutputFormat.Default,
     fileLockRegistry: FileLockRegistry = FileLockRegistry(),
     idiom: Content.Idiom = Content.Idiom.default,

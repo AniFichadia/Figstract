@@ -11,7 +11,7 @@ enum class Scale(val scale: Float) {
     }
 
     companion object {
-        val defaults = Scale.entries
+        val defaults = Scale.entries.toSet()
     }
 }
 

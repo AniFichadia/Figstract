@@ -1,5 +1,6 @@
 package com.anifichadia.figstract.cli.core.assets.option
 
+import com.anifichadia.figstract.cli.core.assets.model.PlatformOptions
 import com.anifichadia.figstract.util.ToUpperCamelCase
 import com.github.ajalt.clikt.parameters.groups.OptionGroup
 import com.github.ajalt.clikt.parameters.options.OptionWithValues
@@ -12,10 +13,8 @@ class PlatformOptionGroup : OptionGroup() {
     val iosEnabled by createOption("ios")
     val webEnabled by createOption("web")
 
-    fun noneEnabled() = !androidEnabled && !iosEnabled && !webEnabled
-
-    private companion object {
-        fun OptionGroup.createOption(platformName: String): OptionWithValues<Boolean, Boolean, Boolean> {
+    companion object {
+        private fun OptionGroup.createOption(platformName: String): OptionWithValues<Boolean, Boolean, Boolean> {
             val platformNameForOption = platformName.ToUpperCamelCase()
 
             return option("--platform$platformNameForOption")
@@ -24,5 +23,11 @@ class PlatformOptionGroup : OptionGroup() {
         }
 
         private const val DEFAULT_VALUE = false
+
+        fun PlatformOptionGroup.toPlatformOptions() = PlatformOptions(
+            androidEnabled = androidEnabled,
+            iosEnabled = iosEnabled,
+            webEnabled = webEnabled,
+        )
     }
 }
