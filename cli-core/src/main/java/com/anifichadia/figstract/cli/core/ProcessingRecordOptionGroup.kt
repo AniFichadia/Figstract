@@ -20,8 +20,10 @@ class ProcessingRecordOptionGroup : OptionGroup() {
     val name by option(
         "--processingRecordName",
         help = """
-            |A unique name for processing records. This is useful when performing multiple runs of the importer on the
-            |same Figma but with different configurations to extract different assets.
+            |A unique name suffix for the processing record file itself. This is useful when performing multiple runs
+            |of the importer on the same Figma file but with different configurations to extract different assets.
+            |This is distinct from a batch's own name (see asset-batch's --batchConfig), which disambiguates entries
+            |within a single processing record file rather than the file itself.
         """.trimMargin(),
     )
 }

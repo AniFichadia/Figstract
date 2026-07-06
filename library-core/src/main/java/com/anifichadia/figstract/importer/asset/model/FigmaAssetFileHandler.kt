@@ -18,6 +18,7 @@ import com.anifichadia.figstract.importer.Lifecycle
 @Suppress("FunctionName")
 fun FigmaAssetFileHandler(
     figmaFileDefinition: FigmaFileDefinition,
+    name: String?,
     discoveryStrategy: NodeDiscoveryStrategy,
     assetFilter: AssetFilter,
     assetsPerChunk: Int = AssetFileHandler.DEFAULT_ASSETS_PER_CHUNK,
@@ -27,6 +28,7 @@ fun FigmaAssetFileHandler(
     createInstructions: (canvas: Node.Canvas, node: Node) -> List<Instruction>,
 ) = AssetFileHandler(
     figmaFileDefinition = figmaFileDefinition,
+    name = name,
     assetsPerChunk = assetsPerChunk,
     lifecycle = lifecycle,
 ) { response, _ ->

@@ -53,6 +53,7 @@ internal fun createArtworkFigmaFileHandler(
     iosOutputScales: Set<Scale> = Scale.defaults,
     iosOutputFormat: ArtworkOutputFormat = ArtworkOutputFormat.Default,
     iosGroupByToken: NodeTokenStringGenerator? = null,
+    name: String? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     //region Import pipelines
@@ -136,6 +137,7 @@ internal fun createArtworkFigmaFileHandler(
 
     return FigmaAssetFileHandler(
         figmaFileDefinition = figmaFileDefinition,
+        name = name,
         discoveryStrategy = discoveryStrategy,
         assetFilter = assetFilter,
         lifecycle = lifecycle,

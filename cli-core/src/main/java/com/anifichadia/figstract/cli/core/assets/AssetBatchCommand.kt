@@ -46,6 +46,8 @@ class AssetBatchCommand : BaseAssetsCommand(
                 }
             
               "enabled":          boolean  (required) set false to skip this batch
+              "name":             string   (optional) disambiguates this batch from others targeting the same fileKey
+                                            for processing record and import report purposes
               "outDirectory":     string   (optional) overrides the global output directory for this batch
               "jsonPath":         string   (optional) JsonPath expression to locate nodes within the Figma file
               "instructionLimit": int      (optional) max number of assets to process
