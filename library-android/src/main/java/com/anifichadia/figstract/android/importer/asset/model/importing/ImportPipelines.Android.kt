@@ -21,7 +21,7 @@ import java.io.File
 fun androidImageScaleAndStoreInDensityBuckets(
     imageDirectory: File,
     sourceDensity: DensityBucket,
-    densityBuckets: List<DensityBucket> = DensityBucket.defaults,
+    densityBuckets: Set<DensityBucket> = DensityBucket.defaults,
 ): ImportPipeline.Step {
     return densityBuckets
         .map { targetDensity -> androidImageScaleAndStoreInDensityBucket(imageDirectory, sourceDensity, targetDensity) }

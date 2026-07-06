@@ -19,6 +19,6 @@ enum class DensityBucket(
 
     companion object {
         /** By default, this uses all [DensityBucket]s except [DensityBucket.LDPI] since LDPI images are rarely used now.*/
-        val defaults = DensityBucket.entries.filter { it != LDPI }
+        val defaults = DensityBucket.entries.filter { it != LDPI }.toSet()
     }
 }

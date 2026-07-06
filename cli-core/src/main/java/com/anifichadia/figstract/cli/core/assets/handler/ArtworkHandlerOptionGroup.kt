@@ -31,11 +31,11 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
         .default(false)
     private val artworkAndroidOutputDensityBuckets by option("--${prefix}AndroidOutputDensityBuckets")
         .enum<DensityBucket>()
-        .multiple(default = DensityBucket.defaults)
+        .multiple(default = DensityBucket.defaults.toList())
         .unique()
     private val artworkIosOutputScales by option("--${prefix}IosOutputScales")
         .enum<Scale>()
-        .multiple(default = Scale.defaults)
+        .multiple(default = Scale.defaults.toList())
         .unique()
     private val artworkIosOutputFormat by option("--${prefix}IosOutputFormat")
         .enum<ArtworkOutputFormat>()
@@ -76,8 +76,8 @@ class ArtworkHandlerOptionGroup : AssetHandlerOptionGroup("artwork") {
             androidExportConfig = androidImageXxxHdpi,
             iosExportConfig = ios3xImage,
             webExportConfig = pngUnscaled,
-            androidOutputDensityBuckets = artworkAndroidOutputDensityBuckets.toList(),
-            iosOutputScales = artworkIosOutputScales.toList(),
+            androidOutputDensityBuckets = artworkAndroidOutputDensityBuckets,
+            iosOutputScales = artworkIosOutputScales,
             iosOutputFormat = artworkIosOutputFormat,
             iosGroupByToken = iosGroupByToken,
             instructionLimit = instructionLimit,

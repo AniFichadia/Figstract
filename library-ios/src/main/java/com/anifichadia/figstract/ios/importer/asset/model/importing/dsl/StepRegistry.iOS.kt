@@ -78,8 +78,8 @@ private fun ImportPipelineStepRegistry.StepParams.resolveAssetCatalog(baseDirect
 
 private fun ImportPipelineStepRegistry.StepParams.resolveScale(key: String): Scale = enum<Scale>(key)
 
-private fun ImportPipelineStepRegistry.StepParams.resolveScales(): List<Scale> {
-    return enumListOrDefault("scales") { Scale.defaults }
+private fun ImportPipelineStepRegistry.StepParams.resolveScales(): Set<Scale> {
+    return enumListOrDefault("scales") { Scale.defaults.toList() }.toSet()
 }
 
 private fun ImportPipelineStepRegistry.StepParams.resolveAssetType(): AssetType.Image =

@@ -63,9 +63,9 @@ sealed interface AssetConfig {
         val createUncropped: Boolean = true,
         val createCropped: Boolean = false,
 
-        val androidOutputDensityBuckets: List<DensityBucket> = DensityBucket.defaults,
+        val androidOutputDensityBuckets: Set<DensityBucket> = DensityBucket.defaults,
 
-        val iosOutputScales: List<Scale> = Scale.defaults,
+        val iosOutputScales: Set<Scale> = Scale.defaults,
         val iosOutputFormat: ArtworkOutputFormat = ArtworkOutputFormat.Default,
     ) : Convention
 
