@@ -2,14 +2,15 @@ package com.anifichadia.figstract.cli.core.assets.handler
 
 import com.anifichadia.figstract.Conventions
 import com.anifichadia.figstract.cli.core.DelegatableOptionGroup
+import com.anifichadia.figstract.cli.core.assets.model.AssetConfig
+import com.anifichadia.figstract.cli.core.assets.model.PlatformOptions
 import com.anifichadia.figstract.cli.core.assets.option.AssetFilterOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup.Companion.createOption
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.figma.FigmaFileDefinition
-import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.AssetFilter
 import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
-import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.ios.ios
 import com.github.ajalt.clikt.core.BadParameterValue
 import com.github.ajalt.clikt.parameters.options.convert
@@ -71,45 +72,37 @@ abstract class AssetHandlerOptionGroup(protected val prefix: String) : Delegatab
 
     protected abstract val nameGenerators: AssetTokenStringGeneratorOptionGroup
 
-    fun createHandler(
-        androidOutDirectory: File?,
-        iosOutDirectory: File?,
-        webOutDirectory: File?,
-    ): AssetFileHandler? {
-        if (enabled) {
-            val figmaFile = this.figmaFile
-            if (figmaFile != null) {
-                return createHandlerInternal(
-                    figmaFileDefinition = FigmaFileDefinition(
-                        fileKey = figmaFile,
-                        branchName = figmaFileBranchName,
-                        version = figmaFileVersion,
-                    ),
-                    androidOutDirectory = androidOutDirectory,
-                    iosOutDirectory = iosOutDirectory,
-                    webOutDirectory = webOutDirectory,
-                    filters = filters,
-                    renamingMap = renamingMap,
-                    jsonPath = jsonPath,
-                    iosGroupByToken = iosGroupByToken.takeIf { it.format.isNotBlank() },
-                    instructionLimit = instructionLimit,
-                )
-            } else {
-                throw BadParameterValue("$prefix are enabled but figma file is not specified")
-            }
-        }
-        return null
+    fun createAssetConfigs(
+        outDirectory: File,
+        platformOptions: PlatformOptions,
+    ): List<AssetConfig> {
+        if (!enabled) return emptyList()
+        val figmaFile = this.figmaFile ?: throw BadParameterValue("$prefix are enabled but figma file is not specified")
+
+        return createAssetConfigsInternal(
+            figmaFileDefinition = FigmaFileDefinition(
+                fileKey = figmaFile,
+                branchName = figmaFileBranchName,
+                version = figmaFileVersion,
+            ),
+            outDirectory = outDirectory,
+            platformOptions = platformOptions,
+            assetFilter = filters.toAssetFilter(),
+            renamingMap = renamingMap,
+            jsonPath = jsonPath,
+            iosGroupByTokenNamingFormat = iosGroupByToken.takeIf { it.format.isNotBlank() }?.format,
+            instructionLimit = instructionLimit,
+        )
     }
 
-    protected abstract fun createHandlerInternal(
+    protected abstract fun createAssetConfigsInternal(
         figmaFileDefinition: FigmaFileDefinition,
-        androidOutDirectory: File?,
-        iosOutDirectory: File?,
-        webOutDirectory: File?,
-        filters: AssetFilterOptionGroup,
+        outDirectory: File,
+        platformOptions: PlatformOptions,
+        assetFilter: AssetFilter,
         renamingMap: AssetRenamingMap,
         jsonPath: String?,
-        iosGroupByToken: NodeTokenStringGenerator?,
+        iosGroupByTokenNamingFormat: String?,
         instructionLimit: Int?,
-    ): AssetFileHandler
+    ): List<AssetConfig>
 }

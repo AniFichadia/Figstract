@@ -11,7 +11,6 @@ import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
 import com.anifichadia.figstract.importer.asset.model.importing.ImportPipeline
 import com.anifichadia.figstract.importer.asset.model.importing.dsl.ImportPipelineDsl
 import com.anifichadia.figstract.ios.ios
-import com.anifichadia.figstract.type.fold
 import java.io.File
 
 fun createHandlersFromBatches(batches: List<AssetConfig>, outDirectory: File): List<AssetFileHandler> {
@@ -22,9 +21,9 @@ fun createHandlersFromBatches(batches: List<AssetConfig>, outDirectory: File): L
             is AssetConfig.Convention -> {
                 //region Common options
                 val platformOptions = assetConfig.platformOptions
-                val androidOutDirectory = outDirectory.fold("android").takeIf { platformOptions.androidEnabled }
-                val iosOutDirectory = outDirectory.fold("ios").takeIf { platformOptions.iosEnabled }
-                val webOutDirectory = outDirectory.fold("web").takeIf { platformOptions.webEnabled }
+                val androidOutDirectory = platformOptions.androidDirectory(outDirectory)
+                val iosOutDirectory = platformOptions.iosDirectory(outDirectory)
+                val webOutDirectory = platformOptions.webDirectory(outDirectory)
 
                 val androidNameGenerator = NodeTokenStringGenerator(
                     format = assetConfig.namingFormats.androidFormat,

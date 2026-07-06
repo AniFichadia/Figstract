@@ -1,12 +1,13 @@
 package com.anifichadia.figstract.cli.core.assets.handler
 
-import com.anifichadia.figstract.cli.core.assets.option.AssetFilterOptionGroup
+import com.anifichadia.figstract.cli.core.assets.model.AssetConfig
+import com.anifichadia.figstract.cli.core.assets.model.NamingFormats
+import com.anifichadia.figstract.cli.core.assets.model.PlatformOptions
 import com.anifichadia.figstract.cli.core.assets.option.AssetTokenStringGeneratorOptionGroup
 import com.anifichadia.figstract.cli.core.provideDelegate
 import com.anifichadia.figstract.figma.FigmaFileDefinition
-import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
+import com.anifichadia.figstract.importer.asset.model.AssetFilter
 import com.anifichadia.figstract.importer.asset.model.AssetRenamingMap
-import com.anifichadia.figstract.importer.asset.model.NodeTokenStringGenerator
 import java.io.File
 
 class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
@@ -17,30 +18,34 @@ class IconsHandlerOptionGroup : AssetHandlerOptionGroup("icons") {
         webFormat = """{node.name}""",
     )
 
-    override fun createHandlerInternal(
+    override fun createAssetConfigsInternal(
         figmaFileDefinition: FigmaFileDefinition,
-        androidOutDirectory: File?,
-        iosOutDirectory: File?,
-        webOutDirectory: File?,
-        filters: AssetFilterOptionGroup,
+        outDirectory: File,
+        platformOptions: PlatformOptions,
+        assetFilter: AssetFilter,
         renamingMap: AssetRenamingMap,
         jsonPath: String?,
-        iosGroupByToken: NodeTokenStringGenerator?,
+        iosGroupByTokenNamingFormat: String?,
         instructionLimit: Int?,
-    ): AssetFileHandler {
-        return createIconFigmaFileHandler(
-            figmaFileDefinition = figmaFileDefinition,
-            androidOutDirectory = androidOutDirectory,
-            iosOutDirectory = iosOutDirectory,
-            webOutDirectory = webOutDirectory,
-            assetFilter = filters.toAssetFilter(),
-            renamingMap = renamingMap,
-            androidNameGenerator = nameGenerators.android,
-            iosNameGenerator = nameGenerators.ios,
-            webNameGenerator = nameGenerators.web,
-            jsonPath = jsonPath,
-            iosGroupByToken = iosGroupByToken,
-            instructionLimit = instructionLimit,
+    ): List<AssetConfig> {
+        return listOf(
+            AssetConfig.Icon(
+                fileDefinition = figmaFileDefinition,
+                enabled = true,
+                outDirectory = null, // Relies on default out dir resolution
+                assetFilter = assetFilter,
+                renamingMap = renamingMap,
+                namingFormats = NamingFormats(
+                    androidFormat = nameGenerators.android.format,
+                    iosFormat = nameGenerators.ios.format,
+                    webFormat = nameGenerators.web.format,
+                    webCasing = nameGenerators.web.casing,
+                ),
+                jsonPath = jsonPath,
+                platformOptions = platformOptions,
+                iosGroupByTokenNamingFormat = iosGroupByTokenNamingFormat,
+                instructionLimit = instructionLimit
+            )
         )
     }
 }
