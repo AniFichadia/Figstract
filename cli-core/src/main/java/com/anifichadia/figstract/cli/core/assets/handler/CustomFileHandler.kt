@@ -28,6 +28,8 @@ internal fun createCustomFileHandler(
     renamingMap: AssetRenamingMap,
     nameGenerator: NodeTokenStringGenerator,
 
+    name: String? = null,
+
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     //region Lifecycles
@@ -46,6 +48,7 @@ internal fun createCustomFileHandler(
 
     return FigmaAssetFileHandler(
         figmaFileDefinition = figmaFileDefinition,
+        name = name,
         discoveryStrategy = NodeDiscoveryStrategy.JsonPath(jsonPath),
         assetFilter = assetFilter,
         lifecycle = lifecycle,

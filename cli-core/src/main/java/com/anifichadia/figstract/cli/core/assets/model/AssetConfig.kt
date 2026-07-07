@@ -19,6 +19,8 @@ sealed interface AssetConfig {
     val enabled: Boolean
     val outDirectory: String?
 
+    val name: String?
+
     val assetFilter: AssetFilter
 
     val renamingMap: AssetRenamingMap
@@ -42,6 +44,8 @@ sealed interface AssetConfig {
         override val fileDefinition: FigmaFileDefinition,
         override val enabled: Boolean,
         override val outDirectory: String? = null,
+
+        override val name: String? = null,
 
         override val assetFilter: AssetFilter = AssetFilter.Empty,
 
@@ -76,6 +80,8 @@ sealed interface AssetConfig {
         override val enabled: Boolean,
         override val outDirectory: String? = null,
 
+        override val name: String? = null,
+
         override val assetFilter: AssetFilter = AssetFilter.Empty,
 
         override val renamingMap: AssetRenamingMap = AssetRenamingMap.Empty,
@@ -100,6 +106,8 @@ sealed interface AssetConfig {
         override val fileDefinition: FigmaFileDefinition,
         override val enabled: Boolean,
         override val outDirectory: String? = null,
+
+        override val name: String? = null,
 
         val pipelineDefinition: String,
 

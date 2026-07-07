@@ -64,6 +64,7 @@ fun createHandlersFromBatches(batches: List<AssetConfig>, outDirectory: File): L
                         iosOutputScales = assetConfig.iosOutputScales,
                         iosOutputFormat = assetConfig.iosOutputFormat,
                         iosGroupByToken = iosGroupByToken,
+                        name = assetConfig.name,
                         instructionLimit = assetConfig.instructionLimit,
                     )
 
@@ -79,6 +80,7 @@ fun createHandlersFromBatches(batches: List<AssetConfig>, outDirectory: File): L
                         webNameGenerator = webNameGenerator,
                         jsonPath = assetConfig.jsonPath,
                         iosGroupByToken = iosGroupByToken,
+                        name = assetConfig.name,
                         instructionLimit = assetConfig.instructionLimit,
                     )
                 }
@@ -108,6 +110,7 @@ fun createHandlersFromBatches(batches: List<AssetConfig>, outDirectory: File): L
                         format = assetConfig.namingFormat,
                         casing = assetConfig.namingCasing,
                     ),
+                    name = assetConfig.name,
                     instructionLimit = assetConfig.instructionLimit,
                 )
             }

@@ -1,6 +1,7 @@
 package com.anifichadia.figstract.importer.asset
 
 import com.anifichadia.figstract.apiclient.ApiResponse
+import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.figma.api.FigmaApi
 import com.anifichadia.figstract.figma.model.GetFilesResponse
 import com.anifichadia.figstract.importer.asset.model.AssetFileHandler
@@ -51,15 +52,15 @@ class FigmaAssetImporter(
 ) {
     suspend fun importFromFigma(handlers: List<AssetFileHandler>) {
         val reports = handlers.associate { handler ->
-            val figmaFile = handler.figmaFileDefinition.fileKey
-            figmaFile to FigmaImportReport(figmaFile)
+            val key = ReportKey(handler.figmaFileDefinition.fileKey, handler.name)
+            key to FigmaImportReport(figmaFile = key.figmaFile, name = key.name)
         }
 
         val importFlow = handlers
             .map { handler ->
                 createProcessingFlowForHandler(
                     handler = handler,
-                    report = reports.getValue(handler.figmaFileDefinition.fileKey),
+                    report = reports.getValue(ReportKey(handler.figmaFileDefinition.fileKey, handler.name)),
                 )
             }
             .merge()
@@ -138,7 +139,7 @@ class FigmaAssetImporter(
                 handler.lifecycle.onImportFinished()
 
                 lastUpdated?.let {
-                    processingRecordRepository.updateRecord(figmaFile, it)
+                    processingRecordRepository.updateRecord(figmaFile, handler.name, it)
                 }
 
                 handler.lifecycle.onFinished()
@@ -186,14 +187,23 @@ class FigmaAssetImporter(
         val instructionsFlow = fileFlow
             .filter { (handler, getFileApiResponse) ->
                 val response = getFileApiResponse.successBodyOrThrow()
-                val record = processingRecordRepository.readRecord(handler.figmaFileDefinition.fileKey)
 
-                val processFile = if (record != null) {
-                    response.lastModified > record.lastProcessed
+                val figmaFile = handler.figmaFileDefinition.fileKey
+                val record = processingRecordRepository.readRecord(figmaFile, handler.name)
+
+                val unchangedSinceLastRecord = record != null && response.lastModified <= record.lastProcessed
+                val latestReport = if (unchangedSinceLastRecord) {
+                    importReportRepository.findLatest(figmaFile, handler.name)
                 } else {
-                    true
+                    null
                 }
-                logger.info { "Should process ${handler.figmaFileDefinition.fileKey}: $processFile" }
+                val latestReportIsClean = latestReport != null && latestReport.summary.failures == 0
+
+                val processFile = !(unchangedSinceLastRecord && latestReportIsClean)
+                logger.info {
+                    "Should process $figmaFile: $processFile " +
+                        "(unchangedSinceLastRecord: $unchangedSinceLastRecord, latestReportIsClean: $latestReportIsClean)"
+                }
 
                 processFile
             }
@@ -369,6 +379,11 @@ class FigmaAssetImporter(
             }
             .flowOn(importPipelineContext)
     }
+
+    private data class ReportKey(
+        val figmaFile: FileKey,
+        val name: String?,
+    )
 
     private data class Chunk(
         val handler: AssetFileHandler,

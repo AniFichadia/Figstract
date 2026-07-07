@@ -4,7 +4,6 @@ import com.anifichadia.figstract.figma.FileKey
 import com.anifichadia.figstract.type.serializer.OffsetDateTimeSerializer
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
@@ -22,16 +21,21 @@ class JsonFileProcessingRecordRepository(
     }
     private val fileLock = Mutex(false)
 
-    override suspend fun createRecord(figmaFile: FileKey, lastProcessed: OffsetDateTime) {
+    override suspend fun createRecord(figmaFile: FileKey, name: String?, lastProcessed: OffsetDateTime) {
         val records = readAll().toMutableList()
 
         fileLock.withLock {
-            val indexOfFirst = records.indexOfFirst { it.figmaFile == figmaFile }
+            val indexOfFirst = records.indexOfFirst { it.figmaFile == figmaFile && it.name == name }
+            val processingRecord = ProcessingRecord(
+                figmaFile = figmaFile,
+                name = name,
+                lastProcessed = lastProcessed,
+            )
             if (indexOfFirst >= 0) {
                 records.removeAt(indexOfFirst)
-                records.add(indexOfFirst, ProcessingRecord(figmaFile, lastProcessed))
+                records.add(indexOfFirst, processingRecord)
             } else {
-                records.add(ProcessingRecord(figmaFile, lastProcessed))
+                records.add(processingRecord)
             }
 
             if (recordFile.exists()) {

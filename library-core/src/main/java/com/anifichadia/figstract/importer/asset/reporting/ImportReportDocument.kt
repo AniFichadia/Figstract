@@ -8,6 +8,7 @@ import kotlin.time.Instant
 @Serializable
 data class ImportReportDocument(
     val figmaFile: String,
+    val name: String?,
     val generatedAt: Instant,
     val summary: Summary,
     val failures: List<FailureEntry>,
@@ -81,6 +82,7 @@ data class ImportReportDocument(
 
             return ImportReportDocument(
                 figmaFile = report.figmaFile,
+                name = report.name,
                 generatedAt = generatedAt,
                 summary = Summary(
                     total = successes.size + failures.size,

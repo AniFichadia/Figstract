@@ -10,4 +10,5 @@ data class ProcessingRecord(
     val figmaFile: FileKey,
     @Contextual
     val lastProcessed: OffsetDateTime,
+    val name: String? = null,
 )

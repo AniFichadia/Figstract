@@ -42,6 +42,7 @@ internal fun createIconFigmaFileHandler(
     webNameGenerator: NodeTokenStringGenerator,
     jsonPath: String?,
     iosGroupByToken: NodeTokenStringGenerator? = null,
+    name: String? = null,
     instructionLimit: Int? = null,
 ): AssetFileHandler {
     //region Import pipelines
@@ -119,6 +120,7 @@ internal fun createIconFigmaFileHandler(
 
     return FigmaAssetFileHandler(
         figmaFileDefinition = figmaFileDefinition,
+        name = name,
         discoveryStrategy = discoveryStrategy,
         assetFilter = assetFilter,
         assetsPerChunk = assetsPerChunk,

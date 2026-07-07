@@ -241,13 +241,21 @@ Override the format using `--artworkAndroidNamingFormat`, `--artworkIosNamingFor
 Processing records prevent re-processing Figma files that haven't changed since the last run, based on the file's last-modified timestamp.
 The record is stored as `processing_record.json` in the output directory.
 
+A record is only used to skip a file if it is also corroborated by the latest [import report](#import-reports) for that file. 
+If no report can be found, or the latest one recorded any failures, the file is reprocessed regardless of what the record says, since the record only reflects that a run was attempted and not that it completed cleanly.
+
+Records are keyed by Figma file and, where set, by a batch's `name` (see [Common fields](#common-fields)). 
+Batches that target the same Figma file but leave `name` unset share a record and are indistinguishable from one another. 
+Provide a distinct `name` to track and cross-reference them independently.
+
 - `--processingRecordEnabled` (default `true`): enable or disable processing records
 - `--processingRecordName`: a unique name suffix for the record file, useful when running multiple configurations against the same Figma file (e.g. `processing_record_icons.json`)
 
 ### Import reports
 
-After each run, Figstract writes a JSON import report to the output directory with the name `import_report_<figmaFileKey>_<timestamp>.json`.
-The report captures which assets or variables were processed, skipped, or failed, and is useful for debugging and auditing runs.
+After each run, Figstract writes a JSON import report to the output directory with the name `import_report_<figmaFileKey>_<timestamp>.json`, or `import_report_<figmaFileKey>_<name>_<timestamp>.json` for a batch with a `name` set.
+The report captures which assets or variables were processed, skipped, or failed, and is useful for debugging and auditing runs. 
+It also underpins the cross-referencing described under [Processing records](#processing-records).
 
 ### Output formats
 
@@ -507,15 +515,16 @@ Batches with `"enabled": false` are skipped.
 
 All batch types share these fields:
 
-| Field              | Type    | Default                 | Description                                                                               |
-|--------------------|---------|-------------------------|-------------------------------------------------------------------------------------------|
-| `fileDefinition`   | object  | required                | Figma file to extract from: `{ "fileKey": "...", "branchName": "...", "version": "..." }` |
-| `enabled`          | boolean | required                | Set `false` to skip this batch                                                            |
-| `outDirectory`     | string  | global `--outDirectory` | Per-batch output directory override                                                       |
-| `jsonPath`         | string  | required for Custom     | JsonPath expression to locate nodes. For Artwork and Icons, this is optional              |
-| `instructionLimit` | int     | -                       | Max assets to process                                                                     |
-| `assetFilter`      | object  | no filter               | Include/exclude by canvas, node, or parent name using regex patterns                      |
-| `renamingMap`      | object  | empty                   | Rename canvases or nodes before name generation. Refer to [Renaming](#renaming)           |
+| Field              | Type    | Default                 | Description                                                                                                                                                  |
+|--------------------|---------|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `fileDefinition`   | object  | required                | Figma file to extract from: `{ "fileKey": "...", "branchName": "...", "version": "..." }`                                                                    |
+| `enabled`          | boolean | required                | Set `false` to skip this batch                                                                                                                               |
+| `name`             | string  | -                       | Disambiguates this batch from others targeting the same `fileDefinition`'s file key, for [processing record and import report](#processing-records) purposes |
+| `outDirectory`     | string  | global `--outDirectory` | Per-batch output directory override                                                                                                                          |
+| `jsonPath`         | string  | required for Custom     | JsonPath expression to locate nodes. For Artwork and Icons, this is optional                                                                                 |
+| `instructionLimit` | int     | -                       | Max assets to process                                                                                                                                        |
+| `assetFilter`      | object  | no filter               | Include/exclude by canvas, node, or parent name using regex patterns                                                                                         |
+| `renamingMap`      | object  | empty                   | Rename canvases or nodes before name generation. Refer to [Renaming](#renaming)                                                                              |
 
 `assetFilter`:
 ```json

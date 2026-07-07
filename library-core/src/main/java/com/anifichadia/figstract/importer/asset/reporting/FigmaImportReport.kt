@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
  */
 class FigmaImportReport(
     val figmaFile: String,
+    val name: String? = null,
     private val ignoreNoImageUrlFailures: Boolean = true,
 ) {
     private val results = ConcurrentLinkedQueue<ImportResult>()
